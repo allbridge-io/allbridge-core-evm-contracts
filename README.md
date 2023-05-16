@@ -14,6 +14,24 @@ npm run test
 npm run test-fuzzy
 ```
 
+## More Tests
+
+### Foundry
+In order to run the foundry tests, install Foundry:
+
+[Installation](https://book.getfoundry.sh/getting-started/installation)
+
+### Configure [Slither](https://github.com/crytic/slither)
+
+1. `python3 -m venv venv`
+2. `source ./venv/bin/activate`
+3. `pip3 install slither-analyzer`
+
+Run static analysis with
+```
+slither .
+```
+
 ## Deploy
 
 ### EVM (goerli)
