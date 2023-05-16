@@ -11,8 +11,8 @@ abstract contract GasUsage is Ownable {
     IGasOracle internal gasOracle;
     mapping(uint chainId => uint amount) public gasUsage;
 
-    constructor(IGasOracle _gasOracle) {
-        gasOracle = _gasOracle;
+    constructor(IGasOracle gasOracle_) {
+        gasOracle = gasOracle_;
     }
 
     /**
@@ -26,10 +26,10 @@ abstract contract GasUsage is Ownable {
 
     /**
      * @dev Sets the Gas Oracle contract address.
-     * @param _gasOracle The address of the Gas Oracle contract.
+     * @param gasOracle_ The address of the Gas Oracle contract.
      */
-    function setGasOracle(IGasOracle _gasOracle) external onlyOwner {
-        gasOracle = _gasOracle;
+    function setGasOracle(IGasOracle gasOracle_) external onlyOwner {
+        gasOracle = gasOracle_;
     }
 
     /**

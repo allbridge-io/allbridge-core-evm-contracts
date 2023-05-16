@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract RewardManager is Ownable, ERC20 {
     using SafeERC20 for ERC20;
     uint private constant P = 52;
-    uint private constant BP = 1e4;
+    uint internal constant BP = 1e4;
 
     // Accumulated rewards per share, shifted left by P bits
     uint public accRewardPerShareP;
@@ -27,8 +27,8 @@ contract RewardManager is Ownable, ERC20 {
     event Withdraw(address indexed user, uint amount);
     event RewardsClaimed(address indexed user, uint amount);
 
-    constructor(ERC20 _token, string memory lpName, string memory lpSymbol) ERC20(lpName, lpSymbol) {
-        token = _token;
+    constructor(ERC20 token_, string memory lpName, string memory lpSymbol) ERC20(lpName, lpSymbol) {
+        token = token_;
         // Default admin fee is 20%
         adminFeeShareBP = BP / 5;
     }
@@ -52,9 +52,9 @@ contract RewardManager is Ownable, ERC20 {
     /**
      * @notice Sets the basis points of the admin fee share from rewards.
      */
-    function setAdminFeeShare(uint _adminFeeShareBP) external onlyOwner {
-        require(_adminFeeShareBP <= BP, "RewardManager: too high");
-        adminFeeShareBP = _adminFeeShareBP;
+    function setAdminFeeShare(uint adminFeeShareBP_) external onlyOwner {
+        require(adminFeeShareBP_ <= BP, "RewardManager: too high");
+        adminFeeShareBP = adminFeeShareBP_;
     }
 
     /**

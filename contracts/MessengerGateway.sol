@@ -15,25 +15,25 @@ abstract contract MessengerGateway is Ownable {
     Messenger private allbridgeMessenger;
     WormholeMessenger private wormholeMessenger;
 
-    constructor(Messenger _allbridgeMessenger, WormholeMessenger _wormholeMessenger) {
-        allbridgeMessenger = _allbridgeMessenger;
-        wormholeMessenger = _wormholeMessenger;
+    constructor(Messenger allbridgeMessenger_, WormholeMessenger wormholeMessenger_) {
+        allbridgeMessenger = allbridgeMessenger_;
+        wormholeMessenger = wormholeMessenger_;
     }
 
     /**
      * @dev Sets the Allbridge Messenger contract address.
-     * @param _allbridgeMessenger The address of the Messenger contract.
+     * @param allbridgeMessenger_ The address of the Messenger contract.
      */
-    function setAllbridgeMessenger(Messenger _allbridgeMessenger) external onlyOwner {
-        allbridgeMessenger = _allbridgeMessenger;
+    function setAllbridgeMessenger(Messenger allbridgeMessenger_) external onlyOwner {
+        allbridgeMessenger = allbridgeMessenger_;
     }
 
     /**
      * @dev Sets the Wormhole Messenger contract address.
-     * @param _wormholeMessenger The address of the WormholeMessenger contract.
+     * @param wormholeMessenger_ The address of the WormholeMessenger contract.
      */
-    function setWormholeMessenger(WormholeMessenger _wormholeMessenger) external onlyOwner {
-        wormholeMessenger = _wormholeMessenger;
+    function setWormholeMessenger(WormholeMessenger wormholeMessenger_) external onlyOwner {
+        wormholeMessenger = wormholeMessenger_;
     }
 
     /**

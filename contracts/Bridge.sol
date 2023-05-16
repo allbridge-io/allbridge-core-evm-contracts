@@ -62,13 +62,13 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
     event Received(address sender, uint amount);
 
     constructor(
-        uint _chainId,
-        uint _chainPrecision,
-        Messenger _allbridgeMessenger,
-        WormholeMessenger _wormholeMessenger,
-        IGasOracle _gasOracle
-    ) Router(_chainPrecision) MessengerGateway(_allbridgeMessenger, _wormholeMessenger) GasUsage(_gasOracle) {
-        chainId = _chainId;
+        uint chainId_,
+        uint chainPrecision_,
+        Messenger allbridgeMessenger_,
+        WormholeMessenger wormholeMessenger_,
+        IGasOracle gasOracle_
+    ) Router(chainPrecision_) MessengerGateway(allbridgeMessenger_, wormholeMessenger_) GasUsage(gasOracle_) {
+        chainId = chainId_;
     }
 
     /**
@@ -159,31 +159,31 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
     /**
      * @notice Allows the admin to add new supported chain destination.
      * @dev Registers the address of a bridge deployed on a different chain.
-     * @param _chainId The chain ID of the bridge to register.
+     * @param chainId_ The chain ID of the bridge to register.
      * @param bridgeAddress The address of the bridge contract to register.
      */
-    function registerBridge(uint _chainId, bytes32 bridgeAddress) external override onlyOwner {
-        otherBridges[_chainId] = bridgeAddress;
+    function registerBridge(uint chainId_, bytes32 bridgeAddress) external override onlyOwner {
+        otherBridges[chainId_] = bridgeAddress;
     }
 
     /**
      * @notice Allows the admin to add a new supported destination token.
      * @dev Adds the address of a token on another chain to the list of supported tokens for the specified chain.
-     * @param _chainId The chain ID where the token is deployed.
+     * @param chainId_ The chain ID where the token is deployed.
      * @param tokenAddress The address of the token to add as a supported token.
      */
-    function addBridgeToken(uint _chainId, bytes32 tokenAddress) external override onlyOwner {
-        otherBridgeTokens[_chainId][tokenAddress] = true;
+    function addBridgeToken(uint chainId_, bytes32 tokenAddress) external override onlyOwner {
+        otherBridgeTokens[chainId_][tokenAddress] = true;
     }
 
     /**
      * @notice Allows the admin to remove support for a destination token.
      * @dev Removes the address of a token on another chain from the list of supported tokens for the specified chain.
-     * @param _chainId The chain ID where the token is deployed.
+     * @param chainId_ The chain ID where the token is deployed.
      * @param tokenAddress The address of the token to remove from the list of supported tokens.
      */
-    function removeBridgeToken(uint _chainId, bytes32 tokenAddress) external override onlyOwner {
-        otherBridgeTokens[_chainId][tokenAddress] = false;
+    function removeBridgeToken(uint chainId_, bytes32 tokenAddress) external override onlyOwner {
+        otherBridgeTokens[chainId_][tokenAddress] = false;
     }
 
     /**
@@ -221,7 +221,7 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         return
             gasOracle.getTransactionGasCostInUSD(
                 destinationChainId,
-                this.gasUsage(destinationChainId) + getMessageGasUsage(destinationChainId, messenger)
+                gasUsage[destinationChainId] + getMessageGasUsage(destinationChainId, messenger)
             ) / fromGasOracleScalingFactor[tokenAddress];
     }
 
@@ -298,12 +298,12 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         uint feeTokenAmount
     ) internal returns (uint) {
         if (feeTokenAmount == 0) return 0;
-        address _tokenAddress = address(uint160(uint(tokenAddress)));
+        address tokenAddress_ = address(uint160(uint(tokenAddress)));
 
-        IERC20 token = IERC20(_tokenAddress);
+        IERC20 token = IERC20(tokenAddress_);
         token.safeTransferFrom(user, address(this), feeTokenAmount);
 
-        uint fee = (bridgingFeeConversionScalingFactor[_tokenAddress] * feeTokenAmount) / gasOracle.price(chainId);
+        uint fee = (bridgingFeeConversionScalingFactor[tokenAddress_] * feeTokenAmount) / gasOracle.price(chainId);
 
         emit BridgingFeeFromTokens(fee);
         return fee;

@@ -35,7 +35,7 @@ contract TestMessenger is IMessenger {
         return 1000;
     }
 
-    function setIsHasMessage(bool _isHasMessage) external {
-        isHasMessage = _isHasMessage;
+    function setIsHasMessage(bool isHasMessage_) external {
+        isHasMessage = isHasMessage_;
     }
 }

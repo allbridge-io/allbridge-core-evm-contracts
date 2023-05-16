@@ -1,0 +1,13 @@
+{
+  "solc_remaps": [
+    "ds-test/=lib/ds-test/src/",
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/=./node_modules/@openzeppelin/"
+  ],
+  "solc_disable_warnings": true,
+  "exclude_informational": true,
+  "exclude_low": true,
+  "exclude_medium": true,
+  "exclude_high": false,
+  "filter_paths": "openzeppelin|forge-std|test/"
+}

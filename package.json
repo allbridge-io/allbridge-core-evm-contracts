@@ -8,8 +8,11 @@
     "test": "hardhat test",
     "test-with-gas-usage": "NODE_GAS=true hardhat test",
     "test-fuzzy": "hardhat test test-fuzzy/pool.test.ts test-fuzzy/pool-balance.test.ts",
-    "lint": "eslint \"test/**/*.ts\" --fix",
+    "test-foundry": "forge test",
+    "test-foundry:full": "forge test -vvvvv",
+    "slither:all": "slither --config-file ./slither.config.json .",
     "solidity-lint": "solhint --fix 'contracts/**/*.sol'",
+    "lint": "eslint \"test/**/*.ts\" --fix",
     "prettier": "npx prettier --write 'contracts/**/*.sol' 'hardhat.config.ts' 'test/**/*.ts'"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",

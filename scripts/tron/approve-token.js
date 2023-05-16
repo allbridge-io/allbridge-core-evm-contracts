@@ -8,7 +8,7 @@ const { callContract } = require('./helper');
     tokenAddress,
     'approve',
     spenderAddress,
-    '1000000000' + '0'.repeat(18),
+    '1000000000000' + '0'.repeat(18),
   );
   console.log(result);
 })();

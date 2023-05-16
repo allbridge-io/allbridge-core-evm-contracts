@@ -38,15 +38,15 @@ contract Messenger is Ownable, GasUsage, IMessenger {
     event SecondaryValidatorsSet(address[] oldValidators, address[] newValidators);
 
     constructor(
-        uint _chainId,
-        bytes32 _otherChainIds,
-        IGasOracle _gasOracle,
-        address _primaryValidator,
+        uint chainId_,
+        bytes32 otherChainIds_,
+        IGasOracle gasOracle_,
+        address primaryValidator_,
         address[] memory validators
-    ) GasUsage(_gasOracle) {
-        chainId = _chainId;
-        otherChainIds = _otherChainIds;
-        primaryValidator = _primaryValidator;
+    ) GasUsage(gasOracle_) {
+        chainId = chainId_;
+        otherChainIds = otherChainIds_;
+        primaryValidator = primaryValidator_;
 
         uint length = validators.length;
         for (uint index; index < length; ) {

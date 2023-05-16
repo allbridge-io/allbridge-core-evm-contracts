@@ -7,18 +7,18 @@ import {RewardManager} from "../RewardManager.sol";
 
 contract TestPool is Pool {
     constructor(
-        address _router,
-        uint _a,
-        ERC20 _token,
-        uint16 _feeShareBP,
-        uint _balanceRatioMinBP
-    ) Pool(_router, _a, _token, _feeShareBP, _balanceRatioMinBP, "LP", "LP") {}
+        address router_,
+        uint a_,
+        ERC20 token_,
+        uint16 feeShareBP_,
+        uint balanceRatioMinBP_
+    ) Pool(router_, a_, token_, feeShareBP_, balanceRatioMinBP_, "LP", "LP") {}
 
-    function setVUsdBalance(uint _vUsdBalance) public {
-        vUsdBalance = _vUsdBalance;
+    function setVUsdBalance(uint vUsdBalance_) public {
+        vUsdBalance = vUsdBalance_;
     }
 
-    function setTokenBalance(uint _tokenBalance) public {
-        tokenBalance = _tokenBalance;
+    function setTokenBalance(uint tokenBalance_) public {
+        tokenBalance = tokenBalance_;
     }
 }

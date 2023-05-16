@@ -27,7 +27,7 @@ module.exports = {
     nile: {
       privateKey: process.env.PRIVATE_KEY,
       userFeePercentage: 100,
-      feeLimit: 1000 * 1e6,
+      feeLimit: 15000 * 1e6,
       fullHost: process.env.NODE_URL,
       network_id: '3',
     },

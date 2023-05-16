@@ -16,7 +16,6 @@ contract Pool is RewardManager {
     using SafeERC20 for ERC20;
     uint private constant SYSTEM_PRECISION = 3;
     int private constant PP = 1e4; // Price Precision
-    uint private constant BP = 10000; // Basis Points
     uint private constant MAX_TOKEN_BALANCE = 2 ** 40; // Max possible token balance
 
     /**
@@ -46,21 +45,21 @@ contract Pool is RewardManager {
     event SwappedFromVUsd(address recipient, address token, uint vUsdAmount, uint amount, uint fee);
 
     constructor(
-        address _router,
-        uint _a,
-        ERC20 _token,
-        uint16 _feeShareBP,
-        uint _balanceRatioMinBP,
+        address router_,
+        uint a_,
+        ERC20 token_,
+        uint16 feeShareBP_,
+        uint balanceRatioMinBP_,
         string memory lpName,
         string memory lpSymbol
-    ) RewardManager(_token, lpName, lpSymbol) {
-        a = _a;
-        router = _router;
+    ) RewardManager(token_, lpName, lpSymbol) {
+        a = a_;
+        router = router_;
         stopAuthority = owner();
-        feeShareBP = _feeShareBP;
-        balanceRatioMinBP = _balanceRatioMinBP;
+        feeShareBP = feeShareBP_;
+        balanceRatioMinBP = balanceRatioMinBP_;
 
-        uint decimals = _token.decimals();
+        uint decimals = token_.decimals();
         tokenAmountReduce = decimals > SYSTEM_PRECISION ? 10 ** (decimals - SYSTEM_PRECISION) : 0;
         tokenAmountIncrease = decimals < SYSTEM_PRECISION ? 10 ** (SYSTEM_PRECISION - decimals) : 0;
     }
@@ -266,9 +265,9 @@ contract Pool is RewardManager {
     /**
      * @dev Sets admin fee share.
      */
-    function setFeeShare(uint16 _feeShareBP) external onlyOwner {
-        require(_feeShareBP <= BP, "Pool: too large");
-        feeShareBP = _feeShareBP;
+    function setFeeShare(uint16 feeShareBP_) external onlyOwner {
+        require(feeShareBP_ <= BP, "Pool: too large");
+        feeShareBP = feeShareBP_;
     }
 
     function adjustTotalLpAmount() external onlyOwner {
@@ -280,9 +279,9 @@ contract Pool is RewardManager {
     /**
      * @dev Sets the threshold over which the pool can't be disbalanced.
      */
-    function setBalanceRatioMinBP(uint _balanceRatioMinBP) external onlyOwner {
-        require(_balanceRatioMinBP <= BP, "Pool: too large");
-        balanceRatioMinBP = _balanceRatioMinBP;
+    function setBalanceRatioMinBP(uint balanceRatioMinBP_) external onlyOwner {
+        require(balanceRatioMinBP_ <= BP, "Pool: too large");
+        balanceRatioMinBP = balanceRatioMinBP_;
     }
 
     /**
@@ -316,30 +315,30 @@ contract Pool is RewardManager {
     /**
      * @dev Sets the address of the stopAuthority account.
      */
-    function setStopAuthority(address _stopAuthority) external onlyOwner {
-        stopAuthority = _stopAuthority;
+    function setStopAuthority(address stopAuthority_) external onlyOwner {
+        stopAuthority = stopAuthority_;
     }
 
     /**
      * @dev Sets the address of the Router contract.
      */
-    function setRouter(address _router) external onlyOwner {
-        router = _router;
+    function setRouter(address router_) external onlyOwner {
+        router = router_;
     }
 
     /**
      * @dev y = (sqrt(x(4AD³ + x (4A(D - x) - D )²)) + x (4A(D - x) - D ))/8Ax.
      */
     function getY(uint x) external view returns (uint) {
-        uint _d = d; // Gas optimization
-        uint _a4 = a << 2;
-        uint _a8 = _a4 << 1;
+        uint d_ = d; // Gas optimization
+        uint a4 = a << 2;
+        uint a8 = a4 << 1;
         // 4A(D - x) - D
-        int part1 = int(_a4) * (int(_d) - int(x)) - int(_d);
+        int part1 = int(a4) * (int(d_) - int(x)) - int(d_);
         // x * (4AD³ + x(part1²))
-        uint part2 = x * (_a4 * _d * _d * _d + x * uint(part1 * part1));
+        uint part2 = x * (a4 * d_ * d_ * d_ + x * uint(part1 * part1));
         // (sqrt(part2) + x(part1)) / 8Ax)
-        return SafeCast.toUint256(int(_sqrt(part2)) + int(x) * part1) / (_a8 * x) + 1; // +1 to offset rounding errors
+        return SafeCast.toUint256(int(_sqrt(part2)) + int(x) * part1) / (a8 * x) + 1; // +1 to offset rounding errors
     }
 
     /**
@@ -347,15 +346,15 @@ contract Pool is RewardManager {
      */
     function getPrice() external view returns (uint) {
         uint x = tokenBalance;
-        uint _a8 = a << 3;
-        uint _dCubed = d * d * d;
+        uint a8 = a << 3;
+        uint dCubed = d * d * d;
 
         // 4A(D - x) - D
         int p1 = int(a << 2) * (int(d) - int(x)) - int(d);
         // x * 4AD³ + x(p1²)
-        uint p2 = x * ((a << 2) * _dCubed + x * uint(p1 * p1));
+        uint p2 = x * ((a << 2) * dCubed + x * uint(p1 * p1));
         // D³ + 8ADx² - 8Ax³ - 2Dx²
-        int p3 = int(_dCubed) + int((a << 3) * d * x * x) - int(_a8 * x * x * x) - int((d << 1) * x * x);
+        int p3 = int(dCubed) + int((a << 3) * d * x * x) - int(a8 * x * x * x) - int((d << 1) * x * x);
         // 1/2 * p3 / (4x * sqrt(p2))
         return SafeCast.toUint256((PP >> 1) + ((PP * p3) / int((x << 2) * _sqrt(p2))));
     }
@@ -368,21 +367,21 @@ contract Pool is RewardManager {
         // c = sqrt(a² + b³)
         // D = cbrt(a + c) + cbrt(a - c)
         uint xy = x * y;
-        uint _a = a;
+        uint a_ = a;
         // Axy(x+y)
-        uint p1 = _a * xy * (x + y);
+        uint p1 = a_ * xy * (x + y);
         // xy(4A - 1) / 3
-        uint p2 = (xy * ((_a << 2) - 1)) / 3;
+        uint p2 = (xy * ((a_ << 2) - 1)) / 3;
         // p1² + p2³
         uint p3 = _sqrt((p1 * p1) + (p2 * p2 * p2));
         unchecked {
-            uint _d = _cbrt(p1 + p3);
+            uint d_ = _cbrt(p1 + p3);
             if (p3 > p1) {
-                _d -= _cbrt(p3 - p1);
+                d_ -= _cbrt(p3 - p1);
             } else {
-                _d += _cbrt(p1 - p3);
+                d_ += _cbrt(p1 - p3);
             }
-            d = (_d << 1);
+            d = (d_ << 1);
         }
     }
 

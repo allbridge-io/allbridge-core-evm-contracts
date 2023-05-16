@@ -47,10 +47,10 @@ contract TestBridgeForSwap is IBridge, Router {
     function removeBridgeToken(uint chainId_, bytes32 tokenAddress_) external override onlyOwner {}
 
     function getBridgingCostInTokens(
-        uint destinationChainId,
-        MessengerProtocol messenger,
-        address tokenAddress
-    ) external view override returns (uint) {
+        uint,
+        MessengerProtocol,
+        address
+    ) external pure override returns (uint) {
         return 0;
     }
 

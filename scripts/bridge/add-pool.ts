@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { handleTransactionResult } from '../helper';
+import { addressToBytes32, handleTransactionResult } from '../helper';
 
 async function main() {
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
@@ -20,7 +20,7 @@ async function main() {
   const contract = await ethers.getContractAt('Bridge', bridgeAddress);
   const result = await contract.addPool(
     poolAddress,
-    '0x' + '0'.repeat(24) + tokenAddress.replace('0x', ''),
+    addressToBytes32(tokenAddress)
   );
   await handleTransactionResult(result);
 }

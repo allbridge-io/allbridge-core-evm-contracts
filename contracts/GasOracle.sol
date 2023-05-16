@@ -24,40 +24,40 @@ contract GasOracle is Ownable, IGasOracle {
     // current chain ID
     uint public immutable override chainId;
 
-    constructor(uint _chainId, uint chainPrecision) {
-        chainId = _chainId;
+    constructor(uint chainId_, uint chainPrecision) {
+        chainId = chainId_;
         fromOracleToChainScalingFactor = 10 ** (ORACLE_PRECISION - chainPrecision);
     }
 
     /**
      * @notice Sets the chain data for a given chain ID.
-     * @param _chainId The ID of the given chain to set data for.
-     * @param _price The price of the given chain's native token in USD.
+     * @param chainId_ The ID of the given chain to set data for.
+     * @param price_ The price of the given chain's native token in USD.
      * @param gasPrice The price of a gas unit in the given chain's native token (with precision according to the const
      * `ORACLE_PRECISION`).
      */
-    function setChainData(uint _chainId, uint128 _price, uint128 gasPrice) external override onlyOwner {
-        chainData[_chainId].price = _price;
-        chainData[_chainId].gasPrice = gasPrice;
+    function setChainData(uint chainId_, uint128 price_, uint128 gasPrice) external override onlyOwner {
+        chainData[chainId_].price = price_;
+        chainData[chainId_].gasPrice = gasPrice;
     }
 
     /**
      * @notice Sets only the price for a given chain ID.
-     * @param _chainId The ID of the given chain to set the price for.
-     * @param _price The price of the given chain's native token in USD.
+     * @param chainId_ The ID of the given chain to set the price for.
+     * @param price_ The price of the given chain's native token in USD.
      */
-    function setPrice(uint _chainId, uint128 _price) external override onlyOwner {
-        chainData[_chainId].price = _price;
+    function setPrice(uint chainId_, uint128 price_) external override onlyOwner {
+        chainData[chainId_].price = price_;
     }
 
     /**
      * @notice Sets only the gas price for a given chain ID.
-     * @param _chainId The ID of the given chain to set the gas price for.
+     * @param chainId_ The ID of the given chain to set the gas price for.
      * @param gasPrice The price of a gas unit in the given chain's native token (with precision according to the const
      * `ORACLE_PRECISION`).
      */
-    function setGasPrice(uint _chainId, uint128 gasPrice) external override onlyOwner {
-        chainData[_chainId].gasPrice = gasPrice;
+    function setGasPrice(uint chainId_, uint128 gasPrice) external override onlyOwner {
+        chainData[chainId_].gasPrice = gasPrice;
     }
 
     /**
@@ -96,11 +96,11 @@ contract GasOracle is Ownable, IGasOracle {
 
     /**
      * @notice Get the price of a given chain's native token in USD.
-     * @param _chainId The ID of the given chain to get the price.
+     * @param chainId_ The ID of the given chain to get the price.
      * @return the price of the given chain's native token in USD with precision of const ORACLE_PRECISION
      */
-    function price(uint _chainId) external view override returns (uint) {
-        return chainData[_chainId].price;
+    function price(uint chainId_) external view override returns (uint) {
+        return chainData[chainId_].price;
     }
 
     fallback() external payable {

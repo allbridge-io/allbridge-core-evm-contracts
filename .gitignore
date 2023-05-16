@@ -49,3 +49,6 @@ types_web3/
 artifacts/
 cache/
 typechain/
+venv/
+cache_forge/
+out/

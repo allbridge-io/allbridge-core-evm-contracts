@@ -12,7 +12,7 @@ import {HashUtils} from "./libraries/HashUtils.sol";
 contract WormholeMessenger is Ownable, GasUsage {
     using HashUtils for bytes32;
 
-    IWormhole private wormhole;
+    IWormhole private immutable wormhole;
     uint public immutable chainId;
     bytes32 public otherChainIds;
 
@@ -29,16 +29,16 @@ contract WormholeMessenger is Ownable, GasUsage {
     event Received(address, uint);
 
     constructor(
-        uint _chainId,
-        bytes32 _otherChainIds,
-        IWormhole _wormhole,
-        uint8 _commitmentLevel,
-        IGasOracle _gasOracle
-    ) GasUsage(_gasOracle) {
-        chainId = _chainId;
-        otherChainIds = _otherChainIds;
-        wormhole = _wormhole;
-        commitmentLevel = _commitmentLevel;
+        uint chainId_,
+        bytes32 otherChainIds_,
+        IWormhole wormhole_,
+        uint8 commitmentLevel_,
+        IGasOracle gasOracle_
+    ) GasUsage(gasOracle_) {
+        chainId = chainId_;
+        otherChainIds = otherChainIds_;
+        wormhole = wormhole_;
+        commitmentLevel = commitmentLevel_;
     }
 
     function sendMessage(bytes32 message) external payable {
@@ -46,12 +46,12 @@ contract WormholeMessenger is Ownable, GasUsage {
         require(otherChainIds[uint8(message[1])] != 0, "Messenger: wrong destination");
         bytes32 messageWithSender = message.hashWithSenderAddress(msg.sender);
 
-        uint32 _nonce = nonce;
+        uint32 nonce_ = nonce;
 
-        uint64 sequence = wormhole.publishMessage(_nonce, abi.encodePacked(messageWithSender), commitmentLevel);
+        uint64 sequence = wormhole.publishMessage(nonce_, abi.encodePacked(messageWithSender), commitmentLevel);
 
         unchecked {
-            nonce = _nonce + 1;
+            nonce = nonce_ + 1;
         }
 
         require(sentMessages[messageWithSender] == 0, "WormholeMessenger: has message");
@@ -84,8 +84,8 @@ contract WormholeMessenger is Ownable, GasUsage {
         otherChainIds = value;
     }
 
-    function registerWormholeMessenger(uint16 _chainId, bytes32 _address) external onlyOwner {
-        otherWormholeMessengers[_chainId] = _address;
+    function registerWormholeMessenger(uint16 chainId_, bytes32 address_) external onlyOwner {
+        otherWormholeMessengers[chainId_] = address_;
     }
 
     function withdrawGasTokens(uint amount) external onlyOwner {

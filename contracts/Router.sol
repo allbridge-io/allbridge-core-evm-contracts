@@ -44,8 +44,8 @@ abstract contract Router is Ownable, IRouter {
         uint receiveAmount
     );
 
-    constructor(uint _chainPrecision) {
-        chainPrecision = _chainPrecision;
+    constructor(uint chainPrecision_) {
+        chainPrecision = chainPrecision_;
         stopAuthority = owner();
     }
 
@@ -116,15 +116,15 @@ abstract contract Router is Ownable, IRouter {
     /**
      * @dev Allows the admin to set the address of the stopAuthority.
      */
-    function setStopAuthority(address _stopAuthority) external onlyOwner {
-        stopAuthority = _stopAuthority;
+    function setStopAuthority(address stopAuthority_) external onlyOwner {
+        stopAuthority = stopAuthority_;
     }
 
     /**
      * @dev Allows the admin to set the address of the rebalancer.
      */
-    function setRebalancer(address _rebalancer) external onlyOwner {
-        rebalancer = _rebalancer;
+    function setRebalancer(address rebalancer_) external onlyOwner {
+        rebalancer = rebalancer_;
     }
 
     function _receiveAndSwapFromVUsd(
