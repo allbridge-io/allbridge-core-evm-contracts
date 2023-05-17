@@ -9,5 +9,6 @@
   "exclude_low": true,
   "exclude_medium": true,
   "exclude_high": false,
-  "filter_paths": "openzeppelin|forge-std|test/"
+  "filter_paths": "openzeppelin|forge-std|test/",
+  "compile_force_framework": "hardhat"
 }
