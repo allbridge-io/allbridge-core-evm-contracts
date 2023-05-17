@@ -1,0 +1,24 @@
+name: lint-actions
+on: [ push ]
+jobs:
+  linter-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - run: >
+          npm install 
+          eslint
+          prettier
+          @typescript-eslint/eslint-plugin 
+          @typescript-eslint/parser
+          eslint-config-prettier 
+          eslint-config-standard 
+          eslint-plugin-import 
+          eslint-plugin-node
+          eslint-plugin-prettier 
+          eslint-plugin-promise
+      - run: cd projects/server && npx eslint "{src,apps,libs,test}/**/*.ts" --ignore-pattern "libs/abi/**/*.ts"
+      - run: cd projects/evm && npx eslint "test/**/*.ts"
