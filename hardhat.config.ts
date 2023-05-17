@@ -6,7 +6,6 @@ import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
-import '@nomicfoundation/hardhat-foundry';
 import 'hardhat-abi-exporter';
 import 'hardhat-ignore-warnings';
 
@@ -51,7 +50,7 @@ const config: HardhatUserConfig = {
   },
   abiExporter: [
     {
-      path: '../server/libs/abi',
+      path: 'artifacts/abi',
       runOnCompile: false,
       flat: true,
       only: [
@@ -63,19 +62,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
       ],
-    },
-    {
-      path: '../indexer/handler/src/utils/abi',
-      runOnCompile: false,
-      flat: true,
-      only: [
-        ':ERC20$',
-        ':Bridge$',
-        ':Pool$',
-        ':Messenger$',
-        ':WormholeMessenger$',
-      ],
-    },
+    }
   ],
   warnings: {
     '*': {
