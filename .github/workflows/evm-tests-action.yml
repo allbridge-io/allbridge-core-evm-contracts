@@ -6,12 +6,11 @@ on:
 
 jobs:
   build:
-    if: contains(github.event.pull_request.labels.*.name, 'evm') && contains(github.event.pull_request.labels.*.name, 'smart-contract')
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: ./projects/evm
+        working-directory: .
 
     steps:
       - uses: actions/checkout@v3
@@ -36,9 +35,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - run: pnpm install
-        working-directory: projects/server
-       
       - name: Build
         run: pnpm build
           
