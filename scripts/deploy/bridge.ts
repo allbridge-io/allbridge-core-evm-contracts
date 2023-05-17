@@ -1,9 +1,16 @@
 import { ethers } from 'hardhat';
 import { handleDeployResult } from '../helper';
+import { loadSolSource, assertContainsSafeERC20 } from '../utils/code-asserts';
 
 const CHAIN_PRECISION = 18;
 
 async function main() {
+  const bridgeSource = loadSolSource('Bridge');
+  const routerSource = loadSolSource('Router');
+
+  assertContainsSafeERC20(bridgeSource);
+  assertContainsSafeERC20(routerSource);
+
   const chainId = process.env.CHAIN_ID ? +process.env.CHAIN_ID : undefined;
   if (!chainId) {
     throw new Error('No chain id');

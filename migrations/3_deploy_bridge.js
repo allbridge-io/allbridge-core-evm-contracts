@@ -1,8 +1,18 @@
+const {loadSolSource, assertDoesNotContainSafeERC20} = require('../scripts/utils/code-asserts');
 const Contract = artifacts.require('./Bridge.sol');
 
 const CHAIN_PRECISION = 6;
 
 module.exports = function (deployer) {
+  const routerSource = loadSolSource('Router');
+  const bridgeSource = loadSolSource('Bridge');
+  const gasUsageSource = loadSolSource('GasUsage');
+  const messengerGatewaySource = loadSolSource('MessengerGateway');
+  assertDoesNotContainSafeERC20(routerSource);
+  assertDoesNotContainSafeERC20(bridgeSource);
+  assertDoesNotContainSafeERC20(gasUsageSource);
+  assertDoesNotContainSafeERC20(messengerGatewaySource);
+
   const chainId = process.env.CHAIN_ID ? +process.env.CHAIN_ID : undefined;
   if (!chainId) {
     throw new Error('No chain id');

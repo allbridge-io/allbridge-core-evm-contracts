@@ -1,7 +1,14 @@
 import { ethers } from 'hardhat';
 import { handleDeployResult } from '../helper';
+import { loadSolSource, assertContainsSafeERC20 } from '../utils/code-asserts';
 
 async function main() {
+  const poolSource = loadSolSource('Pool');
+  const rewardManagerSource = loadSolSource('RewardManager');
+
+  assertContainsSafeERC20(poolSource);
+  assertContainsSafeERC20(rewardManagerSource);
+
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
   if (!bridgeAddress) {
     throw new Error('No bridge address');

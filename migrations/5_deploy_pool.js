@@ -1,6 +1,12 @@
+const {loadSolSource, assertDoesNotContainSafeERC20} = require('../scripts/utils/code-asserts');
 const Contract = artifacts.require('./Pool.sol');
 
 module.exports = function (deployer) {
+  const poolSource = loadSolSource('Pool');
+  const rewardManagerSource = loadSolSource('RewardManager');
+  assertDoesNotContainSafeERC20(poolSource);
+  assertDoesNotContainSafeERC20(rewardManagerSource);
+
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
   if (!bridgeAddress) {
     throw new Error('No bridge address');
