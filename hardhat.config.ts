@@ -50,7 +50,7 @@ const config: HardhatUserConfig = {
   },
   abiExporter: [
     {
-      path: '../server/libs/abi',
+      path: 'artifacts/abi',
       runOnCompile: false,
       flat: true,
       only: [
@@ -62,19 +62,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
       ],
-    },
-    {
-      path: '../indexer/handler/src/utils/abi',
-      runOnCompile: false,
-      flat: true,
-      only: [
-        ':ERC20$',
-        ':Bridge$',
-        ':Pool$',
-        ':Messenger$',
-        ':WormholeMessenger$',
-      ],
-    },
+    }
   ],
   warnings: {
     '*': {
