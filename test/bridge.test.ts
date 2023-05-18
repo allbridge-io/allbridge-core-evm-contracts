@@ -10,6 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Big } from 'big.js';
 import { BigNumber } from 'ethers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+const {AddressZero} = ethers.constants;
 
 const { deployMockContract } = waffle;
 
@@ -402,6 +403,29 @@ describe('Bridge', () => {
               { value: '15000' },
             ),
           ).revertedWith('Bridge: tokens already sent');
+        });
+
+        it('Failure: should revert if sending to zero-address', async () => {
+          const amount = '10';
+          const recipient = addressToBase32(AddressZero);
+
+          const destinationChainId = 2;
+          const nonce = '1';
+          const messenger = 1;
+
+          await expect(
+            bridge.swapAndBridge(
+              addressToBase32(token.address),
+              amount,
+              recipient,
+              destinationChainId,
+              addressToBase32(token.address),
+              nonce,
+              messenger,
+              0,
+              { value: '15000' },
+            ),
+          ).revertedWith('Bridge: bridge to the zero address');
         });
 
         describe('pay bridging fee with stables', () => {

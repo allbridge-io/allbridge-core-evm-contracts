@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { Pool, TestBridgeForSwap, Token } from '../typechain';
 import { BigNumber } from 'ethers';
 import { addressToBase32, EPP, ESP, SP } from './utils';
+const {AddressZero} = ethers.constants;
 
 const { parseUnits } = ethers.utils;
 
@@ -30,14 +31,16 @@ describe('Router: common flow', () => {
     toToken: string,
     amount: string | BigNumber | number,
     sender: string,
+    _recipient?: string,
   ) {
+    const recipient = _recipient ?? sender;
     const tx = await swap
       .connect(await ethers.getSigner(sender))
       .swap(
         amount,
         addressToBase32(fromToken),
         addressToBase32(toToken),
-        sender,
+        recipient,
         0,
       );
     const txReceipt = await tx.wait();
@@ -574,6 +577,12 @@ describe('Router: common flow', () => {
       const amountAfter = await tokenB.balanceOf(bob);
       // balance should not change
       await expect(amountAfter).eq(amountBefore);
+    });
+
+    it('Failure: swap should revert if sending to zero-address', async () => {
+      await expect(
+        doSwap(tokenA.address, tokenB.address, parseUnits('1', AP), bob, AddressZero),
+      ).to.be.revertedWith('transfer to the zero address');
     });
   });
 });
