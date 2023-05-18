@@ -101,6 +101,7 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         uint feeTokenAmount
     ) external payable override whenCanSwap {
         require(amount > feeTokenAmount, "Bridge: amount too low for fee");
+        require(recipient != 0, "Bridge: bridge to the zero address");
         uint bridgingFee = msg.value + _convertBridgingFeeInTokensToNativeToken(msg.sender, token, feeTokenAmount);
         uint amountAfterFee = amount - feeTokenAmount;
 
