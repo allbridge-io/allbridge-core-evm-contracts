@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import { getRequiredEnvVariable, handleDeployResult } from '../helper';
 
-const CHAIN_PRECISION = 6;
+const CHAIN_PRECISION = 18;
 
 async function main() {
   const chainId = +getRequiredEnvVariable('CHAIN_ID');

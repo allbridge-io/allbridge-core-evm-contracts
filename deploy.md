@@ -44,7 +44,7 @@ npx hardhat run ./scripts/bridge/set-gas-usage.ts --network goerli
 set args in ./scripts/messenger/set-gas-usage.ts
 npx hardhat run ./scripts/messenger/set-gas-usage.ts --network goerli
 
-set args in ./scripts/wormhole/register-wormhole-messenger.ts
+set args in ./scripts/wormhole/register-wormhole-messenger.ts  - chainId is Wormhole Chain ID from https://book.wormhole.com/reference/contracts.html, 
 npx hardhat run ./scripts/wormhole/register-wormhole-messenger.ts --network goerli
 
 set args in ./scripts/wormhole/set-gas-usage.ts
