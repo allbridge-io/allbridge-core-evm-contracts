@@ -1,21 +1,13 @@
 import { ethers } from 'hardhat';
-import { handleDeployResult } from '../helper';
+import { getRequiredEnvVariable, handleDeployResult } from '../helper';
 
 async function main() {
-  const chainId = process.env.CHAIN_ID ? +process.env.CHAIN_ID : undefined;
-  if (!chainId) {
-    throw new Error('No chain id');
-  }
+  const chainId = +(getRequiredEnvVariable('CHAIN_ID'));
 
-  const gasOracleAddress = process.env.GAS_ORACLE_ADDRESS;
-  if (!gasOracleAddress) {
-    throw new Error('No gas oracle address');
-  }
+  const gasOracleAddress = getRequiredEnvVariable('GAS_ORACLE_ADDRESS');
+  const primaryValidator = getRequiredEnvVariable('PRIMARY_VALIDATOR_ADDRESS')
 
-  const validator = process.env.VALIDATOR_ADDRESS;
-  if (!validator) {
-    throw new Error('No validator');
-  }
+  const secondaryValidators = JSON.parse(getRequiredEnvVariable('SECONDARY_VALIDATOR_ADDRESSES'));
 
   const otherChainIds = Buffer.from([
     0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -28,8 +20,8 @@ async function main() {
     chainId,
     otherChainIds,
     gasOracleAddress,
-    validator,
-    [validator],
+    primaryValidator,
+    secondaryValidators,
   );
 
   await handleDeployResult(contract);
