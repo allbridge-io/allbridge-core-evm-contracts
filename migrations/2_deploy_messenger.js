@@ -11,9 +11,14 @@ module.exports = function (deployer) {
     throw new Error('No gas oracle address');
   }
 
-  const validator = process.env.VALIDATOR_ADDRESS;
-  if (!validator) {
-    throw new Error('No validator');
+  const primaryValidator = process.env.PRIMARY_VALIDATOR_ADDRESS;
+  if (!primaryValidator) {
+    throw new Error('No primary validator');
+  }
+
+  const secondaryValidators = JSON.parse(process.env.SECONDARY_VALIDATOR_ADDRESSES || 'null');
+  if (!secondaryValidators) {
+    throw new Error('No secondary validators');
   }
 
   const otherChainIds = Buffer.from([
@@ -27,7 +32,7 @@ module.exports = function (deployer) {
     chainId,
     otherChainIds,
     gasOracleAddress,
-    validator,
-    [validator],
+    primaryValidator,
+    secondaryValidators,
   );
 };
