@@ -78,17 +78,17 @@ tronbox migrate --f 5 --to 5 --network nile
 
 
 node ./scripts/tron/approve-token.js --network nile
-node ./scripts/tron/add-pool-liquidity.js --network nile
-node ./scripts/tron/add-pool.js --network nile
+node ./scripts/tron/pool/add-pool-liquidity.js --network nile
+node ./scripts/tron/bridge/add-pool.js --network nile
 
-set args ./scripts/tron/add-bridge.js
-node ./scripts/tron/add-bridge.js --network nile
+set args ./scripts/tron/bridge/add-bridge.js
+node ./scripts/tron/bridge/add-bridge.js --network nile
 
-set args ./scripts/tron/add-bridge-token.js
-node ./scripts/tron/add-bridge-token.js --network nile
+set args ./scripts/tron/bridge/add-bridge-token.js
+node ./scripts/tron/bridge/add-bridge-token.js --network nile
 
-set args ./scripts/tron/set-bridge-gas-uasge.js
-node ./scripts/tron/set-bridge-gas-uasge.js --network nile
+set args ./scripts/tron/bridge/set-bridge-gas-uasge.js
+node ./scripts/tron/bridge/set-bridge-gas-uasge.js --network nile
 
-set args ./scripts/tron/set-messenger-gas-uasge.js
-node ./scripts/tron/set-messenger-gas-uasge.js --network nile
+set args ./scripts/tron/messenger/set-messenger-gas-uasge.js
+node ./scripts/tron/messenger/set-messenger-gas-uasge.js --network nile

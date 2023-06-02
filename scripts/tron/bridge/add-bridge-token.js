@@ -1,9 +1,8 @@
 const {
   callContract,
-  tronAddressToBuffer32,
   ethAddressToBytes32,
   solanaAddressToBytes32,
-} = require('./helper');
+} = require('../helper');
 
 (async function () {
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
@@ -14,10 +13,10 @@ const {
   const result = await callContract(
     'Bridge',
     bridgeAddress,
-    'registerBridge',
+    'addBridgeToken',
     5,
-    // ethAddressToBytes32('0xFD92c29cdF2C76206B067626A61f54589b849AB9'),
-    solanaAddressToBytes32('ERrse1kNoZPcY2BjRXQ5rHTCPDPwL1m2NQ2sGSj6cW7C'), // authority address
+    // ethAddressToBytes32('0x54B79d73d514224379107703C6102D53E321aEFa'),
+    solanaAddressToBytes32('FpGHqNpwDctcaJyu24M9E2ydTe5owPQgD7UdarKEJHd4'),
   );
   console.log(result);
 })();
