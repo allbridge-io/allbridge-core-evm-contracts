@@ -1,4 +1,4 @@
-const { callContract, getContract } = require('./helper');
+const { callContract, getContract } = require('../helper');
 (async function () {
   const poolAddress = process.env.POOL_ADDRESS;
   const tokenAddress = process.env.TOKEN_ADDRESS;

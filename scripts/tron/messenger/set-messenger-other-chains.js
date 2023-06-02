@@ -1,4 +1,4 @@
-const { callContract } = require('./helper');
+const { callContract } = require('../helper');
 
 (async function () {
   const messengerAddress = process.env.MESSENGER_ADDRESS;
