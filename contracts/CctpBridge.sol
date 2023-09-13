@@ -5,7 +5,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IGasOracle} from "./interfaces/IGasOracle.sol";
-import {ITokenMessenger} from "./interfaces/cctp/ITokenMesseger.sol";
+import {ITokenMessenger} from "./interfaces/cctp/ITokenMessenger.sol";
 import {IReceiver} from "./interfaces/cctp/IReceiver.sol";
 import {Stoppable} from "./Stoppable.sol";
 import {GasUsage} from "./GasUsage.sol";
@@ -63,7 +63,7 @@ contract CctpBridge is Stoppable, GasUsage {
         uint gasFromStables = _chargeStableTokensForGas(msg.sender, feeTokenAmount);
         emit RelayerFeeFromStableTokens(gasFromStables);
         uint relayerFee = msg.value + gasFromStables;
-        require(relayerFee >= getTransactionCost(destinationChainId), "not enough fee");
+        require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
         uint amountAfterFee = amount - feeTokenAmount;
         uint32 destinationDomain = chainIdDomainMap[destinationChainId];
         uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));

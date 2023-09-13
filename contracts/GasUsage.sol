@@ -37,7 +37,7 @@ abstract contract GasUsage is Ownable {
      * @param chainId The ID of the chain for which to get the gas cost.
      * @return The calculated gas cost of the transaction in the current chain's native token
      */
-    function getTransactionCost(uint chainId) public view returns (uint) {
+    function getTransactionCost(uint chainId) external view returns (uint) {
         unchecked {
             return gasOracle.getTransactionGasCostInNativeToken(chainId, gasUsage[chainId]);
         }
