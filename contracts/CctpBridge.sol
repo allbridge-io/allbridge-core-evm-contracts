@@ -67,9 +67,8 @@ contract CctpBridge is Stoppable, GasUsage {
         uint relayerFee = msg.value + gasFromStables;
         require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
         uint amountAfterFee = amount - feeTokenAmount;
-        (bool knownChainId, uint256 destinationDomain)  = EnumerableMap.tryGet(chainIdDomainMap, destinationChainId);
-        require(knownChainId, "Unknown destination chain id");
-        uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, uint32(destinationDomain), recipient, address(token));
+        uint32 destinationDomain = getDomain(destinationChainId);
+        uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
         emit TokensSent(amount, recipient, destinationChainId, nonce);
         return nonce;
     }
@@ -106,13 +105,18 @@ contract CctpBridge is Stoppable, GasUsage {
 
     /**
      * @notice Allows the admin to withdraw the relayer fee collected in tokens.
-     * @param token The address of the token contract.
      */
     function withdrawRelayerFeeInTokens() external onlyOwner {
         uint toWithdraw = token.balanceOf(address(this));
         if (toWithdraw > 0) {
             token.safeTransfer(msg.sender, toWithdraw);
         }
+    }
+
+    function getDomain(uint chainId_) public view returns (uint32) {
+        (bool isKnownChainId, uint256 domain)  = EnumerableMap.tryGet(chainIdDomainMap, chainId_);
+        require(isKnownChainId, "Unknown chain id");
+        return uint32(domain);
     }
 
     /**
