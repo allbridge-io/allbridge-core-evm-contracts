@@ -114,7 +114,7 @@ contract CctpBridge is Stoppable, GasUsage {
     }
 
     function getDomain(uint chainId_) public view returns (uint32) {
-        (bool isKnownChainId, uint256 domain)  = EnumerableMap.tryGet(chainIdDomainMap, chainId_);
+        (bool isKnownChainId, uint256 domain) = EnumerableMap.tryGet(chainIdDomainMap, chainId_);
         require(isKnownChainId, "Unknown chain id");
         return uint32(domain);
     }
