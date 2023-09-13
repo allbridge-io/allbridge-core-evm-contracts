@@ -112,4 +112,3 @@ export const calcD = (x: BigNumber, y: BigNumber, a: BigNumber) => {
 export function fromSystemPrecision(amount: BigSource) {
   return Big(amount).div(ESP);
 }
-

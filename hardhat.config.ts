@@ -62,7 +62,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
       ],
-    }
+    },
   ],
   warnings: {
     '*': {

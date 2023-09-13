@@ -1,0 +1,49 @@
+name: core-evm-contracts
+
+on: [push]
+
+jobs:
+  lint:
+    name: ⬣ Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/prepare
+      - name: ⬣ ESLint
+        run: pnpm run lint:check
+
+  audit:
+    name: 🛡️ Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/prepare
+      - name: 🛡️ Audit
+        run: pnpm audit --audit-level=high
+
+  format:
+    name: 🔬 Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/prepare
+      - name: 🔬 Format
+        run: pnpm run format:check
+
+  spell:
+    name: 🈸 Spellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/prepare
+      - name: 🈸 Spellcheck
+        run: pnpm run spell:check
+
+  test:
+    name: ⚡ Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/prepare
+      - name: ⚡ Tests
+        run: pnpm run test

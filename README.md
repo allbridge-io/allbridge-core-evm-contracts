@@ -78,5 +78,5 @@ Config:
 - Add pool to the bridge: `node ./scripts/tron/add-pool.js --network shasta`
 - Set bridge (check args): `node ./scripts/tron/add-bridge.js --network shasta`
 - Add bridge token (check args): `node ./scripts/tron/add-bridge-token.js --network shasta`
-- Set bridge gas usage (check args): `node ./scripts/tron/set-bridge-gas-uasge.js --network shasta`
-- Set messenger gas usage (check args): `node ./scripts/tron/set-messenger-gas-uasge.js --network shasta`
+- Set bridge gas usage (check args): `node ./scripts/tron/set-bridge-gas-usage.js --network shasta`
+- Set messenger gas usage (check args): `node ./scripts/tron/set-messenger-gas-usage.js --network shasta`

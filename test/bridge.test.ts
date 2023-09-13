@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Big } from 'big.js';
 import { BigNumber } from 'ethers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-const {AddressZero} = ethers.constants;
+const { AddressZero } = ethers.constants;
 
 const { deployMockContract } = waffle;
 
