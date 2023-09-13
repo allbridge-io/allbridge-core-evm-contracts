@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IGasOracle} from "./interfaces/IGasOracle.sol";
 import {ITokenMessenger} from "./interfaces/cctp/ITokenMessenger.sol";
 import {IReceiver} from "./interfaces/cctp/IReceiver.sol";
@@ -12,6 +13,7 @@ import {GasUsage} from "./GasUsage.sol";
 
 contract CctpBridge is Stoppable, GasUsage {
     using SafeERC20 for IERC20Metadata;
+    using EnumerableMap for EnumerableMap.UintToUintMap;
 
     uint public immutable chainId;
     uint internal constant ORACLE_PRECISION = 18;
@@ -19,7 +21,7 @@ contract CctpBridge is Stoppable, GasUsage {
     ITokenMessenger private immutable cctpMessenger;
     IReceiver private immutable cctpTransmitter;
     uint private immutable stableTokensForGasScalingFactor;
-    mapping(uint chainId => uint32 domain) public chainIdDomainMap;
+    EnumerableMap.UintToUintMap private chainIdDomainMap;
 
     /**
      * @notice Emitted when the contract is supplied with the gas for bridging.
@@ -65,8 +67,9 @@ contract CctpBridge is Stoppable, GasUsage {
         uint relayerFee = msg.value + gasFromStables;
         require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
         uint amountAfterFee = amount - feeTokenAmount;
-        uint32 destinationDomain = chainIdDomainMap[destinationChainId];
-        uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
+        (bool knownChainId, uint256 destinationDomain)  = EnumerableMap.tryGet(chainIdDomainMap, destinationChainId);
+        require(knownChainId, "Unknown destination chain id");
+        uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, uint32(destinationDomain), recipient, address(token));
         emit TokensSent(amount, recipient, destinationChainId, nonce);
         return nonce;
     }
@@ -91,7 +94,7 @@ contract CctpBridge is Stoppable, GasUsage {
      * @param domain The domain of the destination to register.
      */
     function registerBridgeDestination(uint chainId_, uint32 domain) external onlyOwner {
-        chainIdDomainMap[chainId_] = domain;
+        EnumerableMap.set(chainIdDomainMap, chainId_, domain);
     }
 
     /**
