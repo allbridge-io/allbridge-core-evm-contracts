@@ -98,6 +98,24 @@ contract CctpBridge is Stoppable, GasUsage {
     }
 
     /**
+     * @notice Allows the admin to withdraw the relayer fee collected in gas tokens.
+     */
+    function withdrawGas(uint amount) external onlyOwner {
+        payable(msg.sender).transfer(amount);
+    }
+
+    /**
+     * @notice Allows the admin to withdraw the relayer fee collected in tokens.
+     * @param token The address of the token contract.
+     */
+    function withdrawRelayerFeeInTokens() external onlyOwner {
+        uint toWithdraw = token.balanceOf(address(this));
+        if (toWithdraw > 0) {
+            token.safeTransfer(msg.sender, toWithdraw);
+        }
+    }
+
+    /**
      * @notice Charges the user with stable tokens and calculates the corresponding amount of gas tokens according to
      * the current exchange rate.
      * @param payer The address of the user who is paying stable tokens for the gas
