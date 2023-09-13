@@ -23,6 +23,9 @@ dependencies:
   '@certusone/wormhole-sdk':
     specifier: ^0.5.0
     version: 0.5.0(google-protobuf@3.21.2)
+  '@openzeppelin/contracts':
+    specifier: 4.8.3
+    version: 4.8.3
   '@types/big.js':
     specifier: ^6.1.6
     version: 6.1.6
@@ -64,9 +67,6 @@ devDependencies:
   '@nomiclabs/hardhat-waffle':
     specifier: ^2.0.6
     version: 2.0.6(@nomiclabs/hardhat-ethers@2.2.3)(@types/sinon-chai@3.2.9)(ethereum-waffle@3.4.4)(ethers@5.7.2)(hardhat@2.14.0)
-  '@openzeppelin/contracts':
-    specifier: ^4.9.3
-    version: 4.9.3
   '@typechain/ethers-v5':
     specifier: ^7.2.0
     version: 7.2.0(@ethersproject/abi@5.7.0)(@ethersproject/bytes@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(typechain@5.2.0)(typescript@5.0.4)
@@ -1631,9 +1631,9 @@ packages:
       hardhat: 2.14.0(ts-node@10.9.1)(typescript@5.0.4)
     dev: true
 
-  /@openzeppelin/contracts@4.9.3:
-    resolution: {integrity: sha512-He3LieZ1pP2TNt5JbkPA4PNT9WC3gOTOlDcFGJW4Le4QKqwmiNJCRt44APfxMxvq7OugU/cqYuPcSBzOw38DAg==}
-    dev: true
+  /@openzeppelin/contracts@4.8.3:
+    resolution: {integrity: sha512-bQHV8R9Me8IaJoJ2vPG4rXcL7seB7YVuskr4f+f5RyOStSZetwzkWtoqDMl5erkBJy0lDRUnIR2WIkPiC0GJlg==}
+    dev: false
 
   /@protobufjs/aspromise@1.1.2:
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
