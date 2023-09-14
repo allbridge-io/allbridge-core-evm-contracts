@@ -29,9 +29,9 @@ contract CctpBridge is Stoppable, GasUsage {
     event ReceivedGas(address sender, uint amount);
 
     /**
-     * @notice Emitted when this contract charged the sender with the tokens for the relayer fee.
+     * @notice Emitted when this contract receives some relayer fee / extra gas either as gas tokens or as stable tokens.
      */
-    event RelayerFeeFromStableTokens(uint gas);
+    event ReceivedRelayerFeeAndExtraGas(uint fromGas, uint fromStableTokens);
 
     /**
      * @dev Emitted when tokens are sent on the source blockchain.
@@ -63,9 +63,9 @@ contract CctpBridge is Stoppable, GasUsage {
         require(amount > feeTokenAmount, "amount too low for fee");
         require(recipient != 0, "bridge to the zero address");
         uint gasFromStables = _chargeStableTokensForGas(msg.sender, feeTokenAmount);
-        emit RelayerFeeFromStableTokens(gasFromStables);
         uint relayerFee = msg.value + gasFromStables;
         require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
+        emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables);
         uint amountAfterFee = amount - feeTokenAmount;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
