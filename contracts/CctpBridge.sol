@@ -62,7 +62,8 @@ contract CctpBridge is Stoppable, GasUsage {
     ) external payable whenNotStopped returns (uint64 _nonce) {
         require(amount > feeTokenAmount, "amount too low for fee");
         require(recipient != 0, "bridge to the zero address");
-        uint gasFromStables = _chargeStableTokensForGas(msg.sender, feeTokenAmount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        uint gasFromStables = _getStableTokensValueInGas(feeTokenAmount);
         uint relayerFee = msg.value + gasFromStables;
         require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
         emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables);
@@ -120,16 +121,13 @@ contract CctpBridge is Stoppable, GasUsage {
     }
 
     /**
-     * @notice Charges the user with stable tokens and calculates the corresponding amount of gas tokens according to
-     * the current exchange rate.
-     * @param payer The address of the user who is paying stable tokens for the gas
-     * @param stableTokenAmount The amount of tokens to pay for the gas
-     * @return gas amount
+     * @notice Calculates the amount of gas equivalent in value to provided amount of tokens
+     * according to the current exchange rate.
+     * @param stableTokenAmount The amount of tokens.
+     * @return amount of gas tokens.
      */
-    function _chargeStableTokensForGas(address payer, uint stableTokenAmount) internal returns (uint) {
+    function _getStableTokensValueInGas(uint stableTokenAmount) internal view returns (uint) {
         if (stableTokenAmount == 0) return 0;
-        token.safeTransferFrom(payer, address(this), stableTokenAmount);
-
         return (stableTokensForGasScalingFactor * stableTokenAmount) / gasOracle.price(chainId);
     }
 
