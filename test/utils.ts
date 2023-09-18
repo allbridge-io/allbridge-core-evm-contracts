@@ -73,6 +73,10 @@ export const encodeMessage = ({
   return `0x${bufferHex}`;
 };
 
+export const encodeAsHex = (text: string): string => {
+  return '0x' + Buffer.from(text, 'utf-8').toString('hex');
+};
+
 export const cbrt = (n: BigNumber): BigNumber => {
   let x = BigNumber.from(0);
 

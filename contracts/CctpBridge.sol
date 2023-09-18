@@ -60,17 +60,17 @@ contract CctpBridge is Stoppable, GasUsage {
         uint destinationChainId,
         uint feeTokenAmount
     ) external payable whenNotStopped returns (uint64 _nonce) {
-        require(amount > feeTokenAmount, "amount too low for fee");
-        require(recipient != 0, "bridge to the zero address");
+        require(amount > feeTokenAmount, "Amount must be > feeTokenAmount");
+        require(recipient != 0, "Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
         uint gasFromStables = _getStableTokensValueInGas(feeTokenAmount);
         uint relayerFee = msg.value + gasFromStables;
-        require(relayerFee >= this.getTransactionCost(destinationChainId), "not enough fee");
+        require(relayerFee >= this.getTransactionCost(destinationChainId), "Not enough fee");
         emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables);
         uint amountAfterFee = amount - feeTokenAmount;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
-        emit TokensSent(amount, recipient, destinationChainId, nonce);
+        emit TokensSent(amountAfterFee, recipient, destinationChainId, nonce);
         return nonce;
     }
 
@@ -79,7 +79,7 @@ contract CctpBridge is Stoppable, GasUsage {
         bytes calldata message,
         bytes calldata signature
     ) external payable whenNotStopped {
-        require(cctpTransmitter.receiveMessage(message, signature), "receive message failed");
+        require(cctpTransmitter.receiveMessage(message, signature), "Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
             // ignore if passing extra gas failed

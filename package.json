@@ -13,7 +13,7 @@
     "format": "npx prettier 'contracts/**/*.sol' 'hardhat.config.ts' 'test/**/*.ts' --write",
     "format:check": "npx prettier 'contracts/**/*.sol' 'hardhat.config.ts' 'test/**/*.ts' --check",
     "lint": "eslint \"test/**/*.ts\" --fix && solhint --fix 'contracts/**/*.sol'",
-    "lint:check": "eslint \"test/**/*.ts\" && solhint --fix 'contracts/**/*.sol'",
+    "lint:check": "eslint \"test/**/*.ts\" && solhint 'contracts/**/*.sol'",
     "slither:all": "npm run slither:install && source ./venv/bin/activate && slither --config-file ./slither.config.json .",
     "slither:docker": "docker run -t -v .:/home/ethsec/evm trailofbits/eth-security-toolbox -c \"slither --config-file /home/ethsec/evm/slither.config.json /home/ethsec/evm\"",
     "python-env:install": "test -n \"$VIRTUAL_ENV\" || test -f ./venv/bin/activate || python3 -m venv venv",
@@ -30,7 +30,7 @@
     "web3": "^1.10.2"
   },
   "devDependencies": {
-    "@defi-wonderland/smock": "^2.3.4",
+    "@defi-wonderland/smock": "^2.3.5",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
@@ -73,6 +73,9 @@
     "ts-node": "^10.9.1",
     "typechain": "^5.2.0",
     "typescript": "^5.0.4"
+  },
+  "engines" : {
+    "node" : ">=12"
   },
   "packageManager": "pnpm@8.7.5",
   "pnpm": {
