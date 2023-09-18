@@ -15,12 +15,17 @@ contract CctpBridge is Stoppable, GasUsage {
     using SafeERC20 for IERC20Metadata;
     using EnumerableMap for EnumerableMap.UintToUintMap;
 
-    uint public immutable chainId;
     uint internal constant ORACLE_PRECISION = 18;
+    uint internal constant BP = 1e4;
+
+    uint public immutable chainId;
     IERC20Metadata private immutable token;
     ITokenMessenger private immutable cctpMessenger;
     IReceiver private immutable cctpTransmitter;
     uint private immutable stableTokensForGasScalingFactor;
+    // Admin fee share (0 basis points by default)
+    uint public adminFeeShareBP;
+
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
 
     /**
@@ -67,7 +72,7 @@ contract CctpBridge is Stoppable, GasUsage {
         uint relayerFee = msg.value + gasFromStables;
         require(relayerFee >= this.getTransactionCost(destinationChainId), "Not enough fee");
         emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables);
-        uint amountAfterFee = amount - feeTokenAmount;
+        uint amountAfterFee = ((amount - feeTokenAmount) * (BP - adminFeeShareBP)) / BP;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
         emit TokensSent(amountAfterFee, recipient, destinationChainId, nonce);
@@ -105,13 +110,21 @@ contract CctpBridge is Stoppable, GasUsage {
     }
 
     /**
-     * @notice Allows the admin to withdraw the relayer fee collected in tokens.
+     * @notice Allows the admin to withdraw the admin fee and relayer fee collected in tokens.
      */
-    function withdrawRelayerFeeInTokens() external onlyOwner {
+    function withdrawFeeInTokens() external onlyOwner {
         uint toWithdraw = token.balanceOf(address(this));
         if (toWithdraw > 0) {
             token.safeTransfer(msg.sender, toWithdraw);
         }
+    }
+
+    /**
+     * @notice Sets the basis points of the admin fee share from each bridge.
+     */
+    function setAdminFeeShare(uint adminFeeShareBP_) external onlyOwner {
+        require(adminFeeShareBP_ <= BP, "Too high");
+        adminFeeShareBP = adminFeeShareBP_;
     }
 
     function getDomain(uint chainId_) public view returns (uint32) {

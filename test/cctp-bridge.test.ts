@@ -164,6 +164,39 @@ describe('CctpBridge', () => {
         .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce);
     });
 
+    it('Success: should charge fee when admin fee is setup', async () => {
+      const amount = parseUnits('1000', tokenPrecision);
+      const feeTokenAmount = parseUnits('50', tokenPrecision);
+      const adminFeeSharePercent = 0.5;
+      const adminFeeAmount = parseUnits('4.75', tokenPrecision);
+      const expectedSentAmount = amount.sub(feeTokenAmount).sub(adminFeeAmount);
+
+      const adminFeeShareBp = adminFeeSharePercent * 100;
+      await cctpBridge.setAdminFeeShare(adminFeeShareBp);
+
+      const ethPriceInUsd = '2000';
+      mockedGasOracle.price.returns(
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+
+      const tx = await cctpBridge
+        .connect(user)
+        .bridge(amount, recipient, OTHER_CHAIN_ID, feeTokenAmount, {
+          value: '0',
+        });
+
+      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
+        expectedSentAmount,
+        OTHER_DOMAIN,
+        recipient,
+        token.address,
+      );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokensSent')
+        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce);
+    });
+
     it('Failure: should revert when sent gas is not enough for relayer fee', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
       mockedGasOracle.getTransactionGasCostInNativeToken.reset();
@@ -327,7 +360,7 @@ describe('CctpBridge', () => {
       });
     });
 
-    describe('#withdrawRelayerFeeInTokens', () => {
+    describe('#withdrawFeeInTokens', () => {
       const feeTokenAmount = parseUnits('0.1', tokenPrecision).toBigInt();
 
       beforeEach(async () => {
@@ -340,14 +373,35 @@ describe('CctpBridge', () => {
 
       it('Success: should transfer accumulated fee to the owner', async () => {
         await expect(() =>
-          cctpBridge.withdrawRelayerFeeInTokens(),
+          cctpBridge.withdrawFeeInTokens(),
         ).to.changeTokenBalance(token, owner, feeTokenAmount);
       });
 
       it('Failure: should revert when the caller is not the owner', async () => {
         await expect(
-          cctpBridge.connect(user).withdrawRelayerFeeInTokens(),
+          cctpBridge.connect(user).withdrawFeeInTokens(),
         ).to.be.revertedWith('Ownable: caller is not the owner');
+      });
+    });
+
+    describe('#setAdminFeeShare', () => {
+      const newAdminFeeShareBp = 1000;
+      it('Success: should set new adminFeeShareBp', async () => {
+        await cctpBridge.setAdminFeeShare(newAdminFeeShareBp);
+        const actual = await cctpBridge.adminFeeShareBP();
+        expect(actual).to.equal(newAdminFeeShareBp);
+      });
+
+      it('Failure: should revert when the new fee is more than 100%', async () => {
+        await expect(cctpBridge.setAdminFeeShare(10001)).to.be.revertedWith(
+          'Too high',
+        );
+      });
+
+      it('Failure: should revert when the caller is not the owner', async () => {
+        await expect(
+          cctpBridge.connect(user).setAdminFeeShare(newAdminFeeShareBp),
+        ).revertedWith('Ownable: caller is not the owner');
       });
     });
   });
