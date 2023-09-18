@@ -827,7 +827,7 @@ describe('Bridge', () => {
           );
         });
 
-        it('Success: should revert when the caller is not the owner', async () => {
+        it('Failure: should revert when the caller is not the owner', async () => {
           await expect(
             bridge
               .connect((await ethers.getSigners())[1])
