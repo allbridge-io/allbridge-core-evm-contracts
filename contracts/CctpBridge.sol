@@ -21,7 +21,7 @@ contract CctpBridge is Stoppable, GasUsage {
     ITokenMessenger private immutable cctpMessenger;
     IReceiver private immutable cctpTransmitter;
     uint private immutable stableTokensForGasScalingFactor;
-    EnumerableMap.UintToUintMap private chainIdDomainMap;
+    mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
 
     /**
      * @notice Emitted when the contract is supplied with the gas for bridging.
@@ -94,7 +94,7 @@ contract CctpBridge is Stoppable, GasUsage {
      * @param domain The domain of the destination to register.
      */
     function registerBridgeDestination(uint chainId_, uint32 domain) external onlyOwner {
-        EnumerableMap.set(chainIdDomainMap, chainId_, domain);
+        chainIdDomainMap[chainId_] = domain + 1;
     }
 
     /**
@@ -115,9 +115,9 @@ contract CctpBridge is Stoppable, GasUsage {
     }
 
     function getDomain(uint chainId_) public view returns (uint32) {
-        (bool isKnownChainId, uint256 domain) = EnumerableMap.tryGet(chainIdDomainMap, chainId_);
-        require(isKnownChainId, "Unknown chain id");
-        return uint32(domain);
+        uint256 domainNumber = chainIdDomainMap[chainId_];
+        require(domainNumber > 0, "Unknown chain id");
+        return uint32(domainNumber - 1);
     }
 
     /**
