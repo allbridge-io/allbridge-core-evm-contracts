@@ -4,16 +4,13 @@ pragma solidity ^0.8.18;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IGasOracle} from "./interfaces/IGasOracle.sol";
 import {ITokenMessenger} from "./interfaces/cctp/ITokenMessenger.sol";
 import {IReceiver} from "./interfaces/cctp/IReceiver.sol";
-import {Stoppable} from "./Stoppable.sol";
 import {GasUsage} from "./GasUsage.sol";
 
-contract CctpBridge is Stoppable, GasUsage {
+contract CctpBridge is GasUsage {
     using SafeERC20 for IERC20Metadata;
-    using EnumerableMap for EnumerableMap.UintToUintMap;
 
     uint internal constant ORACLE_PRECISION = 18;
     uint internal constant BP = 1e4;
@@ -64,7 +61,7 @@ contract CctpBridge is Stoppable, GasUsage {
         bytes32 recipient,
         uint destinationChainId,
         uint feeTokenAmount
-    ) external payable whenNotStopped returns (uint64 _nonce) {
+    ) external payable returns (uint64 _nonce) {
         require(amount > feeTokenAmount, "Amount must be > feeTokenAmount");
         require(recipient != 0, "Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -79,11 +76,7 @@ contract CctpBridge is Stoppable, GasUsage {
         return nonce;
     }
 
-    function receiveTokens(
-        address recipient,
-        bytes calldata message,
-        bytes calldata signature
-    ) external payable whenNotStopped {
+    function receiveTokens(address recipient, bytes calldata message, bytes calldata signature) external payable {
         require(cctpTransmitter.receiveMessage(message, signature), "Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
