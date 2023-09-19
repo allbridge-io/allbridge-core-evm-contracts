@@ -42,10 +42,10 @@ contract CctpBridge is GasUsage {
 
     constructor(
         uint chainId_,
+        uint chainPrecision_,
         address tokenAddress,
         address cctpMessenger_,
         address cctpTransmitter_,
-        uint chainPrecision_,
         IGasOracle gasOracle_
     ) GasUsage(gasOracle_) {
         chainId = chainId_;

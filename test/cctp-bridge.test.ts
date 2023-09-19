@@ -65,10 +65,10 @@ describe('CctpBridge', () => {
 
     cctpBridge = (await ethers.deployContract('CctpBridge', [
       CURRENT_CHAIN_ID,
+      currentChainPrecision,
       token.address,
       mockedCctpMessenger.address,
       mockedCctpTransmitter.address,
-      currentChainPrecision,
       mockedGasOracle.address,
     ])) as CctpBridge;
 
