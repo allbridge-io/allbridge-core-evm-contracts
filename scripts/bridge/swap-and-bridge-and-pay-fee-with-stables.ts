@@ -1,15 +1,15 @@
 import { ethers } from 'hardhat';
 import {
   addressToBytes32,
-  getRequiredEnvVariable,
+  getEnv,
   handleTransactionResult,
   tronAddressToBytes32,
 } from '../helper';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 
 async function main() {
-  const bridgeAddress = getRequiredEnvVariable('BRIDGE_ADDRESS');
-  const tokenAddress = getRequiredEnvVariable('TOKEN_ADDRESS');
+  const bridgeAddress = getEnv('BRIDGE_ADDRESS');
+  const tokenAddress = getEnv('TOKEN_ADDRESS');
 
   const currentBalance = await ethers.provider.getBalance(bridgeAddress);
   console.log(`Bridge balance is ${formatUnits(currentBalance)}`);

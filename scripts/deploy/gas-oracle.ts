@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat';
-import { getRequiredEnvVariable, handleDeployResult } from '../helper';
+import { getEnv, handleDeployResult } from '../helper';
 
 const CHAIN_PRECISION = 18;
 
 async function main() {
-  const chainId = +getRequiredEnvVariable('CHAIN_ID');
+  const chainId = +getEnv('CHAIN_ID');
 
   const Contract = await ethers.getContractFactory('GasOracle');
   const contract = await Contract.deploy(chainId, CHAIN_PRECISION);

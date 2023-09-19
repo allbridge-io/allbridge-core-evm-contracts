@@ -1,9 +1,9 @@
 import { ethers } from 'hardhat';
-import { getRequiredEnvVariable, handleTransactionResult } from '../helper';
+import { getEnv, handleTransactionResult } from '../helper';
 import { formatEther } from 'ethers/lib/utils';
 
 async function main() {
-  const messengerAddress = getRequiredEnvVariable('MESSENGER_ADDRESS');
+  const messengerAddress = getEnv('MESSENGER_ADDRESS');
   const contract = await ethers.getContractAt('Messenger', messengerAddress);
 
   const currentBalance = await ethers.provider.getBalance(messengerAddress);

@@ -1,10 +1,10 @@
 import { ethers } from 'hardhat';
-import { getRequiredEnvVariable, handleTransactionResult } from '../helper';
+import { getEnv, handleTransactionResult } from '../helper';
 import { formatUnits } from 'ethers/lib/utils';
 
 async function main() {
-  const bridgeAddress = getRequiredEnvVariable('BRIDGE_ADDRESS');
-  const tokenAddress = getRequiredEnvVariable('TOKEN_ADDRESS');
+  const bridgeAddress = getEnv('BRIDGE_ADDRESS');
+  const tokenAddress = getEnv('TOKEN_ADDRESS');
   const contract = await ethers.getContractAt('Bridge', bridgeAddress);
   const token = await ethers.getContractAt(
     '@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20',
