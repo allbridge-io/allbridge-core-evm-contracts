@@ -80,3 +80,14 @@ Config:
 - Add bridge token (check args): `node ./scripts/tron/add-bridge-token.js --network shasta`
 - Set bridge gas usage (check args): `node ./scripts/tron/set-bridge-gas-usage.js --network shasta`
 - Set messenger gas usage (check args): `node ./scripts/tron/set-messenger-gas-usage.js --network shasta`
+
+### CCTP
+
+Deploy:
+  - Add to env file `USDC_ADDRESS`, `CCTP_MESSENGER_ADDRESS`, `CCTP_TRANSMITTER_ADDRESS`
+  - CCTP Bridge `npx hardhat run scripts/deploy/cctp-bridge.ts --network goerli`
+
+Config:
+  - Add to env file `CCTP_BRIDGE_ADDRESS`
+  - Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network goerli`
+  - Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`

@@ -10,6 +10,12 @@ async function main() {
   const usdcAddress = getEnv('USDC_ADDRESS');
   const token = await ethers.getContractAt('Token', usdcAddress);
 
+  const gasUsage = await cctpBridge.gasUsage(destinationChainId);
+  console.log('Gas usage:', gasUsage.toString());
+
+  const txCostAmount = await cctpBridge.getTransactionCost(destinationChainId);
+  console.log(`Bridging cost: ${txCostAmount}`);
+
   const bridgingCost = await cctpBridge.getBridgingCostInTokens(
     destinationChainId,
   );

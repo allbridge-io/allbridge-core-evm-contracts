@@ -56,6 +56,7 @@ contract CctpBridge is GasUsage {
         uint tokenDecimals = token.decimals();
         cctpMessenger = ITokenMessenger(cctpMessenger_);
         cctpTransmitter = IReceiver(cctpTransmitter_);
+        token.approve(cctpMessenger_, type(uint256).max);
         stableTokensForGasScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals + chainPrecision_);
         fromGasOracleScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals);
     }
