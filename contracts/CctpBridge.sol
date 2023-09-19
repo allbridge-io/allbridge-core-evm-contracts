@@ -16,12 +16,15 @@ contract CctpBridge is GasUsage {
     uint internal constant BP = 1e4;
 
     uint public immutable chainId;
+    // Admin fee share (0 basis points by default)
+    uint public adminFeeShareBP;
     IERC20Metadata private immutable token;
     ITokenMessenger private immutable cctpMessenger;
     IReceiver private immutable cctpTransmitter;
+    // precomputed value of the scaling factor required for converting the stable token to gas amount
     uint private immutable stableTokensForGasScalingFactor;
-    // Admin fee share (0 basis points by default)
-    uint public adminFeeShareBP;
+    // precomputed value to divide by to change the precision from the Gas Oracle precision to the stable token precision
+    uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
 
@@ -54,6 +57,7 @@ contract CctpBridge is GasUsage {
         cctpMessenger = ITokenMessenger(cctpMessenger_);
         cctpTransmitter = IReceiver(cctpTransmitter_);
         stableTokensForGasScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals + chainPrecision_);
+        fromGasOracleScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals);
     }
 
     function bridge(
@@ -118,6 +122,17 @@ contract CctpBridge is GasUsage {
     function setAdminFeeShare(uint adminFeeShareBP_) external onlyOwner {
         require(adminFeeShareBP_ <= BP, "Too high");
         adminFeeShareBP = adminFeeShareBP_;
+    }
+
+    /**
+     * @notice Calculates the amount of bridging fee nominated in the stable token.
+     * @param destinationChainId The ID of the destination chain.
+     * @return The total price of bridging, with the precision according to the token's `decimals()` value.
+     */
+    function getBridgingCostInTokens(uint destinationChainId) external view returns (uint) {
+        return
+            gasOracle.getTransactionGasCostInUSD(destinationChainId, gasUsage[destinationChainId]) /
+            fromGasOracleScalingFactor;
     }
 
     function getDomain(uint chainId_) public view returns (uint32) {
