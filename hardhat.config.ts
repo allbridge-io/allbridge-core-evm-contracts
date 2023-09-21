@@ -62,6 +62,7 @@ const config: HardhatUserConfig = {
         ':Pool$',
         ':Messenger$',
         ':WormholeMessenger$',
+        ':CctpBridge$',
       ],
     },
   ],
