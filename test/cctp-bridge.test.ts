@@ -114,7 +114,7 @@ describe('CctpBridge', () => {
         .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value });
       await expect(tx)
         .to.emit(cctpBridge, 'ReceivedRelayerFeeAndExtraGas')
-        .withArgs(value, '0');
+        .withArgs(value, '0', costOfFinalizingTransfer);
 
       expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
         amount,
@@ -150,7 +150,7 @@ describe('CctpBridge', () => {
         });
       await expect(tx)
         .to.emit(cctpBridge, 'ReceivedRelayerFeeAndExtraGas')
-        .withArgs('0', expectedFeeAmount);
+        .withArgs('0', expectedFeeAmount, costOfFinalizingTransfer);
 
       expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
         expectedSentAmount,

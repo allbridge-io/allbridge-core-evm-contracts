@@ -29,14 +29,14 @@ contract CctpBridge is GasUsage {
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
 
     /**
-     * @notice Emitted when the contract is supplied with the gas for bridging.
+     * @notice Emitted when the contract receives some gas directly.
      */
     event ReceivedGas(address sender, uint amount);
 
     /**
      * @notice Emitted when this contract receives some relayer fee / extra gas either as gas tokens or as stable tokens.
      */
-    event ReceivedRelayerFeeAndExtraGas(uint fromGas, uint fromStableTokens);
+    event ReceivedRelayerFeeAndExtraGas(uint fromGas, uint fromStableTokens, uint relayerFee);
 
     /**
      * @dev Emitted when tokens are sent on the source blockchain.
@@ -71,9 +71,9 @@ contract CctpBridge is GasUsage {
         require(recipient != 0, "Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
         uint gasFromStables = _getStableTokensValueInGas(feeTokenAmount);
-        uint relayerFee = msg.value + gasFromStables;
-        require(relayerFee >= this.getTransactionCost(destinationChainId), "Not enough fee");
-        emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables);
+        uint relayerFee = this.getTransactionCost(destinationChainId);
+        require(msg.value + gasFromStables >= relayerFee, "Not enough fee");
+        emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables, relayerFee);
         uint amountAfterFee = ((amount - feeTokenAmount) * (BP - adminFeeShareBP)) / BP;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
