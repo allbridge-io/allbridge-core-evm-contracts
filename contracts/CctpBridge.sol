@@ -16,7 +16,7 @@ contract CctpBridge is GasUsage {
     uint internal constant BP = 1e4;
 
     uint public immutable chainId;
-    // Admin fee share (0 basis points by default)
+    // Admin fee share (in basis points)
     uint public adminFeeShareBP;
     IERC20Metadata private immutable token;
     ITokenMessenger private immutable cctpMessenger;
@@ -34,14 +34,19 @@ contract CctpBridge is GasUsage {
     event ReceivedGas(address sender, uint amount);
 
     /**
-     * @notice Emitted when this contract receives some relayer fee / extra gas either as gas tokens or as stable tokens.
+     * @notice Emitted when tokens are sent on the source blockchain.
      */
-    event ReceivedRelayerFeeAndExtraGas(uint fromGas, uint fromStableTokens, uint relayerFee);
-
-    /**
-     * @dev Emitted when tokens are sent on the source blockchain.
-     */
-    event TokensSent(uint amount, bytes32 recipient, uint destinationChainId, uint nonce);
+    event TokensSent(
+        uint amount,
+        bytes32 recipient,
+        uint destinationChainId,
+        uint nonce,
+        uint receivedRelayerFeeFromGas,
+        uint receivedRelayerFeeFromTokens,
+        uint relayerFee,
+        uint receivedRelayerFeeTokenAmount,
+        uint adminFee
+    );
 
     constructor(
         uint chainId_,
@@ -65,19 +70,20 @@ contract CctpBridge is GasUsage {
         uint amount,
         bytes32 recipient,
         uint destinationChainId,
-        uint feeTokenAmount
+        uint relayerFeeTokenAmount
     ) external payable returns (uint64 _nonce) {
-        require(amount > feeTokenAmount, "Amount must be > feeTokenAmount");
+        require(amount > relayerFeeTokenAmount, "Amount must be > relayerFeeTokenAmount");
         require(recipient != 0, "Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
-        uint gasFromStables = _getStableTokensValueInGas(feeTokenAmount);
+        uint gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
         uint relayerFee = this.getTransactionCost(destinationChainId);
         require(msg.value + gasFromStables >= relayerFee, "Not enough fee");
-        emit ReceivedRelayerFeeAndExtraGas(msg.value, gasFromStables, relayerFee);
-        uint amountAfterFee = ((amount - feeTokenAmount) * (BP - adminFeeShareBP)) / BP;
+        uint amountToSend = amount - relayerFeeTokenAmount;
+        uint adminFee = amountToSend * adminFeeShareBP / BP;
+        amountToSend -= adminFee;
         uint32 destinationDomain = getDomain(destinationChainId);
-        uint64 nonce = cctpMessenger.depositForBurn(amountAfterFee, destinationDomain, recipient, address(token));
-        emit TokensSent(amountAfterFee, recipient, destinationChainId, nonce);
+        uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
+        emit TokensSent(amountToSend, recipient, destinationChainId, nonce, msg.value, gasFromStables, relayerFee, relayerFeeTokenAmount, adminFee);
         return nonce;
     }
 

@@ -109,12 +109,10 @@ describe('CctpBridge', () => {
 
     it('Success: should send tokens and accept gas as bridging fee', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
       const tx = await cctpBridge
         .connect(user)
-        .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value });
-      await expect(tx)
-        .to.emit(cctpBridge, 'ReceivedRelayerFeeAndExtraGas')
-        .withArgs(value, '0', costOfFinalizingTransfer);
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, { value });
 
       expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
         amount,
@@ -125,16 +123,16 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(amount, recipient, OTHER_CHAIN_ID, nonce);
+        .withArgs(amount, recipient, OTHER_CHAIN_ID, nonce, value, '0', costOfFinalizingTransfer, relayerFeeTokenAmount, '0');
     });
 
     it('Success: should send tokens and accept tokens as bridging fee', async () => {
       const feeInUsd = Big(50);
       const ethPriceInUsd = '2000';
-      const feeTokenAmount = parseUnits(feeInUsd.toString(), tokenPrecision);
-      const expectedSentAmount = amount.sub(feeTokenAmount);
+      const relayerFeeTokenAmount = parseUnits(feeInUsd.toString(), tokenPrecision);
+      const expectedSentAmount = amount.sub(relayerFeeTokenAmount);
       const feeInEth = feeInUsd.div(ethPriceInUsd);
-      const expectedFeeAmount = parseUnits(
+      const expectedRelayerFeeAmountFromStables = parseUnits(
         feeInEth.toString(),
         currentChainPrecision,
       );
@@ -145,12 +143,9 @@ describe('CctpBridge', () => {
 
       const tx = await cctpBridge
         .connect(user)
-        .bridge(amount, recipient, OTHER_CHAIN_ID, feeTokenAmount, {
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
           value: '0',
         });
-      await expect(tx)
-        .to.emit(cctpBridge, 'ReceivedRelayerFeeAndExtraGas')
-        .withArgs('0', expectedFeeAmount, costOfFinalizingTransfer);
 
       expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
         expectedSentAmount,
@@ -161,15 +156,19 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce);
+        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce, '0', expectedRelayerFeeAmountFromStables, costOfFinalizingTransfer, relayerFeeTokenAmount, '0');
     });
 
-    it('Success: should charge fee when admin fee is setup', async () => {
+    it('Success: should charge admin fee', async () => {
       const amount = parseUnits('1000', tokenPrecision);
-      const feeTokenAmount = parseUnits('50', tokenPrecision);
+      const relayerFeeTokenAmount = parseUnits('50', tokenPrecision);
       const adminFeeSharePercent = 0.5;
       const adminFeeAmount = parseUnits('4.75', tokenPrecision);
-      const expectedSentAmount = amount.sub(feeTokenAmount).sub(adminFeeAmount);
+      const expectedSentAmount = amount.sub(relayerFeeTokenAmount).sub(adminFeeAmount);
+      const expectedRelayerFeeAmountFromStables = parseUnits(
+        '0.025',
+        currentChainPrecision,
+      );
 
       const adminFeeShareBp = adminFeeSharePercent * 100;
       await cctpBridge.setAdminFeeShare(adminFeeShareBp);
@@ -181,7 +180,7 @@ describe('CctpBridge', () => {
 
       const tx = await cctpBridge
         .connect(user)
-        .bridge(amount, recipient, OTHER_CHAIN_ID, feeTokenAmount, {
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
           value: '0',
         });
 
@@ -194,7 +193,7 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce);
+        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce, '0', expectedRelayerFeeAmountFromStables, costOfFinalizingTransfer, relayerFeeTokenAmount, adminFeeAmount);
     });
 
     it('Failure: should revert when sent gas is not enough for relayer fee', async () => {
