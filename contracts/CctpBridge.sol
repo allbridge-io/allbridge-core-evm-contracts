@@ -38,6 +38,7 @@ contract CctpBridge is GasUsage {
      */
     event TokensSent(
         uint amount,
+        address sender,
         bytes32 recipient,
         uint destinationChainId,
         uint nonce,
@@ -45,7 +46,7 @@ contract CctpBridge is GasUsage {
         uint receivedRelayerFeeFromTokens,
         uint relayerFee,
         uint receivedRelayerFeeTokenAmount,
-        uint adminFee
+        uint adminFeeTokenAmount
     );
 
     constructor(
@@ -71,7 +72,7 @@ contract CctpBridge is GasUsage {
         bytes32 recipient,
         uint destinationChainId,
         uint relayerFeeTokenAmount
-    ) external payable returns (uint64 _nonce) {
+    ) external payable {
         require(amount > relayerFeeTokenAmount, "Amount must be > relayerFeeTokenAmount");
         require(recipient != 0, "Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -83,8 +84,18 @@ contract CctpBridge is GasUsage {
         amountToSend -= adminFee;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
-        emit TokensSent(amountToSend, recipient, destinationChainId, nonce, msg.value, gasFromStables, relayerFee, relayerFeeTokenAmount, adminFee);
-        return nonce;
+        emit TokensSent(
+            amountToSend,
+            msg.sender,
+            recipient,
+            destinationChainId,
+            nonce,
+            msg.value,
+            gasFromStables,
+            relayerFee,
+            relayerFeeTokenAmount,
+            adminFee
+        );
     }
 
     function receiveTokens(address recipient, bytes calldata message, bytes calldata signature) external payable {

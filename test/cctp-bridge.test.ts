@@ -123,7 +123,18 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(amount, recipient, OTHER_CHAIN_ID, nonce, value, '0', costOfFinalizingTransfer, relayerFeeTokenAmount, '0');
+        .withArgs(
+          amount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          value,
+          '0',
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          '0'
+        );
     });
 
     it('Success: should send tokens and accept tokens as bridging fee', async () => {
@@ -156,7 +167,18 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce, '0', expectedRelayerFeeAmountFromStables, costOfFinalizingTransfer, relayerFeeTokenAmount, '0');
+        .withArgs(
+          expectedSentAmount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          '0',
+          expectedRelayerFeeAmountFromStables,
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          '0'
+        );
     });
 
     it('Success: should charge admin fee', async () => {
@@ -193,7 +215,18 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
-        .withArgs(expectedSentAmount, recipient, OTHER_CHAIN_ID, nonce, '0', expectedRelayerFeeAmountFromStables, costOfFinalizingTransfer, relayerFeeTokenAmount, adminFeeAmount);
+        .withArgs(
+          expectedSentAmount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          '0',
+          expectedRelayerFeeAmountFromStables,
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          adminFeeAmount
+        );
     });
 
     it('Failure: should revert when sent gas is not enough for relayer fee', async () => {
