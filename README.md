@@ -91,3 +91,5 @@ Config:
   - Add to env file `CCTP_BRIDGE_ADDRESS`
   - Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network goerli`
   - Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`
+  - Add to env file `CCTP_FEE_BP`
+  - Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network goerli`
