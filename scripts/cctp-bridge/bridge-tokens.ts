@@ -6,7 +6,7 @@ import {
 import { parseUnits } from 'ethers/lib/utils';
 
 const totalTokens = '0.20';
-const bridgingFee = '754918069186020';
+const bridgingFee = '377459034593010';
 const destinationChainId = 6;
 
 async function main() {
