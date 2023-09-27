@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IGasOracle} from "./interfaces/IGasOracle.sol";
 import {ITokenMessenger} from "./interfaces/cctp/ITokenMessenger.sol";
-import {IReceiver} from "./interfaces/cctp/IReceiver.sol";
+import {IMessageTransmitter} from "./interfaces/cctp/IMessageTransmitter.sol";
 import {GasUsage} from "./GasUsage.sol";
 
 contract CctpBridge is GasUsage {
@@ -20,7 +20,7 @@ contract CctpBridge is GasUsage {
     uint public adminFeeShareBP;
     IERC20Metadata private immutable token;
     ITokenMessenger private immutable cctpMessenger;
-    IReceiver private immutable cctpTransmitter;
+    IMessageTransmitter private immutable cctpTransmitter;
     // precomputed value of the scaling factor required for converting the stable token to gas amount
     uint private immutable stableTokensForGasScalingFactor;
     // precomputed value to divide by to change the precision from the Gas Oracle precision to the stable token precision
@@ -61,7 +61,7 @@ contract CctpBridge is GasUsage {
         token = IERC20Metadata(tokenAddress);
         uint tokenDecimals = token.decimals();
         cctpMessenger = ITokenMessenger(cctpMessenger_);
-        cctpTransmitter = IReceiver(cctpTransmitter_);
+        cctpTransmitter = IMessageTransmitter(cctpTransmitter_);
         token.approve(cctpMessenger_, type(uint256).max);
         stableTokensForGasScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals + chainPrecision_);
         fromGasOracleScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals);
@@ -153,6 +153,12 @@ contract CctpBridge is GasUsage {
             fromGasOracleScalingFactor;
     }
 
+    function isMessageProcessed(uint sourceChainId, uint64 nonce) external view returns (bool) {
+        return cctpTransmitter.usedNonces(
+            _hashSourceAndNonce(getDomain(sourceChainId), nonce)
+        ) != 0;
+    }
+
     function getDomain(uint chainId_) public view returns (uint32) {
         uint256 domainNumber = chainIdDomainMap[chainId_];
         require(domainNumber > 0, "Unknown chain id");
@@ -168,6 +174,10 @@ contract CctpBridge is GasUsage {
     function _getStableTokensValueInGas(uint stableTokenAmount) internal view returns (uint) {
         if (stableTokenAmount == 0) return 0;
         return (stableTokensForGasScalingFactor * stableTokenAmount) / gasOracle.price(chainId);
+    }
+
+    function _hashSourceAndNonce(uint32 sourceDomain, uint64 nonce) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(sourceDomain, nonce));
     }
 
     fallback() external payable {
