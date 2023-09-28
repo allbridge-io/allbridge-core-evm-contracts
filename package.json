@@ -46,7 +46,7 @@
     "@types/numeral": "^2.0.2",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
-    "chai": "^4.3.7",
+    "chai": "^4.3.10",
     "cspell": "^7.3.6",
     "dotenv": "^16.0.3",
     "eslint": "^8.39.0",
