@@ -112,7 +112,9 @@ describe('CctpBridge', () => {
       const relayerFeeTokenAmount = '0';
       const tx = await cctpBridge
         .connect(user)
-        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, { value });
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
+          value,
+        });
 
       expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
         amount,
@@ -133,14 +135,17 @@ describe('CctpBridge', () => {
           '0',
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
-          '0'
+          '0',
         );
     });
 
     it('Success: should send tokens and accept tokens as bridging fee', async () => {
       const feeInUsd = Big(50);
       const ethPriceInUsd = '2000';
-      const relayerFeeTokenAmount = parseUnits(feeInUsd.toString(), tokenPrecision);
+      const relayerFeeTokenAmount = parseUnits(
+        feeInUsd.toString(),
+        tokenPrecision,
+      );
       const expectedSentAmount = amount.sub(relayerFeeTokenAmount);
       const feeInEth = feeInUsd.div(ethPriceInUsd);
       const expectedRelayerFeeAmountFromStables = parseUnits(
@@ -177,7 +182,7 @@ describe('CctpBridge', () => {
           expectedRelayerFeeAmountFromStables,
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
-          '0'
+          '0',
         );
     });
 
@@ -186,7 +191,9 @@ describe('CctpBridge', () => {
       const relayerFeeTokenAmount = parseUnits('50', tokenPrecision);
       const adminFeeSharePercent = 0.5;
       const adminFeeAmount = parseUnits('4.75', tokenPrecision);
-      const expectedSentAmount = amount.sub(relayerFeeTokenAmount).sub(adminFeeAmount);
+      const expectedSentAmount = amount
+        .sub(relayerFeeTokenAmount)
+        .sub(adminFeeAmount);
       const expectedRelayerFeeAmountFromStables = parseUnits(
         '0.025',
         currentChainPrecision,
@@ -225,7 +232,7 @@ describe('CctpBridge', () => {
           expectedRelayerFeeAmountFromStables,
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
-          adminFeeAmount
+          adminFeeAmount,
         );
     });
 

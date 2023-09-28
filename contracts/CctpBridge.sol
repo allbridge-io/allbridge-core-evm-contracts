@@ -80,7 +80,7 @@ contract CctpBridge is GasUsage {
         uint relayerFee = this.getTransactionCost(destinationChainId);
         require(msg.value + gasFromStables >= relayerFee, "Not enough fee");
         uint amountToSend = amount - relayerFeeTokenAmount;
-        uint adminFee = amountToSend * adminFeeShareBP / BP;
+        uint adminFee = (amountToSend * adminFeeShareBP) / BP;
         amountToSend -= adminFee;
         uint32 destinationDomain = getDomain(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
@@ -154,9 +154,7 @@ contract CctpBridge is GasUsage {
     }
 
     function isMessageProcessed(uint sourceChainId, uint64 nonce) external view returns (bool) {
-        return cctpTransmitter.usedNonces(
-            _hashSourceAndNonce(getDomain(sourceChainId), nonce)
-        ) != 0;
+        return cctpTransmitter.usedNonces(_hashSourceAndNonce(getDomain(sourceChainId), nonce)) != 0;
     }
 
     function getDomain(uint chainId_) public view returns (uint32) {
