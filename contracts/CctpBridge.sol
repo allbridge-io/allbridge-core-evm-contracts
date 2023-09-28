@@ -73,12 +73,12 @@ contract CctpBridge is GasUsage {
         uint destinationChainId,
         uint relayerFeeTokenAmount
     ) external payable {
-        require(amount > relayerFeeTokenAmount, "Amount must be > relayerFeeTokenAmount");
-        require(recipient != 0, "Recipient must be nonzero");
+        require(amount > relayerFeeTokenAmount, "CctpBridge: Amount must be > relayerFeeTokenAmount");
+        require(recipient != 0, "CctpBridge: Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
         uint gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
         uint relayerFee = this.getTransactionCost(destinationChainId);
-        require(msg.value + gasFromStables >= relayerFee, "Not enough fee");
+        require(msg.value + gasFromStables >= relayerFee, "CctpBridge: Not enough fee");
         uint amountToSend = amount - relayerFeeTokenAmount;
         uint adminFee = (amountToSend * adminFeeShareBP) / BP;
         amountToSend -= adminFee;
@@ -99,7 +99,7 @@ contract CctpBridge is GasUsage {
     }
 
     function receiveTokens(address recipient, bytes calldata message, bytes calldata signature) external payable {
-        require(cctpTransmitter.receiveMessage(message, signature), "Receive message failed");
+        require(cctpTransmitter.receiveMessage(message, signature), "CctpBridge: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
             // ignore if passing extra gas failed
@@ -138,7 +138,7 @@ contract CctpBridge is GasUsage {
      * @notice Sets the basis points of the admin fee share from each bridge.
      */
     function setAdminFeeShare(uint adminFeeShareBP_) external onlyOwner {
-        require(adminFeeShareBP_ <= BP, "Too high");
+        require(adminFeeShareBP_ <= BP, "CctpBridge: Too high");
         adminFeeShareBP = adminFeeShareBP_;
     }
 
@@ -159,7 +159,7 @@ contract CctpBridge is GasUsage {
 
     function getDomain(uint chainId_) public view returns (uint32) {
         uint256 domainNumber = chainIdDomainMap[chainId_];
-        require(domainNumber > 0, "Unknown chain id");
+        require(domainNumber > 0, "CctpBridge: Unknown chain id");
         return uint32(domainNumber - 1);
     }
 
