@@ -3,10 +3,12 @@ import {
   addressToBytes32, getEnv,
   handleTransactionResult,
 } from '../helper';
-import { parseUnits } from 'ethers/lib/utils';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import { Big } from 'big.js';
 
-const totalTokens = '0.30';
-const bridgingFeeTokens = '0.15';
+const tokensToBridge = '0.3';
+const extraGasTokens = '0.01';
+
 const destinationChainId = 6;
 
 async function main() {
@@ -21,7 +23,15 @@ async function main() {
     usdcAddress,
   );
   const tokenDecimals = await token.decimals();
+
+  const bridgingFeeTokensAmount = await cctpBridge.getBridgingCostInTokens(
+    destinationChainId,
+  );
+  const bridgingFeeTokens = formatUnits(bridgingFeeTokensAmount, tokenDecimals);
+
+  const totalTokens = Big(tokensToBridge).add(bridgingFeeTokens.toString()).add(extraGasTokens).toFixed();
   const totalTokensAmount = parseUnits(totalTokens, tokenDecimals);
+  console.log('To send ', JSON.stringify({ tokensToBridge: tokensToBridge, bridgingFeeTokens: bridgingFeeTokens.toString(), extraGasTokens: extraGasTokens, totalTokens: totalTokens }, null, 2));
 
   // approve CCTP bridge
   if ((await token.allowance(signer.address, cctpBridge.address)).lt(totalTokensAmount)) {
@@ -31,11 +41,12 @@ async function main() {
     );
   }
 
+  const tokensToGas = Big(bridgingFeeTokens).add(extraGasTokens).toFixed();
   const result = await cctpBridge.bridge(
     totalTokensAmount,
     addressToBytes32(signer.address),
     destinationChainId,
-    parseUnits(bridgingFeeTokens, tokenDecimals),
+    parseUnits(tokensToGas, tokenDecimals),
     { value: '0' },
   );
   await handleTransactionResult(result);

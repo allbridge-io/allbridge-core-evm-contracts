@@ -5,9 +5,9 @@ import {
 } from '../helper';
 import { parseUnits } from 'ethers/lib/utils';
 
-const totalTokens = '0.20';
-const bridgingFee = '377459034593010';
 const destinationChainId = 6;
+const totalTokens = '0.20';
+const extraGas = '0';
 
 async function main() {
   const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
@@ -16,6 +16,10 @@ async function main() {
   const signer = (await ethers.getSigners())[0];
 
   const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
+
+  const bridgingFee = await cctpBridge.getTransactionCost(destinationChainId);
+  console.log('To send ', JSON.stringify({ totalTokens: totalTokens, bridgingFee: bridgingFee.toString(), extraGas: extraGas }, null, 2));
+
   const token = await ethers.getContractAt(
     '@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20',
     usdcAddress,
@@ -36,7 +40,7 @@ async function main() {
     addressToBytes32(signer.address),
     destinationChainId,
     '0',
-    { value: bridgingFee },
+    { value: bridgingFee.add(extraGas) },
   );
   await handleTransactionResult(result);
 }

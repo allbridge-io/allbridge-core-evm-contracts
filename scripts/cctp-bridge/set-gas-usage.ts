@@ -2,7 +2,7 @@ import { ethers } from 'hardhat';
 import { getEnv, handleTransactionResult } from '../helper';
 
 const destinationChainId = 6;
-const gasAmount = 1_000_000_000;
+const gasAmount = 200_000;
 
 async function main() {
   const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
