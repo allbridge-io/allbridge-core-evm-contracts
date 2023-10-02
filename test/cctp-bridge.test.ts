@@ -336,17 +336,30 @@ describe('CctpBridge', () => {
     });
   });
 
-  describe('#getDomain', () => {
+  describe('#getDomainByChainId', () => {
     it('Success: should return domain', async () => {
-      const actual = await cctpBridge.getDomain(OTHER_CHAIN_ID);
+      const actual = await cctpBridge.getDomainByChainId(OTHER_CHAIN_ID);
       expect(actual).to.equal(OTHER_DOMAIN);
     });
 
     it('Failure: should revert when chain ID is not registered', async () => {
       const unknownChainId = 0;
-      await expect(cctpBridge.getDomain(unknownChainId)).revertedWith(
+      await expect(cctpBridge.getDomainByChainId(unknownChainId)).revertedWith(
         'Unknown chain id',
       );
+    });
+  });
+
+  describe('#getChainIdByDomain', () => {
+    it('Success: should return chain ID', async () => {
+      const actual = await cctpBridge.getChainIdByDomain(OTHER_DOMAIN);
+      expect(actual).to.equal(OTHER_CHAIN_ID);
+    });
+
+    it('Failure: should return 0 when domain is not registered', async () => {
+      const unknownDomain = 99;
+      const actual = await cctpBridge.getChainIdByDomain(unknownDomain);
+      expect(actual).to.equal(0);
     });
   });
 
@@ -356,14 +369,18 @@ describe('CctpBridge', () => {
       const newDomain = 99;
       it('Success: should register new domain', async () => {
         await cctpBridge.registerBridgeDestination(newChainId, newDomain);
-        const actual = await cctpBridge.getDomain(newChainId);
-        expect(actual).to.equal(newDomain);
+        const actualDomain = await cctpBridge.getDomainByChainId(newChainId);
+        expect(actualDomain).to.equal(newDomain);
+        const actualChainId = await cctpBridge.getChainIdByDomain(newDomain);
+        expect(actualChainId).to.equal(newChainId);
       });
 
       it('Success: should register domain 0', async () => {
         await cctpBridge.registerBridgeDestination(newChainId, 0);
-        const actual = await cctpBridge.getDomain(newChainId);
-        expect(actual).to.equal(0);
+        const actualDomain = await cctpBridge.getDomainByChainId(newChainId);
+        expect(actualDomain).to.equal(0);
+        const actualChainId = await cctpBridge.getChainIdByDomain(0);
+        expect(actualChainId).to.equal(newChainId);
       });
 
       it('Failure: should revert when the caller is not the owner', async () => {

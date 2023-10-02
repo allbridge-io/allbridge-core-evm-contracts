@@ -27,6 +27,7 @@ contract CctpBridge is GasUsage {
     uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
+    mapping(uint domainNumber => uint chainId) private domainChainIdMap;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
@@ -82,7 +83,7 @@ contract CctpBridge is GasUsage {
         uint amountToSend = amount - relayerFeeTokenAmount;
         uint adminFee = (amountToSend * adminFeeShareBP) / BP;
         amountToSend -= adminFee;
-        uint32 destinationDomain = getDomain(destinationChainId);
+        uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
         emit TokensSent(
             amountToSend,
@@ -115,6 +116,7 @@ contract CctpBridge is GasUsage {
      */
     function registerBridgeDestination(uint chainId_, uint32 domain) external onlyOwner {
         chainIdDomainMap[chainId_] = domain + 1;
+        domainChainIdMap[domain + 1] = chainId_;
     }
 
     /**
@@ -154,11 +156,15 @@ contract CctpBridge is GasUsage {
     }
 
     function isMessageProcessed(uint sourceChainId, uint64 nonce) external view returns (bool) {
-        return cctpTransmitter.usedNonces(_hashSourceAndNonce(getDomain(sourceChainId), nonce)) != 0;
+        return cctpTransmitter.usedNonces(_hashSourceAndNonce(getDomainByChainId(sourceChainId), nonce)) != 0;
     }
 
-    function getDomain(uint chainId_) public view returns (uint32) {
-        uint256 domainNumber = chainIdDomainMap[chainId_];
+    function getChainIdByDomain(uint domain) external view returns (uint) {
+        return domainChainIdMap[domain + 1];
+    }
+
+    function getDomainByChainId(uint chainId_) public view returns (uint32) {
+        uint domainNumber = chainIdDomainMap[chainId_];
         require(domainNumber > 0, "CctpBridge: Unknown chain id");
         return uint32(domainNumber - 1);
     }
