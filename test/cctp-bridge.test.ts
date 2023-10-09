@@ -299,10 +299,7 @@ describe('CctpBridge', () => {
 
       await expect(tx)
         .to.emit(cctpBridge, 'ReceivedExtraGas')
-        .withArgs(
-          recipient,
-          extraGasAmount,
-        );
+        .withArgs(recipient, extraGasAmount);
 
       expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
         message,
@@ -385,16 +382,14 @@ describe('CctpBridge', () => {
     describe('#unregisterBridgeDestination', () => {
       it('Success: should unregister the chain', async () => {
         await cctpBridge.unregisterBridgeDestination(OTHER_CHAIN_ID);
-        await expect(cctpBridge.getDomainByChainId(OTHER_CHAIN_ID)).revertedWith(
-          'Unknown chain id',
-        );
+        await expect(
+          cctpBridge.getDomainByChainId(OTHER_CHAIN_ID),
+        ).revertedWith('Unknown chain id');
       });
 
       it('Failure: should revert when the caller is not the owner', async () => {
         await expect(
-          cctpBridge
-            .connect(user)
-            .unregisterBridgeDestination(OTHER_CHAIN_ID),
+          cctpBridge.connect(user).unregisterBridgeDestination(OTHER_CHAIN_ID),
         ).revertedWith('Ownable: caller is not the owner');
       });
     });

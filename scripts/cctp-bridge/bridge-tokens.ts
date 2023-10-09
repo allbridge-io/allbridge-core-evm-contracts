@@ -6,7 +6,7 @@ import {
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 
 const destinationChainId = 6;
-const totalTokens = '10.0';
+const totalTokens = '0.1';
 const extraGas = parseEther('0.1');
 
 async function main() {

@@ -107,7 +107,7 @@ contract CctpBridge is GasUsage {
         require(cctpTransmitter.receiveMessage(message, signature), "CctpBridge: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
-            (bool sent,) = payable(recipient).call{value: msg.value}("");
+            (bool sent, ) = payable(recipient).call{value: msg.value}("");
             if (sent) {
                 emit ReceivedExtraGas(recipient, msg.value);
             }
