@@ -27,12 +27,16 @@ contract CctpBridge is GasUsage {
     uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
-    mapping(uint domainNumber => uint chainId) private domainChainIdMap;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
      */
     event ReceivedGas(address sender, uint amount);
+
+    /**
+     * @notice Emitted when the contract sends some extra gas to the recipient of tokens.
+     */
+    event ReceivedExtraGas(address recipient, uint amount);
 
     /**
      * @notice Emitted when tokens are sent on the source blockchain.
@@ -103,9 +107,10 @@ contract CctpBridge is GasUsage {
         require(cctpTransmitter.receiveMessage(message, signature), "CctpBridge: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
-            // ignore if passing extra gas failed
-            // solc-ignore-next-line unused-call-retval
-            payable(recipient).call{value: msg.value}("");
+            (bool sent,) = payable(recipient).call{value: msg.value}("");
+            if (sent) {
+                emit ReceivedExtraGas(recipient, msg.value);
+            }
         }
     }
 
@@ -116,7 +121,14 @@ contract CctpBridge is GasUsage {
      */
     function registerBridgeDestination(uint chainId_, uint32 domain) external onlyOwner {
         chainIdDomainMap[chainId_] = domain + 1;
-        domainChainIdMap[domain + 1] = chainId_;
+    }
+
+    /**
+     * @notice Allows the admin to remove a chain from the map of supported destinations.
+     * @param chainId_ The chain ID of the destination to unregister.
+     */
+    function unregisterBridgeDestination(uint chainId_) external onlyOwner {
+        chainIdDomainMap[chainId_] = 0;
     }
 
     /**
@@ -157,10 +169,6 @@ contract CctpBridge is GasUsage {
 
     function isMessageProcessed(uint sourceChainId, uint64 nonce) external view returns (bool) {
         return cctpTransmitter.usedNonces(_hashSourceAndNonce(getDomainByChainId(sourceChainId), nonce)) != 0;
-    }
-
-    function getChainIdByDomain(uint domain) external view returns (uint) {
-        return domainChainIdMap[domain + 1];
     }
 
     function getDomainByChainId(uint chainId_) public view returns (uint32) {

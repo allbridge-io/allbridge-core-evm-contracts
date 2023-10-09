@@ -297,6 +297,13 @@ describe('CctpBridge', () => {
         extraGasAmount,
       );
 
+      await expect(tx)
+        .to.emit(cctpBridge, 'ReceivedExtraGas')
+        .withArgs(
+          recipient,
+          extraGasAmount,
+        );
+
       expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
         message,
         signature,
@@ -350,19 +357,6 @@ describe('CctpBridge', () => {
     });
   });
 
-  describe('#getChainIdByDomain', () => {
-    it('Success: should return chain ID', async () => {
-      const actual = await cctpBridge.getChainIdByDomain(OTHER_DOMAIN);
-      expect(actual).to.equal(OTHER_CHAIN_ID);
-    });
-
-    it('Failure: should return 0 when domain is not registered', async () => {
-      const unknownDomain = 99;
-      const actual = await cctpBridge.getChainIdByDomain(unknownDomain);
-      expect(actual).to.equal(0);
-    });
-  });
-
   describe('Admin methods', () => {
     describe('#registerBridgeDestination', () => {
       const newChainId = 9;
@@ -371,16 +365,12 @@ describe('CctpBridge', () => {
         await cctpBridge.registerBridgeDestination(newChainId, newDomain);
         const actualDomain = await cctpBridge.getDomainByChainId(newChainId);
         expect(actualDomain).to.equal(newDomain);
-        const actualChainId = await cctpBridge.getChainIdByDomain(newDomain);
-        expect(actualChainId).to.equal(newChainId);
       });
 
       it('Success: should register domain 0', async () => {
         await cctpBridge.registerBridgeDestination(newChainId, 0);
         const actualDomain = await cctpBridge.getDomainByChainId(newChainId);
         expect(actualDomain).to.equal(0);
-        const actualChainId = await cctpBridge.getChainIdByDomain(0);
-        expect(actualChainId).to.equal(newChainId);
       });
 
       it('Failure: should revert when the caller is not the owner', async () => {
@@ -388,6 +378,23 @@ describe('CctpBridge', () => {
           cctpBridge
             .connect(user)
             .registerBridgeDestination(newChainId, newDomain),
+        ).revertedWith('Ownable: caller is not the owner');
+      });
+    });
+
+    describe('#unregisterBridgeDestination', () => {
+      it('Success: should unregister the chain', async () => {
+        await cctpBridge.unregisterBridgeDestination(OTHER_CHAIN_ID);
+        await expect(cctpBridge.getDomainByChainId(OTHER_CHAIN_ID)).revertedWith(
+          'Unknown chain id',
+        );
+      });
+
+      it('Failure: should revert when the caller is not the owner', async () => {
+        await expect(
+          cctpBridge
+            .connect(user)
+            .unregisterBridgeDestination(OTHER_CHAIN_ID),
         ).revertedWith('Ownable: caller is not the owner');
       });
     });
