@@ -72,6 +72,19 @@ contract CctpBridge is GasUsage {
         fromGasOracleScalingFactor = 10 ** (ORACLE_PRECISION - tokenDecimals);
     }
 
+    /**
+     * @notice Initiates a bridging process of the token to another blockchain.
+     * @dev This function is used to initiate a cross-chain transfer.
+     * The bridging fee required for the cross-chain transfer can be paid in two ways:
+     * - by sending the required amount of native gas token along with the transaction
+     *   (See `getTransactionCost` in the `GasUsage` contract).
+     * - by setting the parameter `relayerFeeTokenAmount` with the amount of bridging fee in tokens
+     *   (See the function `getBridgingCostInTokens`).
+     * @param amount The amount of tokens to send (including `relayerFeeTokenAmount`).
+     * @param recipient The recipient address.
+     * @param destinationChainId The ID of the destination chain.
+     * @param relayerFeeTokenAmount The amount of tokens to be deducted from the transferred amount as a bridging fee.
+     */
     function bridge(
         uint amount,
         bytes32 recipient,
@@ -103,6 +116,12 @@ contract CctpBridge is GasUsage {
         );
     }
 
+    /**
+     * @notice Completes the bridging process by sending the tokens on the destination blockchain to the recipient.
+     * @param recipient The recipient address.
+     * @param message The message information emitted by the CCTP contract `MessageTransmitter` on the source chain.
+     * @param signature Concatenated 65-byte signature(s) of `message`.
+     */
     function receiveTokens(address recipient, bytes calldata message, bytes calldata signature) external payable {
         require(cctpTransmitter.receiveMessage(message, signature), "CCTP: Receive message failed");
         // pass extra gas to the recipient
