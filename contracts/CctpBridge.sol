@@ -98,8 +98,14 @@ contract CctpBridge is GasUsage {
         uint relayerFee = this.getTransactionCost(destinationChainId);
         require(msg.value + gasFromStables >= relayerFee, "CCTP: Not enough fee");
         uint amountToSend = amount - relayerFeeTokenAmount;
-        uint adminFee = (amountToSend * adminFeeShareBP) / BP;
-        amountToSend -= adminFee;
+        uint adminFee;
+        if (adminFeeShareBP != 0) {
+            adminFee = (amountToSend * adminFeeShareBP) / BP;
+            if (adminFee == 0) {
+                adminFee = 1;
+            }
+            amountToSend -= adminFee;
+        }
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
         emit TokensSent(

@@ -236,6 +236,52 @@ describe('CctpBridge', () => {
         );
     });
 
+    it('Success: should charge min admin fee', async () => {
+      const minAdminFeeAmount = 1;
+      const amount = 1000;
+      const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
+      const expectedSentAmount = Big(amount)
+        .sub(relayerFeeTokenAmount)
+        .sub(minAdminFeeAmount)
+        .toFixed();
+
+      await cctpBridge.setAdminFeeShare(1);
+
+      const ethPriceInUsd = '2000';
+      mockedGasOracle.price.returns(
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+
+      const tx = await cctpBridge
+        .connect(user)
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
+          value,
+        });
+
+      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
+        expectedSentAmount,
+        OTHER_DOMAIN,
+        recipient,
+        token.address,
+      );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokensSent')
+        .withArgs(
+          expectedSentAmount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          value,
+          '0',
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          minAdminFeeAmount,
+        );
+    });
+
     it('Failure: should revert when sent gas is not enough for relayer fee', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
       mockedGasOracle.getTransactionGasCostInNativeToken.reset();
