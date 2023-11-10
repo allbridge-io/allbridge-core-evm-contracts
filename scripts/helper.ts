@@ -61,7 +61,7 @@ export function tronAddressToBytes32(address: string): string {
   return bufferToHex(sizedBuffer);
 }
 
-export function getRequiredEnvVariable(name: string): string {
+export function getEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
     throw new Error(`Required environment variable ${name} is not defined`);

@@ -87,8 +87,8 @@ node ./scripts/tron/bridge/add-bridge.js --network nile
 set args ./scripts/tron/bridge/add-bridge-token.js
 node ./scripts/tron/bridge/add-bridge-token.js --network nile
 
-set args ./scripts/tron/bridge/set-bridge-gas-uasge.js
-node ./scripts/tron/bridge/set-bridge-gas-uasge.js --network nile
+set args ./scripts/tron/bridge/set-bridge-gas-usage.js
+node ./scripts/tron/bridge/set-bridge-gas-usage.js --network nile
 
-set args ./scripts/tron/messenger/set-messenger-gas-uasge.js
-node ./scripts/tron/messenger/set-messenger-gas-uasge.js --network nile
+set args ./scripts/tron/messenger/set-messenger-gas-usage.js
+node ./scripts/tron/messenger/set-messenger-gas-usage.js --network nile

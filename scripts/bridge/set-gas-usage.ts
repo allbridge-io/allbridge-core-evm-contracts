@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat';
 import { handleTransactionResult } from '../helper';
 
-// solana = 0.000005 fee + 0.001392 lock + 0.00203928 user token = 0.0034362 ≈ 3500 klamports (1000 lamport)
+// solana = 0.000005 fee + 0.001392 lock + 0.00203928 user token = 0.0034362 ≈ 3500K lamports (1000 lamport)
 
 async function main() {
   const bridgeAddress = process.env.BRIDGE_ADDRESS;

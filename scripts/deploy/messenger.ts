@@ -1,13 +1,13 @@
 import { ethers } from 'hardhat';
-import { getRequiredEnvVariable, handleDeployResult } from '../helper';
+import { getEnv, handleDeployResult } from '../helper';
 
 async function main() {
-  const chainId = +(getRequiredEnvVariable('CHAIN_ID'));
+  const chainId = +(getEnv('CHAIN_ID'));
 
-  const gasOracleAddress = getRequiredEnvVariable('GAS_ORACLE_ADDRESS');
-  const primaryValidator = getRequiredEnvVariable('PRIMARY_VALIDATOR_ADDRESS')
+  const gasOracleAddress = getEnv('GAS_ORACLE_ADDRESS');
+  const primaryValidator = getEnv('PRIMARY_VALIDATOR_ADDRESS')
 
-  const secondaryValidators = JSON.parse(getRequiredEnvVariable('SECONDARY_VALIDATOR_ADDRESSES'));
+  const secondaryValidators = JSON.parse(getEnv('SECONDARY_VALIDATOR_ADDRESSES'));
 
   const otherChainIds = Buffer.from([
     0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

@@ -13,12 +13,14 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('Bridge', bridgeAddress);
+  /* cSpell:disable */
   const result = await contract.addBridgeToken(
     5,
     // tronAddressToBytes32('TS7Aqd75LprBKkPPxVLuZ8WWEyULEQFF1U'),
     // addressToBytes32('0xDdaC3cb57DEa3fBEFF4997d78215535Eb5787117'),
     solanaAddressToBytes32('FpGHqNpwDctcaJyu24M9E2ydTe5owPQgD7UdarKEJHd4'), // mint address
   );
+  /* cSpell:enable */
   await handleTransactionResult(result);
 }
 

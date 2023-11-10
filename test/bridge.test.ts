@@ -10,7 +10,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Big } from 'big.js';
 import { BigNumber } from 'ethers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-const {AddressZero} = ethers.constants;
+const { AddressZero } = ethers.constants;
 
 const { deployMockContract } = waffle;
 
@@ -827,7 +827,7 @@ describe('Bridge', () => {
           );
         });
 
-        it('Success: should revert when the caller is not the owner', async () => {
+        it('Failure: should revert when the caller is not the owner', async () => {
           await expect(
             bridge
               .connect((await ethers.getSigners())[1])

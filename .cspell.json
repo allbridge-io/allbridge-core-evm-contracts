@@ -1,0 +1,41 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "esbuild",
+    "venv",
+    "Allbridge",
+    "Arbitrum",
+    "typeof",
+    "tronbox",
+    "tronweb",
+    "solana",
+    "lamport",
+    "lamports",
+    "solhint",
+    "IERC",
+    "staticcall",
+    "cbrt",
+    "keccak",
+    "mstore",
+    "mload",
+    "retval",
+    "struct",
+    "Structs",
+    "cctp",
+    "rebalancer",
+    "disbalancing",
+    "disbalanced",
+    "USDY",
+    "YARO"
+  ],
+  "flagWords": [],
+  "ignorePaths": [
+    "package.json",
+    "package-lock.json",
+    "yarn.lock",
+    "tsconfig.json",
+    "node_modules/**",
+    "pnpm-lock.json"
+  ]
+}

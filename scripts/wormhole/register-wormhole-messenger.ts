@@ -16,7 +16,7 @@ async function main() {
     await contract.registerWormholeMessenger(
       1, // wormhole chain id from https://book.wormhole.com/reference/contracts.html
       // addressToBytes32(
-      //   '0xc78642d8e80f0ee195600599cb5498dc53049202a18cc07aac90b68b72dd9943', // deploed wormhole address
+      //   '0xc78642d8e80f0ee195600599cb5498dc53049202a18cc07aac90b68b72dd9943', // deployed wormhole address
       // ),
       solanaAddressToBytes32('3dPvx6iKLAqLfeisJdeyzrVSaN6BDSHMYuCSdbm2TUPZ') // bridge authority address
     ),

@@ -15,15 +15,15 @@ async function main() {
 
   const message = Buffer.from(crypto.randomBytes(12)).toString('hex');
 
-  const encodedeMessage = encodeMessage({
+  const encodedMessage = encodeMessage({
     sourceChainId: 1,
     destinationChainId: 2,
     message,
   });
 
-  console.log('message:', encodedeMessage);
+  console.log('message:', encodedMessage);
 
-  const sendTx = await contract.sendMessage(encodedeMessage);
+  const sendTx = await contract.sendMessage(encodedMessage);
   const receipt = await sendTx.wait();
 
   console.log('hash:', receipt.transactionHash);

@@ -1,15 +1,15 @@
 import { ethers } from 'hardhat';
 import {
   addressToBytes32,
-  getRequiredEnvVariable,
+  getEnv,
   handleTransactionResult,
   tronAddressToBytes32,
 } from '../helper';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 
 async function main() {
-  const bridgeAddress = getRequiredEnvVariable('BRIDGE_ADDRESS');
-  const tokenAddress = getRequiredEnvVariable('TOKEN_ADDRESS');
+  const bridgeAddress = getEnv('BRIDGE_ADDRESS');
+  const tokenAddress = getEnv('TOKEN_ADDRESS');
 
   const currentBalance = await ethers.provider.getBalance(bridgeAddress);
   console.log(`Bridge balance is ${formatUnits(currentBalance)}`);
@@ -30,12 +30,14 @@ async function main() {
   }
 
   const destinationChainId = 4; // TRX
+  /* cSpell:disable */
   const receiveTokenAddressBytes32 = tronAddressToBytes32(
     'TS7Aqd75LprBKkPPxVLuZ8WWEyULEQFF1U',
   );
   const receiveAddressBytes32 = tronAddressToBytes32(
     'TSy1vfxHoFizuMLimSVLrYCaipXmGyKvAW',
   );
+  /* cSpell:enable */
   const totalAmount = '50';
   const feeAmount = '30';
   const messengerProtocol = 1;

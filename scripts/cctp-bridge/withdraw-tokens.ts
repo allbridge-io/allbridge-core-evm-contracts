@@ -3,19 +3,19 @@ import { getEnv, handleTransactionResult } from '../helper';
 import { formatUnits } from 'ethers/lib/utils';
 
 async function main() {
-  const bridgeAddress = getEnv('BRIDGE_ADDRESS');
-  const tokenAddress = getEnv('TOKEN_ADDRESS');
-  const contract = await ethers.getContractAt('Bridge', bridgeAddress);
+  const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
+  const usdcAddress = getEnv('USDC_ADDRESS');
+  const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
   const token = await ethers.getContractAt(
     '@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20',
-    tokenAddress,
+    usdcAddress,
   );
 
   const tokenDecimals = await token.decimals();
   const tokenSymbol = await token.symbol();
-  const tokensBalance = await token.balanceOf(bridgeAddress);
+  const tokensBalance = await token.balanceOf(cctpBridgeAddress);
   console.log(
-    `Bridge token balance is ${formatUnits(
+    `CCTP Bridge token balance is ${formatUnits(
       tokensBalance,
       tokenDecimals,
     )} ${tokenSymbol}`,
@@ -25,8 +25,8 @@ async function main() {
     return;
   }
 
-  console.log(`Withdraw tokens from the Bridge contract`);
-  await handleTransactionResult(await contract.withdrawBridgingFeeInTokens(tokenAddress));
+  console.log(`Withdraw tokens from the CCTP Bridge contract`);
+  await handleTransactionResult(await cctpBridge.withdrawFeeInTokens());
 }
 
 main().catch((error) => {

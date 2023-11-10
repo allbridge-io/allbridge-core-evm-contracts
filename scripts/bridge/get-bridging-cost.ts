@@ -1,11 +1,11 @@
 import { ethers } from 'hardhat';
-import { getRequiredEnvVariable } from '../helper';
+import { getEnv } from '../helper';
 import { Big } from 'big.js';
 
 async function main() {
-  const bridgeAddress = getRequiredEnvVariable('BRIDGE_ADDRESS');
+  const bridgeAddress = getEnv('BRIDGE_ADDRESS');
   const bridge = await ethers.getContractAt('Bridge', bridgeAddress);
-  const tokenAddress = getRequiredEnvVariable('TOKEN_ADDRESS');
+  const tokenAddress = getEnv('TOKEN_ADDRESS');
   const token = await ethers.getContractAt('Token', tokenAddress);
 
   const destinationChainId = 4;

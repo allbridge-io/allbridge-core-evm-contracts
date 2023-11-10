@@ -31,6 +31,7 @@ async function main() {
   }
 
   await handleTransactionResult(
+    /* cSpell:disable */
     await bridge.swapAndBridge(
       addressToBytes32(tokenAddress),
       '1' + '0'.repeat(await token.decimals()),
@@ -43,6 +44,7 @@ async function main() {
       2,
       0
     ),
+    /* cSpell:enable */
   );
 }
 

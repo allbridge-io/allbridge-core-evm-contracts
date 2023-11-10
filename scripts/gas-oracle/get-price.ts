@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 async function main() {
   const gasOracleAddress = process.env.GAS_ORACLE_ADDRESS;
   if (!gasOracleAddress) {
-    throw new Error('No gas oraclt address');
+    throw new Error('No gas oracle address');
   }
 
   const contract = await ethers.getContractAt('GasOracle', gasOracleAddress);
