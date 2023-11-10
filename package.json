@@ -27,7 +27,7 @@
     "big.js": "^6.2.1",
     "bs58": "^5.0.0",
     "tronweb": "^5.1.0",
-    "web3": "^1.10.2"
+    "web3": "^1.10.3"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.3.5",
@@ -74,8 +74,8 @@
     "typechain": "^5.2.0",
     "typescript": "^5.0.4"
   },
-  "engines" : {
-    "node" : ">=12"
+  "engines": {
+    "node": ">=12"
   },
   "packageManager": "pnpm@8.7.5",
   "pnpm": {
@@ -92,7 +92,12 @@
       "protobufjs@>=7.0.0 <7.2.4": ">=7.2.4",
       "word-wrap@<1.2.4": ">=1.2.4",
       "json5@<1.0.2": ">=1.0.2",
-      "node-fetch@<2.6.7": ">=2.6.7"
+      "node-fetch@<2.6.7": ">=2.6.7",
+      "debug@>=3.2.0 <3.2.7": ">=3.2.7",
+      "undici@<5.26.2": ">=5.26.2",
+      "browserify-sign@>=2.6.0 <=4.2.1": ">=4.2.2",
+      "semver@<5.7.2": ">=5.7.2",
+      "axios@>=0.8.1 <1.6.0": ">=1.6.0"
     }
   }
 }
