@@ -26,7 +26,9 @@ async function main() {
   }
 
   console.log(`Withdraw tokens from the Bridge contract`);
-  await handleTransactionResult(await contract.withdrawBridgingFeeInTokens(tokenAddress));
+  await handleTransactionResult(
+    await contract.withdrawBridgingFeeInTokens(tokenAddress),
+  );
 }
 
 main().catch((error) => {

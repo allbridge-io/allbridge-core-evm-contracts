@@ -1,18 +1,32 @@
 import { ethers } from 'hardhat';
-import { handleTransactionResult } from '../helper';
+import {
+  bufferToHex,
+  getEnv,
+  handleTransactionResult,
+  hexToBuffer,
+} from '../helper';
+
+const validDestinationChainIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 async function main() {
-  const messengerAddress = process.env.MESSENGER_ADDRESS;
-  if (!messengerAddress) {
-    throw new Error('No messenger address');
-  }
+  const currentChainId = getEnv('CHAIN_ID');
+  const messengerAddress = getEnv('MESSENGER_ADDRESS');
 
   const contract = await ethers.getContractAt('Messenger', messengerAddress);
-  const otherChainIds = Buffer.from([
-    0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0,
-  ]);
-  const result = await contract.setOtherChainIds(otherChainIds);
+  const currentOtherChainIds = await contract.otherChainIds();
+  console.log('Current otherChainIds', currentOtherChainIds);
+
+  const otherChainIds = hexToBuffer(currentOtherChainIds).fill(0);
+  for (const chainId of validDestinationChainIds) {
+    if (+currentChainId === chainId) {
+      otherChainIds[chainId] = 0;
+    } else {
+      otherChainIds[chainId] = 1;
+    }
+  }
+  console.log('Set otherChainIds', '   ', bufferToHex(otherChainIds));
+
+  const result = await contract.setOtherChainIds(Buffer.from(otherChainIds));
   await handleTransactionResult(result);
 }
 

@@ -1,4 +1,4 @@
-import {BaseContract, ContractTransaction} from 'ethers';
+import { BaseContract, ContractTransaction } from 'ethers';
 import bs58 from 'bs58';
 
 const TronWeb = require('tronweb');

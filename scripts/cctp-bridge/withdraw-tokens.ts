@@ -5,7 +5,10 @@ import { formatUnits } from 'ethers/lib/utils';
 async function main() {
   const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
   const usdcAddress = getEnv('USDC_ADDRESS');
-  const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
+  const cctpBridge = await ethers.getContractAt(
+    'CctpBridge',
+    cctpBridgeAddress,
+  );
   const token = await ethers.getContractAt(
     '@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20',
     usdcAddress,

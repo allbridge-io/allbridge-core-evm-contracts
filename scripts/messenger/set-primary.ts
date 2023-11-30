@@ -8,7 +8,9 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('Messenger', messengerAddress);
-  const result = await contract.setPrimaryValidator('0xbf115b8c76f233ad1b799aa2589213d9ce552192');
+  const result = await contract.setPrimaryValidator(
+    '0xbf115b8c76f233ad1b799aa2589213d9ce552192',
+  );
   await handleTransactionResult(result);
 }
 
