@@ -17,10 +17,10 @@ map.set(
   solanaAddressToBytes32('EmLt85sXNvqjzZo3C6BCq55ZzSuvSNFomVnf6b1PgY8R'),
 );
 map.set(5, addressToBytes32('0x763e75cA7bC589396f0e5c1B8049Ac5ED7C8387F'));
-map.set(6, addressToBytes32('0xC63C0261c2F1d21b3efE7828032E646c797EE21e'));
+map.set(6, addressToBytes32('0x835a712CDFb05bb05aDF5D44A48F98eE1447F61a'));
 map.set(
   7,
-  '0x2ea921884154a3820a66f501f01825eab0e110ad14f88014af4ed5cd773ca2e6',
+  '0xe9e8734009ab4b01066e5fa7bd5460158a22f5de09519b48e54b9974149c800d',
 );
 map.set(8, addressToBytes32('0x143c50112e866Aa06716296C7fb30924ECb5672F'));
 map.set(9, addressToBytes32('0x6E7C9D9D65A5333Fde4b7cF80aA6fc2401edCB65'));

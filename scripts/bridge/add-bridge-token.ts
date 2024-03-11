@@ -17,6 +17,7 @@ map.set(1, [
 map.set(2, [
   addressToBytes32('0x49be77224DC061BD53699B25431B9Aa7029A2cB8'),
   addressToBytes32('0x0209dA4a278956Ca15438af8B108bd85642F096c'),
+  addressToBytes32('0x1c7d4b196cb0c7b01d743fbc6116a902379c7238'),
 ]);
 map.set(3, [
   tronAddressToBytes32('TEYM56Hk4554u8ge4vNLZcE59pv7GQy1tv'),
@@ -31,8 +32,10 @@ map.set(5, [
   addressToBytes32('0x3DBe838b635C54502C318f752187A8d8E7C73743'),
   addressToBytes32('0xd18967827F4cC29193A7dbe2AA5aD440F6b27597'),
 ]);
-map.set(6, [addressToBytes32('0xfd064A18f3BF249cf1f87FC203E90D8f650f2d63')]);
-map.set(7, []);
+map.set(6, [
+  addressToBytes32('0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d'),
+]);
+map.set(7, ['0x91c204aa743184184d9cee9da175d703f6a0e42fb8c6ed9eedf6274194160257', '0xc16cc69b695553803c97173165a0ef60bc3e3f30b624098906caf278bd6ff69c']);
 map.set(8, []);
 map.set(9, [addressToBytes32('0xf175520c52418dfe19c8098071a252da48cd1c19')]);
 map.set(10, [

@@ -40,6 +40,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     arbitrumGoerli: baseNetwork,
+    arbitrumSepolia: baseNetwork,
     baseGoerli: baseNetwork,
     bsc: baseNetwork,
     goerli: baseNetwork,
