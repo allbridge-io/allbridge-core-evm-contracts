@@ -8,7 +8,9 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('GasOracle', gasOracleAddress);
-  const result = await contract.transferOwnership('0x8d19c0d02c0e83e4be9523927c0e6de07c5123d7');
+  const result = await contract.transferOwnership(
+    '0x8d19c0d02c0e83e4be9523927c0e6de07c5123d7',
+  );
   await handleTransactionResult(result);
 }
 

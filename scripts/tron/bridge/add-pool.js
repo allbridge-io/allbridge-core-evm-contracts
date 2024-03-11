@@ -8,7 +8,7 @@ const { callContract, tronAddressToBuffer32 } = require('../helper');
 
   const poolAddress = process.env.POOL_ADDRESS;
   if (!poolAddress) {
-    throw new Error('No bridge address');
+    throw new Error('No pool address');
   }
 
   const tokenAddress = process.env.TOKEN_ADDRESS;

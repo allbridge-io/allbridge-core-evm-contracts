@@ -8,9 +8,7 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('Pool', poolAddress);
-  const result = await contract.setBalanceRatioMinBP(
-    500,
-  );
+  const result = await contract.setBalanceRatioMinBP(500);
   await handleTransactionResult(result);
 }
 

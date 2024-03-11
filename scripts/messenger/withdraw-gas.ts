@@ -12,8 +12,12 @@ async function main() {
     console.log(`Nothing to withdraw`);
     return;
   }
-  console.log(`Withdraw from the Bridge contract ${formatEther(currentBalance)}`);
-  await handleTransactionResult(await contract.withdrawGasTokens(currentBalance));
+  console.log(
+    `Withdraw from the Bridge contract ${formatEther(currentBalance)}`,
+  );
+  await handleTransactionResult(
+    await contract.withdrawGasTokens(currentBalance),
+  );
 }
 
 main().catch((error) => {

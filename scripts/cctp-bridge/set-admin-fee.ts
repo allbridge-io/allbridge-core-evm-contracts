@@ -4,7 +4,10 @@ import { Big } from 'big.js';
 
 async function main() {
   const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
-  const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
+  const cctpBridge = await ethers.getContractAt(
+    'CctpBridge',
+    cctpBridgeAddress,
+  );
 
   const currentFeeBp = await cctpBridge.adminFeeShareBP();
   const feeBP = getEnv('CCTP_FEE_BP');

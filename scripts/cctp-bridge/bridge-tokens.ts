@@ -1,8 +1,5 @@
 import { ethers } from 'hardhat';
-import {
-  addressToBytes32, getEnv,
-  handleTransactionResult,
-} from '../helper';
+import { addressToBytes32, getEnv, handleTransactionResult } from '../helper';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 
 const destinationChainId = 6;
@@ -15,10 +12,24 @@ async function main() {
 
   const signer = (await ethers.getSigners())[0];
 
-  const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
+  const cctpBridge = await ethers.getContractAt(
+    'CctpBridge',
+    cctpBridgeAddress,
+  );
 
   const bridgingFee = await cctpBridge.getTransactionCost(destinationChainId);
-  console.log('To send ', JSON.stringify({ totalTokens: totalTokens, bridgingFee: bridgingFee.toString(), extraGas: extraGas.toString() }, null, 2));
+  console.log(
+    'To send ',
+    JSON.stringify(
+      {
+        totalTokens: totalTokens,
+        bridgingFee: bridgingFee.toString(),
+        extraGas: extraGas.toString(),
+      },
+      null,
+      2,
+    ),
+  );
 
   const token = await ethers.getContractAt(
     '@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20',
@@ -28,7 +39,11 @@ async function main() {
   const totalTokensAmount = parseUnits(totalTokens, tokenDecimals);
 
   // approve CCTP bridge
-  if ((await token.allowance(signer.address, cctpBridge.address)).lt(totalTokensAmount)) {
+  if (
+    (await token.allowance(signer.address, cctpBridge.address)).lt(
+      totalTokensAmount,
+    )
+  ) {
     console.log('Approve CCTP Bridge');
     await handleTransactionResult(
       await token.approve(cctpBridge.address, ethers.constants.MaxUint256),
