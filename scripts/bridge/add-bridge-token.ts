@@ -32,10 +32,11 @@ map.set(5, [
   addressToBytes32('0x3DBe838b635C54502C318f752187A8d8E7C73743'),
   addressToBytes32('0xd18967827F4cC29193A7dbe2AA5aD440F6b27597'),
 ]);
-map.set(6, [
-  addressToBytes32('0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d'),
+map.set(6, [addressToBytes32('0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d')]);
+map.set(7, [
+  '0x91c204aa743184184d9cee9da175d703f6a0e42fb8c6ed9eedf6274194160257',
+  '0xc16cc69b695553803c97173165a0ef60bc3e3f30b624098906caf278bd6ff69c',
 ]);
-map.set(7, ['0x91c204aa743184184d9cee9da175d703f6a0e42fb8c6ed9eedf6274194160257', '0xc16cc69b695553803c97173165a0ef60bc3e3f30b624098906caf278bd6ff69c']);
 map.set(8, []);
 map.set(9, [addressToBytes32('0xf175520c52418dfe19c8098071a252da48cd1c19')]);
 map.set(10, [
