@@ -136,6 +136,7 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           '0',
+          recipient,
         );
     });
 
@@ -183,6 +184,64 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           '0',
+          recipient,
+        );
+    });
+
+    it('Success with wallet address: should send tokens and accept tokens as bridging fee', async () => {
+      const feeInUsd = Big(50);
+      const ethPriceInUsd = '2000';
+      const relayerFeeTokenAmount = parseUnits(
+        feeInUsd.toString(),
+        tokenPrecision,
+      );
+      const recipientWalletAddress =
+        '0x1122334455667788990011223344556677889900112233445566778899001122';
+      const expectedSentAmount = amount.sub(relayerFeeTokenAmount);
+      const feeInEth = feeInUsd.div(ethPriceInUsd);
+      const expectedRelayerFeeAmountFromStables = parseUnits(
+        feeInEth.toString(),
+        currentChainPrecision,
+      );
+
+      mockedGasOracle.price.returns(
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+
+      const tx = await cctpBridge
+        .connect(user)
+        .bridgeWithWalletAddress(
+          amount,
+          recipient,
+          recipientWalletAddress,
+          OTHER_CHAIN_ID,
+          relayerFeeTokenAmount,
+          {
+            value: '0',
+          },
+        );
+
+      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
+        expectedSentAmount,
+        OTHER_DOMAIN,
+        recipient,
+        token.address,
+      );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokensSent')
+        .withArgs(
+          expectedSentAmount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          '0',
+          expectedRelayerFeeAmountFromStables,
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          '0',
+          recipientWalletAddress,
         );
     });
 
@@ -233,6 +292,7 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           adminFeeAmount,
+          recipient,
         );
     });
 
@@ -279,6 +339,7 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           minAdminFeeAmount,
+          recipient,
         );
     });
 
