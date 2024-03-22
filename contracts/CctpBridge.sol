@@ -27,6 +27,7 @@ contract CctpBridge is GasUsage {
     uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
+    mapping(uint nonce => address sender) private senders;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
@@ -53,6 +54,12 @@ contract CctpBridge is GasUsage {
         uint receivedRelayerFeeTokenAmount,
         uint adminFeeTokenAmount,
         bytes32 recipientWalletAddress
+    );
+
+    event RecipientReplaced(
+        address sender,
+        uint nonce,
+        bytes32 newRecipient
     );
 
     constructor(
@@ -111,6 +118,7 @@ contract CctpBridge is GasUsage {
         }
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
+        senders[nonce] = tx.origin;
         emit TokensSent(
             amountToSend,
             msg.sender,
@@ -124,6 +132,24 @@ contract CctpBridge is GasUsage {
             adminFee,
             recipientWalletAddress
         );
+    }
+
+    /**
+     * @notice Public method to replace recipient if it was accidentally incorrectly specified
+     * @param originalMessage original message bytes (to replace)
+     * @param originalAttestation original attestation bytes
+     * @param newRecipient the new mint recipient, which may be the same as the
+     * original mint recipient, or different.
+     **/
+    function changeRecipient(
+        bytes calldata originalMessage,
+        bytes calldata originalAttestation,
+        bytes32 newRecipient
+    ) external {
+        uint64 nonce = uint64(bytes8(originalMessage[12:20]));
+        require(senders[nonce] == tx.origin, "CCTP: wrong sender");
+        cctpMessenger.replaceDepositForBurn(originalMessage, originalAttestation, bytes32(0), newRecipient);
+        emit RecipientReplaced(tx.origin, nonce, newRecipient);
     }
 
     /**
