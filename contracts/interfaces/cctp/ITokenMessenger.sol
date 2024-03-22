@@ -26,7 +26,7 @@ interface ITokenMessenger {
     ) external returns (uint64 _nonce);
 
     /**
-        * @notice Replace a BurnMessage to change the mint recipient and/or
+     * @notice Replace a BurnMessage to change the mint recipient and/or
      * destination caller. Allows the sender of a previous BurnMessage
      * (created by depositForBurn or depositForBurnWithCaller)
      * to send a new BurnMessage to replace the original.

@@ -56,11 +56,7 @@ contract CctpBridge is GasUsage {
         bytes32 recipientWalletAddress
     );
 
-    event RecipientReplaced(
-        address sender,
-        uint nonce,
-        bytes32 newRecipient
-    );
+    event RecipientReplaced(address sender, uint nonce, bytes32 newRecipient);
 
     constructor(
         uint chainId_,

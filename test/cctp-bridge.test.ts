@@ -138,7 +138,6 @@ describe('CctpBridge', () => {
           '0',
           recipient,
         );
-
     });
 
     it('Success: should send tokens and accept tokens as bridging fee', async () => {
@@ -369,9 +368,13 @@ describe('CctpBridge', () => {
 
   describe('#repladeSender', () => {
     let recipient: string;
-    const anotherRecipient = addressToBase32(ethers.Wallet.createRandom().address);
-    const messageWithNonce257698 = '0x000000000000000000000005000000000003eea20000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
-    const messageWithNonce257699 = '0x000000000000000000000005000000000003eea30000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
+    const anotherRecipient = addressToBase32(
+      ethers.Wallet.createRandom().address,
+    );
+    const messageWithNonce257698 =
+      '0x000000000000000000000005000000000003eea20000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
+    const messageWithNonce257699 =
+      '0x000000000000000000000005000000000003eea30000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
     const attestation = '0x1122';
     const nonce = 257698;
     beforeEach(async () => {
@@ -398,15 +401,16 @@ describe('CctpBridge', () => {
           value,
         });
 
-      const tx = await cctpBridge.connect(user).changeRecipient(messageWithNonce257698, attestation, anotherRecipient);
+      const tx = await cctpBridge
+        .connect(user)
+        .changeRecipient(messageWithNonce257698, attestation, anotherRecipient);
       await expect(tx)
         .to.emit(cctpBridge, 'RecipientReplaced')
-        .withArgs(
-          user.address,
-          nonce,
-          anotherRecipient);
+        .withArgs(user.address, nonce, anotherRecipient);
 
-      expect(mockedCctpMessenger.replaceDepositForBurn).to.have.been.calledOnceWith(
+      expect(
+        mockedCctpMessenger.replaceDepositForBurn,
+      ).to.have.been.calledOnceWith(
         messageWithNonce257698,
         attestation,
         '0x0000000000000000000000000000000000000000000000000000000000000000',
@@ -423,7 +427,11 @@ describe('CctpBridge', () => {
           value,
         });
 
-      const response = cctpBridge.changeRecipient(messageWithNonce257698, attestation, anotherRecipient);
+      const response = cctpBridge.changeRecipient(
+        messageWithNonce257698,
+        attestation,
+        anotherRecipient,
+      );
       await expect(response).revertedWith('CCTP: wrong sender');
     });
 
@@ -436,7 +444,9 @@ describe('CctpBridge', () => {
           value,
         });
 
-      const response = cctpBridge.connect(user).changeRecipient(messageWithNonce257699, attestation, anotherRecipient);
+      const response = cctpBridge
+        .connect(user)
+        .changeRecipient(messageWithNonce257699, attestation, anotherRecipient);
       await expect(response).revertedWith('CCTP: wrong sender');
     });
   });
