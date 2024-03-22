@@ -27,6 +27,7 @@ contract CctpBridge is GasUsage {
     uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
+    mapping(uint nonce => address sender) private senders;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
@@ -51,8 +52,11 @@ contract CctpBridge is GasUsage {
         uint receivedRelayerFeeFromTokens,
         uint relayerFee,
         uint receivedRelayerFeeTokenAmount,
-        uint adminFeeTokenAmount
+        uint adminFeeTokenAmount,
+        bytes32 recipientWalletAddress
     );
+
+    event RecipientReplaced(address sender, uint nonce, bytes32 newRecipient);
 
     constructor(
         uint chainId_,
@@ -82,15 +86,17 @@ contract CctpBridge is GasUsage {
      *   (See the function `getBridgingCostInTokens`).
      * @param amount The amount of tokens to send (including `relayerFeeTokenAmount`).
      * @param recipient The recipient address.
+     * @param recipientWalletAddress The recipient wallet address - used to track user for transfers to Solana.
      * @param destinationChainId The ID of the destination chain.
      * @param relayerFeeTokenAmount The amount of tokens to be deducted from the transferred amount as a bridging fee.
      */
-    function bridge(
+    function _bridge(
         uint amount,
         bytes32 recipient,
+        bytes32 recipientWalletAddress,
         uint destinationChainId,
         uint relayerFeeTokenAmount
-    ) external payable {
+    ) internal {
         require(amount > relayerFeeTokenAmount, "CCTP: Amount <= relayer fee");
         require(recipient != 0, "CCTP: Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -108,6 +114,7 @@ contract CctpBridge is GasUsage {
         }
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
+        senders[nonce] = tx.origin;
         emit TokensSent(
             amountToSend,
             msg.sender,
@@ -118,8 +125,54 @@ contract CctpBridge is GasUsage {
             gasFromStables,
             relayerFee,
             relayerFeeTokenAmount,
-            adminFee
+            adminFee,
+            recipientWalletAddress
         );
+    }
+
+    /**
+     * @notice Public method to replace recipient if it was accidentally incorrectly specified
+     * @param originalMessage original message bytes (to replace)
+     * @param originalAttestation original attestation bytes
+     * @param newRecipient the new mint recipient, which may be the same as the
+     * original mint recipient, or different.
+     **/
+    function changeRecipient(
+        bytes calldata originalMessage,
+        bytes calldata originalAttestation,
+        bytes32 newRecipient
+    ) external {
+        uint64 nonce = uint64(bytes8(originalMessage[12:20]));
+        require(senders[nonce] == tx.origin, "CCTP: wrong sender");
+        cctpMessenger.replaceDepositForBurn(originalMessage, originalAttestation, bytes32(0), newRecipient);
+        emit RecipientReplaced(tx.origin, nonce, newRecipient);
+    }
+
+    /**
+     * @notice Public method to initiate a bridging process of the token to another blockchain. Used for recipients with the same wallet address
+     * @dev See full description in the _bridge method
+     **/
+    function bridge(
+        uint amount,
+        bytes32 recipient,
+        uint destinationChainId,
+        uint relayerFeeTokenAmount
+    ) external payable {
+        _bridge(amount, recipient, recipient, destinationChainId, relayerFeeTokenAmount);
+    }
+
+    /**
+     * @notice Public method to initiate a bridging process of the token to another blockchain. Used for recipients with different wallet address (Solana)
+     * @dev See full description in the _bridge method
+     **/
+    function bridgeWithWalletAddress(
+        uint amount,
+        bytes32 recipient,
+        bytes32 recipientWalletAddress,
+        uint destinationChainId,
+        uint relayerFeeTokenAmount
+    ) external payable {
+        _bridge(amount, recipient, recipientWalletAddress, destinationChainId, relayerFeeTokenAmount);
     }
 
     /**

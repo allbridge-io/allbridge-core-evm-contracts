@@ -27,9 +27,15 @@ const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.18',
     settings: {
+      viaIR: true,
       optimizer: {
         enabled: true,
         runs: 1000,
+        details: {
+          yulDetails: {
+            optimizerSteps: 'u',
+          },
+        },
       },
       outputSelection: {
         '*': {
@@ -42,6 +48,7 @@ const config: HardhatUserConfig = {
     goerli: baseNetwork,
     mumbai: baseNetwork,
     sepolia: baseNetwork,
+    holesky: baseNetwork,
     bsc: baseNetwork,
     arbitrumGoerli: baseNetwork,
   },
