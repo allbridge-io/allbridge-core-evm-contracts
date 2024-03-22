@@ -31,6 +31,11 @@ const config: HardhatUserConfig = {
       optimizer: {
         enabled: true,
         runs: 1000,
+        details: {
+          yulDetails: {
+            optimizerSteps: "u",
+          },
+        },
       },
       outputSelection: {
         '*': {
