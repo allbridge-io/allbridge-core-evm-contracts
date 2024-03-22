@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
         runs: 1000,
         details: {
           yulDetails: {
-            optimizerSteps: "u",
+            optimizerSteps: 'u',
           },
         },
       },
