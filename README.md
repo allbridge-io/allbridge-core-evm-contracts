@@ -93,3 +93,8 @@ Config:
   - Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`
   - Add to env file `CCTP_FEE_BP`
   - Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network goerli`
+
+### Etherscan verification
+- Add to env file `ETHERSCAN_API_KEY` and `<CONTRACT_ADDRESS>`
+- Check `./scripts/verify/<contract>.ts` file args to be the same as on deploy
+- Run `npx hardhat run ./scripts/verify/<contract>.ts --network goerli`

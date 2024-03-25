@@ -27,15 +27,9 @@ const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.18',
     settings: {
-      viaIR: true,
       optimizer: {
         enabled: true,
         runs: 1000,
-        details: {
-          yulDetails: {
-            optimizerSteps: 'u',
-          },
-        },
       },
       outputSelection: {
         '*': {
@@ -73,6 +67,9 @@ const config: HardhatUserConfig = {
       ],
     },
   ],
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
   warnings: {
     '*': {
       unreachable: 'off',
