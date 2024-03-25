@@ -55,7 +55,7 @@ contract CctpBridge is GasUsage {
         uint adminFeeTokenAmount
     );
 
-    event TokenSentExtras(bytes32 recipientWalletAddress);
+    event TokensSentExtras(bytes32 recipientWalletAddress);
 
     event RecipientReplaced(address sender, uint nonce, bytes32 newRecipient);
 
@@ -142,7 +142,7 @@ contract CctpBridge is GasUsage {
     ) external payable {
         bridge(amount, recipient, destinationChainId, relayerFeeTokenAmount);
 
-        emit TokenSentExtras(recipientWalletAddress);
+        emit TokensSentExtras(recipientWalletAddress);
     }
 
     /**

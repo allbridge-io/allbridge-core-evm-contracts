@@ -242,7 +242,7 @@ describe('CctpBridge', () => {
         );
 
       await expect(tx)
-        .to.emit(cctpBridge, 'TokenSentExtras')
+        .to.emit(cctpBridge, 'TokensSentExtras')
         .withArgs(recipientWalletAddress);
     });
 
