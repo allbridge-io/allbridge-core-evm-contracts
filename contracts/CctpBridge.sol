@@ -113,7 +113,7 @@ contract CctpBridge is GasUsage {
         }
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint64 nonce = cctpMessenger.depositForBurn(amountToSend, destinationDomain, recipient, address(token));
-        senders[nonce] = tx.origin;
+        senders[nonce] = msg.sender;
         emit TokensSent(
             amountToSend,
             msg.sender,
@@ -158,9 +158,9 @@ contract CctpBridge is GasUsage {
         bytes32 newRecipient
     ) external {
         uint64 nonce = uint64(bytes8(originalMessage[12:20]));
-        require(senders[nonce] == tx.origin, "CCTP: wrong sender");
+        require(senders[nonce] == msg.sender, "CCTP: wrong sender");
         cctpMessenger.replaceDepositForBurn(originalMessage, originalAttestation, bytes32(0), newRecipient);
-        emit RecipientReplaced(tx.origin, nonce, newRecipient);
+        emit RecipientReplaced(msg.sender, nonce, newRecipient);
     }
 
     /**
