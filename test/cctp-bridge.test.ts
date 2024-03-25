@@ -136,7 +136,6 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           '0',
-          recipient,
         );
     });
 
@@ -184,7 +183,6 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           '0',
-          recipient,
         );
     });
 
@@ -241,8 +239,11 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           '0',
-          recipientWalletAddress,
         );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokenSentExtras')
+        .withArgs(recipientWalletAddress);
     });
 
     it('Success: should charge admin fee', async () => {
@@ -292,7 +293,6 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           adminFeeAmount,
-          recipient,
         );
     });
 
@@ -339,7 +339,6 @@ describe('CctpBridge', () => {
           costOfFinalizingTransfer,
           relayerFeeTokenAmount,
           minAdminFeeAmount,
-          recipient,
         );
     });
 
