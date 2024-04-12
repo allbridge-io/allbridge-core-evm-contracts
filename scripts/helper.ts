@@ -2,6 +2,7 @@ import {BaseContract, ContractTransaction} from 'ethers';
 import bs58 from 'bs58';
 
 const TronWeb = require('tronweb');
+const base32 = require('base32.js');
 
 export async function handleDeployResult(contract: BaseContract) {
   console.log('Contract address: ', contract.address);
@@ -46,6 +47,11 @@ export function addressToBytes32(address: string): string {
 export function solanaAddressToBytes32(address: string): string {
   const buffer = Buffer.from(bs58.decode(address));
   return bufferToHex(buffer);
+}
+
+export function sorobanAddressToBytes32(address: string): string {
+  const buffer = base32.decode(address);
+  return bufferToHex(buffer.slice(1, 33));
 }
 
 function tronAddressToEthAddress(address: string): string {
