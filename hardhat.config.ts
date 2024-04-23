@@ -39,14 +39,14 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    arbitrumGoerli: baseNetwork,
     arbitrumSepolia: baseNetwork,
     baseGoerli: baseNetwork,
-    bsc: baseNetwork,
     goerli: baseNetwork,
-    holesky: baseNetwork,
     mumbai: baseNetwork,
     sepolia: baseNetwork,
+    holesky: baseNetwork,
+    bsc: baseNetwork,
+    arbitrumGoerli: baseNetwork,
   },
   gasReporter: {
     enabled: !!process.env.NODE_GAS,
@@ -69,6 +69,9 @@ const config: HardhatUserConfig = {
       ],
     },
   ],
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+  },
   warnings: {
     '*': {
       unreachable: 'off',

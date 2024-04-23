@@ -186,6 +186,66 @@ describe('CctpBridge', () => {
         );
     });
 
+    it('Success with wallet address: should send tokens and accept tokens as bridging fee', async () => {
+      const feeInUsd = Big(50);
+      const ethPriceInUsd = '2000';
+      const relayerFeeTokenAmount = parseUnits(
+        feeInUsd.toString(),
+        tokenPrecision,
+      );
+      const recipientWalletAddress =
+        '0x1122334455667788990011223344556677889900112233445566778899001122';
+      const expectedSentAmount = amount.sub(relayerFeeTokenAmount);
+      const feeInEth = feeInUsd.div(ethPriceInUsd);
+      const expectedRelayerFeeAmountFromStables = parseUnits(
+        feeInEth.toString(),
+        currentChainPrecision,
+      );
+
+      mockedGasOracle.price.returns(
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+
+      const tx = await cctpBridge
+        .connect(user)
+        .bridgeWithWalletAddress(
+          amount,
+          recipient,
+          recipientWalletAddress,
+          OTHER_CHAIN_ID,
+          relayerFeeTokenAmount,
+          {
+            value: '0',
+          },
+        );
+
+      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
+        expectedSentAmount,
+        OTHER_DOMAIN,
+        recipient,
+        token.address,
+      );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokensSent')
+        .withArgs(
+          expectedSentAmount,
+          user.address,
+          recipient,
+          OTHER_CHAIN_ID,
+          nonce,
+          '0',
+          expectedRelayerFeeAmountFromStables,
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          '0',
+        );
+
+      await expect(tx)
+        .to.emit(cctpBridge, 'TokensSentExtras')
+        .withArgs(recipientWalletAddress);
+    });
+
     it('Success: should charge admin fee', async () => {
       const amount = parseUnits('1000', tokenPrecision);
       const relayerFeeTokenAmount = parseUnits('50', tokenPrecision);
@@ -302,6 +362,91 @@ describe('CctpBridge', () => {
         .connect(user)
         .bridge(amount, recipient, unknownChainId, '0', { value });
       await expect(response).revertedWith('Unknown chain id');
+    });
+  });
+
+  describe('#repladeSender', () => {
+    let recipient: string;
+    const anotherRecipient = addressToBase32(
+      ethers.Wallet.createRandom().address,
+    );
+    const messageWithNonce257698 =
+      '0x000000000000000000000005000000000003eea20000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
+    const messageWithNonce257699 =
+      '0x000000000000000000000005000000000003eea30000000000000000000000009f3b8679c73c2fef8b59b4f3444d4e156fb70aa5a65fc943419a5ad590042fd67c9791fd015acf53a54cc823edb8ff81b9ed722e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c72383fa654c0d72269230abe94cfd01930d51d8a74654f0f3b9f8c833b2c65a62a7f000000000000000000000000000000000000000000000000000000000001863c000000000000000000000000697ff6eea22f888480f006fc11aab5b001409307';
+    const attestation = '0x1122';
+    const nonce = 257698;
+    beforeEach(async () => {
+      recipient = addressToBase32(user.address);
+      mockedGasOracle.getTransactionGasCostInNativeToken
+        .whenCalledWith(OTHER_CHAIN_ID, gasAmountOfFinalizingTransfer)
+        .returns(costOfFinalizingTransfer);
+      mockedCctpMessenger.depositForBurn.returns(nonce);
+      mockedCctpMessenger.replaceDepositForBurn.returns();
+    });
+
+    afterEach(async () => {
+      mockedGasOracle.price.reset();
+      mockedGasOracle.getTransactionGasCostInNativeToken.reset();
+      mockedCctpMessenger.depositForBurn.reset();
+    });
+
+    it('Success: should replace recipient and emit an event', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
+      await cctpBridge
+        .connect(user)
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
+          value,
+        });
+
+      const tx = await cctpBridge
+        .connect(user)
+        .changeRecipient(messageWithNonce257698, attestation, anotherRecipient);
+      await expect(tx)
+        .to.emit(cctpBridge, 'RecipientReplaced')
+        .withArgs(user.address, nonce, anotherRecipient);
+
+      expect(
+        mockedCctpMessenger.replaceDepositForBurn,
+      ).to.have.been.calledOnceWith(
+        messageWithNonce257698,
+        attestation,
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
+        anotherRecipient,
+      );
+    });
+
+    it('Failure: wrong sender', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
+      await cctpBridge
+        .connect(user)
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
+          value,
+        });
+
+      const response = cctpBridge.changeRecipient(
+        messageWithNonce257698,
+        attestation,
+        anotherRecipient,
+      );
+      await expect(response).revertedWith('CCTP: wrong sender');
+    });
+
+    it('Failure: wrong sender (invalid nonce)', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
+      await cctpBridge
+        .connect(user)
+        .bridge(amount, recipient, OTHER_CHAIN_ID, relayerFeeTokenAmount, {
+          value,
+        });
+
+      const response = cctpBridge
+        .connect(user)
+        .changeRecipient(messageWithNonce257699, attestation, anotherRecipient);
+      await expect(response).revertedWith('CCTP: wrong sender');
     });
   });
 
