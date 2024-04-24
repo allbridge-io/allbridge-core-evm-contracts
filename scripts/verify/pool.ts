@@ -1,7 +1,6 @@
 import hre from 'hardhat';
 
 async function main() {
-
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
   if (!bridgeAddress) {
     throw new Error('No bridge address');
@@ -18,9 +17,8 @@ async function main() {
     throw new Error('No LP token name or symbol');
   }
 
-
   const poolAddress = process.env.POOL_ADDRESS;
-  await hre.run("verify:verify", {
+  await hre.run('verify:verify', {
     address: poolAddress,
     constructorArguments: [
       bridgeAddress,
@@ -32,7 +30,6 @@ async function main() {
       lpTokenSymbol,
     ],
   });
-
 }
 
 main().catch((error) => {

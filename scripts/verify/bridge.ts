@@ -3,7 +3,6 @@ import hre from 'hardhat';
 const CHAIN_PRECISION = 18;
 
 async function main() {
-
   const chainId = process.env.CHAIN_ID ? +process.env.CHAIN_ID : undefined;
   if (!chainId) {
     throw new Error('No chain id');
@@ -25,7 +24,7 @@ async function main() {
   }
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
 
-  await hre.run("verify:verify", {
+  await hre.run('verify:verify', {
     address: bridgeAddress,
     constructorArguments: [
       chainId,
