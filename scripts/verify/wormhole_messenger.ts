@@ -28,7 +28,7 @@ async function main() {
   otherChainIds[chainId] = 0;
 
   const wormholeMessengerAddress = process.env.WORMHOLE_MESSENGER_ADDRESS;
-  await hre.run("verify:verify", {
+  await hre.run('verify:verify', {
     address: wormholeMessengerAddress,
     constructorArguments: [
       chainId,

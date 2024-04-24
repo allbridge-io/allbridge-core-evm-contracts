@@ -42,7 +42,7 @@ async function main() {
       solanaAddressToBytes32('f4yhod6Y7jzVwFfy3iHDg49GAerFTrtp1Ac1ubdWx7L'), // mint address
       9,
       2,
-      0
+      0,
     ),
     /* cSpell:enable */
   );

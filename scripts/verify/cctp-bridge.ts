@@ -8,10 +8,10 @@ async function main() {
   const chainId = +getEnv('CHAIN_ID');
   const gasOracleAddress = getEnv('GAS_ORACLE_ADDRESS');
   const usdcAddress = getEnv('USDC_ADDRESS');
-  const cctpMessengerAddress = getEnv('CCTP_MESSENGER_ADDRESS')
+  const cctpMessengerAddress = getEnv('CCTP_MESSENGER_ADDRESS');
   const cctpTransmitterAddress = getEnv('CCTP_TRANSMITTER_ADDRESS');
 
-  await hre.run("verify:verify", {
+  await hre.run('verify:verify', {
     address: cctpBridgeAddress,
     constructorArguments: [
       chainId,
