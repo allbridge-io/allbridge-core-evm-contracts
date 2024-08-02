@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { Pool, TestBridgeForSwap, Token } from '../typechain';
 import { BigNumber } from 'ethers';
 import { addressToBase32, EPP, ESP, SP } from './utils';
+
 const { AddressZero } = ethers.constants;
 
 const { parseUnits } = ethers.utils;
@@ -25,6 +26,12 @@ describe('Router: common flow', () => {
   // Token B precision
   const BP: number = 6;
   const EBP: number = 1e6;
+
+  let alicePoolA: Pool;
+  let bobPoolA: Pool;
+  let ownerPoolA: Pool;
+  const amountA = (amount: string) => parseUnits(amount, AP);
+  const amountSP = (amount: string) => parseUnits(amount, SP);
 
   async function doSwap(
     fromToken: string,
@@ -161,6 +168,10 @@ describe('Router: common flow', () => {
     await swap.transferOwnership(owner);
     await poolA.transferOwnership(owner);
     await poolB.transferOwnership(owner);
+
+    alicePoolA = poolA.connect(await ethers.getSigner(alice));
+    bobPoolA = poolA.connect(await ethers.getSigner(bob));
+    ownerPoolA = poolA.connect(await ethers.getSigner(owner));
   });
 
   it('Success: full flow', async () => {
@@ -506,6 +517,128 @@ describe('Router: common flow', () => {
     await poolA.deposit(parseUnits('2000000', AP)); // 1M
 
     await expect(poolA.withdraw(1)).revertedWith(`zero changes`);
+  });
+
+  it('Withdraw with extra balance on the contract', async () => {
+    await poolA.deposit(parseUnits('200000', AP)); // 1M
+    await tokenA.transfer(poolA.address, parseUnits('100000', AP));
+
+    const balanceBefore = await tokenA.balanceOf(alice);
+
+    await poolA.withdraw(parseUnits('200', SP));
+    const balanceAfter = await tokenA.balanceOf(alice);
+
+    expect(balanceAfter.sub(balanceBefore).toString()).eq(parseUnits('100200', AP));
+  });
+
+  it('Deposit and Withdraw with extra balance on the contract', async () => {
+    await alicePoolA.deposit(amountA('200000'));
+    await tokenA.transfer(poolA.address, amountA('100000'));
+
+    await bobPoolA.deposit(amountA('200'));
+
+    const balanceBefore = await tokenA.balanceOf(bob);
+
+    await bobPoolA.withdraw(amountSP('200'));
+    const balanceAfter = await tokenA.balanceOf(bob);
+
+    expect(balanceAfter.sub(balanceBefore).toString()).eq(parseUnits('200', AP));
+  });
+
+  it('Add extra amount before swap', async () => {
+    await alicePoolA.deposit(amountA('2000'));
+    await bobPoolA.deposit(amountA('3000'));
+
+    await tokenA.transfer(poolA.address, amountA('50'));
+    await doSwap(tokenA.address, tokenB.address, amountA('100'), alice);
+
+    const aliceBalanceBefore = await tokenA.balanceOf(alice);
+    const bobBalanceBefore = await tokenA.balanceOf(bob);
+
+    await alicePoolA.withdraw(amountSP('100'));
+    await bobPoolA.withdraw(amountSP('100'));
+
+    await poolA.accRewardPerShareP();
+
+    const aliceBalanceAfter = await tokenA.balanceOf(alice);
+    const bobBalanceAfter = await tokenA.balanceOf(bob);
+
+    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(amountA('120'));
+    expect(bobBalanceAfter.sub(bobBalanceBefore).toString()).eq(amountA('130'));
+  });
+
+  it('Add extra amount before claim', async () => {
+    await alicePoolA.deposit(amountA('2000'));
+    await bobPoolA.deposit(amountA('3000'));
+
+    await tokenA.transfer(poolA.address, amountA('50'));
+    await doSwap(tokenA.address, tokenB.address, amountA('100'), alice);
+
+    const aliceBalanceBefore = await tokenA.balanceOf(alice);
+    const bobBalanceBefore = await tokenA.balanceOf(bob);
+
+    await alicePoolA.claimRewards();
+    await bobPoolA.claimRewards();
+
+    await poolA.accRewardPerShareP();
+
+    const aliceBalanceAfter = await tokenA.balanceOf(alice);
+    const bobBalanceAfter = await tokenA.balanceOf(bob);
+
+    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(amountA('20'));
+    expect(bobBalanceAfter.sub(bobBalanceBefore).toString()).eq(amountA('30'));
+  });
+
+  it('Add extra amount before each step', async () => {
+    await ownerPoolA.setFeeShare(2000);
+    await ownerPoolA.setAdminFeeShare(5000);
+
+    await tokenA.transfer(poolA.address, amountA('5000')); // to nobody
+    await alicePoolA.deposit(amountA('2000'));
+    await tokenA.transfer(poolA.address, amountA('10')); // 10 to alice
+    await bobPoolA.deposit(amountA('3000'));
+    await tokenA.transfer(poolA.address, amountA('50')); // 20 to alice, 30 to bob
+
+    await doSwap(tokenA.address, tokenB.address, amountA('100'), alice); // 10 to owner, 4 to alice, 6 to bob
+    await tokenA.transfer(poolA.address, amountA('50')); // 20 to alice, 30 to bob
+
+    {
+      const user = owner;
+      const balanceBefore = await tokenA.balanceOf(user);
+      await ownerPoolA.claimAdminFee();
+      const balanceAfter = await tokenA.balanceOf(user);
+      expect(balanceAfter.sub(balanceBefore).toString()).eq(amountA('10'));
+    }
+
+    await tokenA.transfer(poolA.address, amountA('50')); // 20 to alice, 30 to bob
+
+    {
+      const user = alice;
+      const balanceBefore = await tokenA.balanceOf(user);
+      await alicePoolA.claimRewards();
+      const balanceAfter = await tokenA.balanceOf(user);
+      expect(balanceAfter.sub(balanceBefore).toString()).eq(amountA('74')); // 10 + 20 + 20 + 20 + 4
+    }
+
+    await tokenA.transfer(poolA.address, amountA('50')); // 20 to alice, 30 to bob
+
+    {
+      const user = bob;
+      const balanceBefore = await tokenA.balanceOf(user);
+      await bobPoolA.withdraw(amountSP('2000'));
+      const balanceAfter = await tokenA.balanceOf(user);
+      expect(balanceAfter.sub(balanceBefore).toString()).eq(amountA('2126')); // 30 + 30 + 30 + 30 + 6
+    }
+
+    await tokenA.transfer(poolA.address, amountA('30')); // 20 to alice, 10 to bob
+
+    {
+      const user = alice;
+      const balanceBefore = await tokenA.balanceOf(user);
+      await alicePoolA.withdraw(amountSP('1000'));
+      const balanceAfter = await tokenA.balanceOf(user);
+      expect(balanceAfter.sub(balanceBefore).toString()).eq(amountA('1040')); // 10 + 20 + 20 + 20 + 20 + 20 + 4 - 74
+    }
   });
 
   it('Liquidity add(after)-withdraw(before)', async () => {

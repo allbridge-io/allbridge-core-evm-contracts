@@ -2,13 +2,15 @@
 pragma solidity ^0.8.18;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RewardManager is Ownable, ERC20 {
+contract RewardManager is Ownable, ERC20, ReentrancyGuard {
     using SafeERC20 for ERC20;
-    uint private constant P = 52;
+    uint internal constant P = 52;
     uint internal constant BP = 1e4;
+    uint private lastTokenBalance;
 
     // Accumulated rewards per share, shifted left by P bits
     uint public accRewardPerShareP;
@@ -33,10 +35,21 @@ contract RewardManager is Ownable, ERC20 {
         adminFeeShareBP = BP / 5;
     }
 
+    modifier extraAmountRewards(uint transferredAmount) {
+        uint currentTokenBalance = token.balanceOf(address(this)) - transferredAmount;
+
+        uint total = totalSupply();
+        if (currentTokenBalance > lastTokenBalance && total > 0) {
+            accRewardPerShareP += ((currentTokenBalance - lastTokenBalance) << P) / total;
+        }
+        _;
+        lastTokenBalance = token.balanceOf(address(this));
+    }
+
     /**
      * @notice Claims pending rewards for the current staker without updating the stake balance.
      */
-    function claimRewards() external {
+    function claimRewards() extraAmountRewards(0) nonReentrant external {
         uint userLpAmount = balanceOf(msg.sender);
         if (userLpAmount > 0) {
             uint rewards = (userLpAmount * accRewardPerShareP) >> P;
@@ -60,7 +73,7 @@ contract RewardManager is Ownable, ERC20 {
     /**
      * @notice Allows the admin to claim the collected admin fee.
      */
-    function claimAdminFee() external onlyOwner {
+    function claimAdminFee() extraAmountRewards(0) nonReentrant external onlyOwner {
         if (adminFeeAmount > 0) {
             token.safeTransfer(msg.sender, adminFeeAmount);
             adminFeeAmount = 0;
