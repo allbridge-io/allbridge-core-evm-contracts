@@ -528,7 +528,9 @@ describe('Router: common flow', () => {
     await poolA.withdraw(parseUnits('200', SP));
     const balanceAfter = await tokenA.balanceOf(alice);
 
-    expect(balanceAfter.sub(balanceBefore).toString()).eq(parseUnits('100200', AP));
+    expect(balanceAfter.sub(balanceBefore).toString()).eq(
+      parseUnits('100200', AP),
+    );
   });
 
   it('Deposit and Withdraw with extra balance on the contract', async () => {
@@ -542,7 +544,9 @@ describe('Router: common flow', () => {
     await bobPoolA.withdraw(amountSP('200'));
     const balanceAfter = await tokenA.balanceOf(bob);
 
-    expect(balanceAfter.sub(balanceBefore).toString()).eq(parseUnits('200', AP));
+    expect(balanceAfter.sub(balanceBefore).toString()).eq(
+      parseUnits('200', AP),
+    );
   });
 
   it('Add extra amount before swap', async () => {
@@ -563,7 +567,9 @@ describe('Router: common flow', () => {
     const aliceBalanceAfter = await tokenA.balanceOf(alice);
     const bobBalanceAfter = await tokenA.balanceOf(bob);
 
-    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(amountA('120'));
+    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(
+      amountA('120'),
+    );
     expect(bobBalanceAfter.sub(bobBalanceBefore).toString()).eq(amountA('130'));
   });
 
@@ -585,7 +591,9 @@ describe('Router: common flow', () => {
     const aliceBalanceAfter = await tokenA.balanceOf(alice);
     const bobBalanceAfter = await tokenA.balanceOf(bob);
 
-    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(amountA('20'));
+    expect(aliceBalanceAfter.sub(aliceBalanceBefore).toString()).eq(
+      amountA('20'),
+    );
     expect(bobBalanceAfter.sub(bobBalanceBefore).toString()).eq(amountA('30'));
   });
 

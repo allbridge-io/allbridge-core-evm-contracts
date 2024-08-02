@@ -49,7 +49,7 @@ contract RewardManager is Ownable, ERC20, ReentrancyGuard {
     /**
      * @notice Claims pending rewards for the current staker without updating the stake balance.
      */
-    function claimRewards() extraAmountRewards(0) nonReentrant external {
+    function claimRewards() external extraAmountRewards(0) nonReentrant {
         uint userLpAmount = balanceOf(msg.sender);
         if (userLpAmount > 0) {
             uint rewards = (userLpAmount * accRewardPerShareP) >> P;
@@ -73,7 +73,7 @@ contract RewardManager is Ownable, ERC20, ReentrancyGuard {
     /**
      * @notice Allows the admin to claim the collected admin fee.
      */
-    function claimAdminFee() extraAmountRewards(0) nonReentrant external onlyOwner {
+    function claimAdminFee() external extraAmountRewards(0) nonReentrant onlyOwner {
         if (adminFeeAmount > 0) {
             token.safeTransfer(msg.sender, adminFeeAmount);
             adminFeeAmount = 0;

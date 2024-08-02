@@ -22,7 +22,6 @@ describe('Reentrancy attack test', () => {
   const amount = (amount: string) => parseUnits(amount, AP);
   const amountSP = (amount: string) => parseUnits(amount, SP);
 
-
   beforeEach(async () => {
     const TokenContract = await ethers.getContractFactory('ReentrancyToken');
     const PoolContract = await ethers.getContractFactory('Pool');
@@ -31,14 +30,12 @@ describe('Reentrancy attack test', () => {
     owner = (await ethers.getSigners())[2].address;
     rebalancer = (await ethers.getSigners())[3].address;
 
-
     token = (await TokenContract.deploy(
       'A',
       'A',
       parseUnits('100000000000000000000'),
       AP,
     )) as any;
-
 
     pool = (await PoolContract.deploy(
       owner,
@@ -50,10 +47,7 @@ describe('Reentrancy attack test', () => {
       'aLP',
     )) as any;
 
-    await token.approve(
-      pool.address,
-      parseUnits('100000000000000000000', AP),
-    );
+    await token.approve(pool.address, parseUnits('100000000000000000000', AP));
 
     await token
       .connect(await ethers.getSigner(rebalancer))
@@ -71,7 +65,6 @@ describe('Reentrancy attack test', () => {
       .connect(await ethers.getSigner(owner))
       .approve(pool.address, parseUnits('100000000000000000000', AP));
 
-
     await token.transfer(rebalancer, parseUnits('1000000000', AP));
     await token.transfer(alice, parseUnits('1000000000', AP));
     await token.transfer(bob, parseUnits('1000000000', AP));
@@ -82,8 +75,8 @@ describe('Reentrancy attack test', () => {
     alicePool = pool.connect(await ethers.getSigner(alice));
     bobPool = pool.connect(await ethers.getSigner(bob));
     ownerPool = pool.connect(await ethers.getSigner(owner));
-    await token.setPool(pool.address)
-    await ownerPool.setAdminFeeShare(5000)
+    await token.setPool(pool.address);
+    await ownerPool.setAdminFeeShare(5000);
   });
 
   it.skip('Deposit reentrancy without handling', async () => {
@@ -97,43 +90,55 @@ describe('Reentrancy attack test', () => {
     await alicePool.withdraw(amountSP('200'));
     const balanceAfter = await token.balanceOf(alice);
     expect(balanceAfter.sub(balanceBefore).toString()).eq(amount('50'));
-  })
+  });
 
   it('Deposit reentrancy', async () => {
     await token.useAttack(true);
-    await expect(bobPool.deposit(amount('100'))).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(bobPool.deposit(amount('100'))).revertedWith(
+      'ReentrancyGuard: reentrant call',
+    );
+  });
 
   it('Withdraw reentrancy', async () => {
-    await alicePool.deposit(amount('200'))
+    await alicePool.deposit(amount('200'));
     await token.useAttack(true);
-    await expect(bobPool.deposit(amount('100'))).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(bobPool.deposit(amount('100'))).revertedWith(
+      'ReentrancyGuard: reentrant call',
+    );
+  });
   // swapToVUsd does not call any transfer method, so there is no test for it
 
   it('swapFromVUsd reentrancy', async () => {
     await alicePool.deposit(amount('200'));
     await token.useAttack(true);
-    await expect(ownerPool.swapFromVUsd(alice, amountSP('100'), 0, true)).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(
+      ownerPool.swapFromVUsd(alice, amountSP('100'), 0, true),
+    ).revertedWith('ReentrancyGuard: reentrant call');
+  });
   it('adjustTotalLpAmount reentrancy', async () => {
     await bobPool.deposit(amount('200'));
     await ownerPool.deposit(amount('200'));
     await ownerPool.swapToVUsd(bob, amount('200'), false);
     await bobPool.withdraw(amountSP('100'));
     await token.useAttack(true);
-    await expect(ownerPool.adjustTotalLpAmount()).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(ownerPool.adjustTotalLpAmount()).revertedWith(
+      'ReentrancyGuard: reentrant call',
+    );
+  });
   it('claimRewards reentrancy', async () => {
     await alicePool.deposit(amount('200'));
     await ownerPool.swapToVUsd(bob, amount('200'), false);
     await token.useAttack(true);
-    await expect(alicePool.claimRewards()).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(alicePool.claimRewards()).revertedWith(
+      'ReentrancyGuard: reentrant call',
+    );
+  });
   it('claimAdminFee reentrancy', async () => {
     await alicePool.deposit(amount('200'));
     await ownerPool.swapToVUsd(bob, amount('200'), false);
     await token.useAttack(true);
-    await expect(ownerPool.claimAdminFee()).revertedWith("ReentrancyGuard: reentrant call");
-  })
+    await expect(ownerPool.claimAdminFee()).revertedWith(
+      'ReentrancyGuard: reentrant call',
+    );
+  });
 });
