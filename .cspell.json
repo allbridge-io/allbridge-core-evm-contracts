@@ -29,7 +29,8 @@
     "USDY",
     "YARO",
     "Soroban",
-    "Sepolia"
+    "Sepolia",
+    "Reentrancy"
   ],
   "flagWords": [],
   "ignorePaths": [
