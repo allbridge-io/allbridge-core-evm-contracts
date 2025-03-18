@@ -3,7 +3,6 @@ pragma solidity ^0.8.18;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {RewardManager} from "./RewardManager.sol";
 
@@ -27,6 +26,17 @@ contract Pool is RewardManager {
     uint public tokenBalance;
     uint public vUsdBalance;
     uint public balanceRatioMinBP;
+
+    // Current target max absolute pool imbalance
+    uint public maxBalanceDiff;
+    // Current source max absolute pool imbalance
+    uint public maxBalanceDiffOld;
+    // Block when source absolute pool imbalance was set, 
+    // actual pool imbalance will reach target after some blocks using balanceDiffChangePerBlock rate
+    uint public maxBalanceDiffOldBlock;
+    // Rate of change for the max absolute pool imbalance from source to target
+    uint private immutable balanceDiffChangePerBlock;
+
     uint public reserves;
     uint public immutable a;
     uint public d;
@@ -50,6 +60,7 @@ contract Pool is RewardManager {
         ERC20 token_,
         uint16 feeShareBP_,
         uint balanceRatioMinBP_,
+        uint balanceDiffChangePerBlock_,
         string memory lpName,
         string memory lpSymbol
     ) RewardManager(token_, lpName, lpSymbol) {
@@ -57,7 +68,14 @@ contract Pool is RewardManager {
         router = router_;
         stopAuthority = owner();
         feeShareBP = feeShareBP_;
+
         balanceRatioMinBP = balanceRatioMinBP_;
+
+        // Initial max pool imbalance is 0 for empty pool
+        maxBalanceDiff = 0;
+        maxBalanceDiffOld = 0;
+        maxBalanceDiffOldBlock = block.number;
+        balanceDiffChangePerBlock = balanceDiffChangePerBlock_;
 
         uint decimals = token_.decimals();
         tokenAmountReduce = decimals > SYSTEM_PRECISION ? 10 ** (decimals - SYSTEM_PRECISION) : 0;
@@ -85,10 +103,11 @@ contract Pool is RewardManager {
      */
     modifier validateBalanceRatio() {
         _;
+        // Token balance difference is checked against dynamically calculated max imbalance
         if (tokenBalance > vUsdBalance) {
-            require((vUsdBalance * BP) / tokenBalance >= balanceRatioMinBP, "Pool: low vUSD balance");
+            require(tokenBalance - vUsdBalance >= getMaxBalanceDiffCurrent(), "Pool: low vUSD balance");
         } else if (tokenBalance < vUsdBalance) {
-            require((tokenBalance * BP) / vUsdBalance >= balanceRatioMinBP, "Pool: low token balance");
+            require(vUsdBalance - tokenBalance >= getMaxBalanceDiffCurrent(), "Pool: low token balance");
         }
     }
 
@@ -276,12 +295,30 @@ contract Pool is RewardManager {
         }
     }
 
+    function getMaxBalanceDiffCurrent() internal view returns (uint) {
+        // Use block diff from the last max absolute balance diff change
+        uint blockDiff = block.number - maxBalanceDiffOldBlock;
+        // Calculate current max absolute imbalance using block diff and change rate
+        uint maxBalanceDiffCurrent = maxBalanceDiffOld + (maxBalanceDiffOld - maxBalanceDiff) * blockDiff * balanceDiffChangePerBlock;
+
+        if (maxBalanceDiffCurrent > maxBalanceDiff) {
+            // Cap diff not to be larger than the target
+            return maxBalanceDiff;
+        }
+        return maxBalanceDiffCurrent;
+    }
+
     /**
      * @dev Sets the threshold over which the pool can't be disbalanced.
      */
     function setBalanceRatioMinBP(uint balanceRatioMinBP_) external onlyOwner {
         require(balanceRatioMinBP_ <= BP, "Pool: too large");
+
         balanceRatioMinBP = balanceRatioMinBP_;
+
+        // Also calculate the new absolute imbalance, effective immediately
+        maxBalanceDiff = d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
+        maxBalanceDiffOld = maxBalanceDiff;
     }
 
     /**
@@ -383,6 +420,21 @@ contract Pool is RewardManager {
             }
             d = (d_ << 1);
         }
+
+        // Calculate max difference between token balances using D
+        uint maxBalanceDiffNew = d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
+        // Calculate current dynamic max imbalance
+        uint maxBalanceDiffCurrent = getMaxBalanceDiffCurrent();
+        if (maxBalanceDiffNew <= maxBalanceDiffCurrent) {
+            // If the new imbalance is lower, the change will be active immediately, no gradual change
+            maxBalanceDiffOld = maxBalanceDiffNew;
+        } else {
+            // Max imbalance will be changed gradually starting from the current block
+            maxBalanceDiffOld = maxBalanceDiffCurrent;
+            maxBalanceDiffOldBlock = block.number;
+        }
+        // Save the new max target imbalance
+        maxBalanceDiff = maxBalanceDiffNew;
     }
 
     function _toSystemPrecision(uint amount) internal view returns (uint) {
