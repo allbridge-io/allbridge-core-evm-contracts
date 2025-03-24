@@ -299,7 +299,7 @@ contract Pool is RewardManager {
         // Use block diff from the last max absolute balance diff change
         uint blockDiff = block.number - maxBalanceDiffOldBlock;
         // Calculate current max absolute imbalance using block diff and change rate
-        uint maxBalanceDiffCurrent = maxBalanceDiffOld + (maxBalanceDiffOld - maxBalanceDiff) * blockDiff * balanceDiffChangePerBlock;
+        uint maxBalanceDiffCurrent = maxBalanceDiffOld + (maxBalanceDiff - maxBalanceDiffOld) * blockDiff * balanceDiffChangePerBlock;
 
         if (maxBalanceDiffCurrent > maxBalanceDiff) {
             // Cap diff not to be larger than the target
