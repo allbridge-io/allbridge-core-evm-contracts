@@ -31,7 +31,7 @@ contract Pool is RewardManager {
     uint public maxBalanceDiff;
     // Current source max absolute pool imbalance
     uint public maxBalanceDiffOld;
-    // Block when source absolute pool imbalance was set, 
+    // Block when source absolute pool imbalance was set,
     // actual pool imbalance will reach target after some blocks using balanceDiffChangePerBlock rate
     uint public maxBalanceDiffOldBlock;
     // Rate of change for the max absolute pool imbalance from source to target
@@ -105,9 +105,9 @@ contract Pool is RewardManager {
         _;
         // Token balance difference is checked against dynamically calculated max imbalance
         if (tokenBalance > vUsdBalance) {
-            require(tokenBalance - vUsdBalance >= getMaxBalanceDiffCurrent(), "Pool: low vUSD balance");
+            require(tokenBalance - vUsdBalance <= getMaxBalanceDiffCurrent(), "Pool: low vUSD balance");
         } else if (tokenBalance < vUsdBalance) {
-            require(vUsdBalance - tokenBalance >= getMaxBalanceDiffCurrent(), "Pool: low token balance");
+            require(vUsdBalance - tokenBalance <= getMaxBalanceDiffCurrent(), "Pool: low token balance");
         }
     }
 
