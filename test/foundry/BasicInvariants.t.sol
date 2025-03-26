@@ -41,6 +41,7 @@ contract BasicInvariantTest is StdInvariant, Test {
             busd,
             0,
             0,
+            10000000000000,
             'BUSD',
             'BUSD'
         );
@@ -50,6 +51,7 @@ contract BasicInvariantTest is StdInvariant, Test {
             usdt,
             0,
             0,
+            10000000000000,
             'BUSD',
             'BUSD'
         );
