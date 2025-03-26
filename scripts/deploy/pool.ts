@@ -32,6 +32,7 @@ async function main() {
     tokenAddress,
     30,
     500,
+    1000,
     lpTokenName,
     lpTokenSymbol,
   );

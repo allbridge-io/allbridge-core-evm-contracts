@@ -7,6 +7,7 @@
     "outDir": "dist",
     "declaration": true,
     "resolveJsonModule": true,
+    "noImplicitAny": false,
     "types": [
       "node"
     ]

@@ -95,6 +95,7 @@ describe('Bridge', () => {
       token.address,
       0,
       1,
+      10000000000000,
       'LP',
       'LP',
     )) as any;

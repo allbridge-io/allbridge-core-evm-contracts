@@ -78,7 +78,6 @@
   "engines": {
     "node": ">=12"
   },
-  "packageManager": "pnpm@8.7.5",
   "pnpm": {
     "overrides": {
       "yargs-parser@<=5.0.0": ">=5.0.1",

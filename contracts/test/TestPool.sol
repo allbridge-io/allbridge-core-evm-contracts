@@ -11,8 +11,9 @@ contract TestPool is Pool {
         uint a_,
         ERC20 token_,
         uint16 feeShareBP_,
-        uint balanceRatioMinBP_
-    ) Pool(router_, a_, token_, feeShareBP_, balanceRatioMinBP_, "LP", "LP") {}
+        uint balanceRatioMinBP_,
+        uint balanceDiffChangePerBlock_
+    ) Pool(router_, a_, token_, feeShareBP_, balanceRatioMinBP_, balanceDiffChangePerBlock_, "LP", "LP") {}
 
     function setVUsdBalance(uint vUsdBalance_) public {
         vUsdBalance = vUsdBalance_;

@@ -23,11 +23,13 @@ export class PoolData {
     user: SignerWithAddress,
     initialPoolTokens: BigSource,
     balanceRatioMinBP: number = 500,
+    balanceDiffChangePerBlock: number = 10000000000000,
   ) {
     return new PoolData(tokenSymbol).init(
       bridge,
       user,
       balanceRatioMinBP,
+      balanceDiffChangePerBlock,
       initialPoolTokens,
     );
   }
@@ -78,6 +80,7 @@ export class PoolData {
     bridge: TestBridgeForSwap,
     user: SignerWithAddress,
     balanceRatioMinBP: number,
+    balanceDiffChangePerBlock: number,
     initialPoolTokens?: BigSource,
   ) {
     this.user = user;
@@ -97,6 +100,7 @@ export class PoolData {
       this.token.address,
       0,
       balanceRatioMinBP,
+      balanceDiffChangePerBlock,
       'LP',
       'LP',
     )) as Pool;

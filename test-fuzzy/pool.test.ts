@@ -72,6 +72,7 @@ describe('Pool: random walk', () => {
       tokenA.address,
       0,
       1,
+      10000000000000,
       'aLP',
       'aLP',
     )) as any;
@@ -81,6 +82,7 @@ describe('Pool: random walk', () => {
       tokenB.address,
       0,
       1,
+      10000000000000,
       'bLp',
       'bLP',
     )) as any;

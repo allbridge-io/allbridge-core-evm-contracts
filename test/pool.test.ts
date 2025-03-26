@@ -71,6 +71,7 @@ describe('Pool', () => {
       tokenA.address,
       0,
       1,
+      100000000000,
       'aLP',
       'aLP',
     )) as any;
@@ -80,6 +81,7 @@ describe('Pool', () => {
       tokenB.address,
       0,
       1,
+      100000000000,
       'bLp',
       'bLP',
     )) as any;
@@ -116,7 +118,7 @@ describe('Pool', () => {
       expect(await poolA.d()).eq(await poolA.totalSupply());
     });
 
-    it('Success', async () => {
+    it('Success: adjustTotalLpAmount', async () => {
       const initOwnerLpAmount = await poolA.balanceOf(alice);
       await doSwap(parseUnits('50000000', AP), poolA, poolB, bob);
       await poolA

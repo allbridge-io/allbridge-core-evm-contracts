@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat';
-import { handleTransactionResult } from '../helper';
+import { addressToBytes32, handleTransactionResult } from '../helper';
+import { parseUnits } from 'ethers/lib/utils';
 
 async function main() {
   const bridgeAddress = process.env.BRIDGE_ADDRESS;
@@ -8,23 +9,22 @@ async function main() {
   }
 
   const bridge = await ethers.getContractAt('Bridge', bridgeAddress);
-  // const pool = await ethers.getContractAt(
-  //   'Pool',
-  //   await stableSwap.poolList(TOKEN_ID),
-  // );
-  // const token = await ethers.getContractAt('Token', await pool.token());
-  // await handleTransactionResult(
-  //   await token.approve(pool.address, ethers.constants.MaxUint256),
-  // );
-
+  const amount = parseUnits('1000', 3);
+  const recipient = addressToBytes32('0xBe959EED208225aAB424505569d41BF3212142C0');
+  const sourceChainId = 1;
+  const token = addressToBytes32('0x55d398326f99059fF775485246999027B3197955');
+  const nonce = 123;
+  const messenger = 0;
+  const receiveAmountMin = 0;
   await handleTransactionResult(
     await bridge.receiveTokens(
-      '0x00de0b60980000000',
-      '0xBe959EED208225aAB424505569d41BF3212142C0000000000000000000000000',
-      1,
-      2,
-      123,
-      0,
+      amount,
+      recipient,
+      sourceChainId,
+      token,
+      nonce,
+      messenger,
+      receiveAmountMin,
     ),
   );
 }
