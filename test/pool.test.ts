@@ -6,7 +6,6 @@ import { Pool, TestBridgeForSwap, Token } from '../typechain';
 import { addressToBase32, SP } from './utils';
 import { mine } from '@nomicfoundation/hardhat-network-helpers';
 
-
 describe('Pool', () => {
   let swap: TestBridgeForSwap;
   let tokenA: Token;
@@ -46,10 +45,12 @@ describe('Pool', () => {
       .swapFromVUsd(user, vUsdAmount, 0, false);
   };
 
-  async function setupContracts(params: {
-    balanceRatioMinBP: number;
-    balanceDiffChangePerBlock: number;
-  } = { balanceRatioMinBP: 1, balanceDiffChangePerBlock: 100000000000 }) {
+  async function setupContracts(
+    params: {
+      balanceRatioMinBP: number;
+      balanceDiffChangePerBlock: number;
+    } = { balanceRatioMinBP: 1, balanceDiffChangePerBlock: 100000000000 },
+  ) {
     const SwapContract = await ethers.getContractFactory('TestBridgeForSwap');
     const TokenContract = await ethers.getContractFactory('Token');
     const PoolContract = await ethers.getContractFactory('Pool');
@@ -264,9 +265,9 @@ describe('Pool', () => {
     });
 
     it('should revert when disbalanced', async () => {
-      await expect( doSwap(parseUnits('25000', AP), poolA, poolB, bob) ).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await expect(
+        doSwap(parseUnits('25000', AP), poolA, poolB, bob),
+      ).revertedWith('Pool: low vUSD balance');
     });
 
     it('should revert when disbalanced 1 block after deposit', async () => {
@@ -276,9 +277,9 @@ describe('Pool', () => {
       const maxBalanceDiff = await poolA.maxBalanceDiff();
       expect(maxBalanceDiffOld.lt(maxBalanceDiff)).to.eq(true);
 
-      await expect( doSwap(parseUnits('25000', AP), poolA, poolB, bob) ).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await expect(
+        doSwap(parseUnits('25000', AP), poolA, poolB, bob),
+      ).revertedWith('Pool: low vUSD balance');
     });
 
     it('should be OK when disbalanced 100 blocks after deposit', async () => {
@@ -286,9 +287,9 @@ describe('Pool', () => {
 
       await mine(100);
 
-      await expect( doSwap(parseUnits('25000', AP), poolA, poolB, bob) ).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await expect(
+        doSwap(parseUnits('25000', AP), poolA, poolB, bob),
+      ).revertedWith('Pool: low vUSD balance');
     });
 
     it('should revert when maxBalanceDiff decreased', async () => {
@@ -302,9 +303,9 @@ describe('Pool', () => {
       const maxBalanceDiff = await poolA.maxBalanceDiff();
       expect(maxBalanceDiffOld.eq(maxBalanceDiff)).to.eq(true);
 
-      await expect( doSwap(parseUnits('25000', AP), poolA, poolB, bob) ).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await expect(
+        doSwap(parseUnits('25000', AP), poolA, poolB, bob),
+      ).revertedWith('Pool: low vUSD balance');
     });
   });
 });

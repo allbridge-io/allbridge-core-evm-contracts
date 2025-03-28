@@ -59,9 +59,7 @@ describe('Messenger', () => {
       message: 'Test message',
     });
 
-    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(
-      0
-    );
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     const response = await messenger.sendMessage(message);
 
     expect(response).emit(messenger, 'MessageSent').withArgs(message);
@@ -110,9 +108,7 @@ describe('Messenger', () => {
       message: 'Test message',
     });
 
-    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(
-      0
-    );
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     await messenger.sendMessage(message);
     await expect(messenger.sendMessage(message)).revertedWith(
       'Messenger: has message',
