@@ -37,25 +37,6 @@ export class Strategy {
     await this.afterRun();
   }
 
-  async tryRunSteps(): Promise<void> {
-    this.isAborted = false;
-    await this.beforeRun();
-    for (let i = 0; i < this.steps.length; i++) {
-      const step = this.steps[i];
-      await this.beforeStep(i, step);
-      try {
-        await step.run();
-        await this.afterStep();
-      } catch (e) {
-        console.error(e);
-      }
-      if (this.isAborted) {
-        break;
-      }
-    }
-    await this.afterRun();
-  }
-
   abortRun() {
     this.isAborted = true;
   }

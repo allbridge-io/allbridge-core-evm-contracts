@@ -51,14 +51,14 @@ describe('Pool balance', () => {
   });
 
   async function assertNoProfit() {
-    expect(+(await testEnv.getTotalProfit())).lte(0);
+    expect(+(await testEnv.getTotalProfitWithLp())).lte(0);
   }
 
   describe('given one empty pool', () => {
     beforeEach(async () => {
       bridge = bridge.connect(owner);
-      busdData = await PoolData.setup('BUSD', bridge, user, 0, 0);
-      usdtData = await PoolData.setup('USDT', bridge, user, 1_500_000, 0);
+      busdData = await PoolData.setup('BUSD', bridge, user, 0, 1);
+      usdtData = await PoolData.setup('USDT', bridge, user, 1_000_000, 1);
 
       bridge = bridge.connect(user);
       testEnv = new TestEnv(user, [busdData, usdtData]);
@@ -73,9 +73,8 @@ describe('Pool balance', () => {
         new WithdrawPercentStep(busdData, 100),
       );
 
-      await expect(strategy.runSteps()).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await strategy.runSteps();
+      await assertNoProfit();
     });
 
     it('unbalancing should not yield profit 3', async () => {
@@ -92,9 +91,8 @@ describe('Pool balance', () => {
         new WithdrawPercentStep(busdData, 100),
       );
 
-      await expect(strategy.runSteps()).revertedWith(
-        'Pool: low token balance',
-      );
+      await strategy.runSteps();
+      await assertNoProfit();
     });
 
     it('deposit - withdraw', async () => {
@@ -132,9 +130,8 @@ describe('Pool balance', () => {
         new SwapFixedAmountStep(bridge, busdData, usdtData, 32_915),
         new WithdrawFixedAmountStep(busdData, 32_915),
       );
-      await expect(strategy.runSteps()).revertedWith(
-        'Pool: low token balance',
-      );
+      await strategy.runSteps();
+      await assertNoProfit();
     });
   });
 
@@ -158,9 +155,8 @@ describe('Pool balance', () => {
         new WithdrawPercentStep(usdtData, 100),
       );
 
-      await expect(strategy.runSteps()).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await strategy.runSteps();
+      await assertNoProfit();
     });
 
     it('hacker flow', async () => {
@@ -173,27 +169,26 @@ describe('Pool balance', () => {
         new WithdrawPercentStep(usdtData, 100),
       );
 
-      await expect(strategy.runSteps()).revertedWith(
-        'Pool: low vUSD balance',
-      );
+      await strategy.runSteps();
+      await assertNoProfit();
     });
 
     it('swap - back swap', async () => {
       await strategy
         .addSteps(
-          new SwapFixedAmountStep(bridge, busdData, usdtData, 50000),
-          new SwapFixedAmountStep(bridge, usdtData, busdData, 50000),
+          new SwapFixedAmountStep(bridge, busdData, usdtData, 500_000),
+          new SwapFixedAmountStep(bridge, usdtData, busdData, 224_029),
         )
         .runSteps();
       await assertNoProfit();
-      expect(+(await testEnv.getTotalProfit())).closeTo(0, 0.1);
+      expect(+(await testEnv.getTotalProfit())).closeTo(0, 0.01);
     });
 
     it(`withdraw small amount many times `, async () => {
       await strategy
         .addSteps(
           new DepositFixedAmountStep(busdData, 10_000),
-          ...new Array(99)
+          ...new Array(100)
             .fill(0)
             .map((_) => new WithdrawFixedAmountStep(busdData, 0.002)),
         )
@@ -208,14 +203,14 @@ describe('Pool balance', () => {
             bridge,
             busdData,
             usdtData,
-            randomNumber(1, 100_000),
+            randomNumber(1, 200_000),
           );
         } else {
           return new SwapFixedAmountStep(
             bridge,
             usdtData,
             busdData,
-            randomNumber(1, 100_000),
+            randomNumber(1, 200_000),
           );
         }
       });
@@ -227,7 +222,7 @@ describe('Pool balance', () => {
           new WithdrawPercentStep(usdtData, 100),
         ],
       );
-      await strategy.addSteps(...steps).tryRunSteps();
+      await strategy.addSteps(...steps).runSteps();
       await assertNoProfit();
       expect(+(await busdData.d())).closeTo(500000, 0.002);
       expect(+(await usdtData.d())).closeTo(500000, 0.002);
@@ -287,7 +282,7 @@ describe('Pool balance', () => {
       await strategy
         .addSteps(
           new DepositPercentOfInitialPoolBalanceStep(busdData, 100),
-          new SwapFixedAmountStep(bridge, usdtData, busdData, 250_000),
+          new SwapFixedAmountStep(bridge, usdtData, busdData, 500_000),
           new WithdrawPercentStep(busdData, 100),
         )
         .runSteps();
@@ -298,7 +293,7 @@ describe('Pool balance', () => {
       await strategy
         .addSteps(
           new DepositPercentOfInitialPoolBalanceStep(busdData, 100),
-          new SwapFixedAmountStep(bridge, usdtData, busdData, 250_000),
+          new SwapFixedAmountStep(bridge, usdtData, busdData, 500_000),
           new WithdrawPercentStep(busdData, 99),
           new DepositFixedAmountStep(busdData, 50_000),
           new WithdrawPercentStep(busdData, 100),
@@ -311,7 +306,7 @@ describe('Pool balance', () => {
       await strategy
         .addSteps(
           new DepositPercentOfInitialPoolBalanceStep(busdData, 100),
-          new SwapFixedAmountStep(bridge, usdtData, busdData, 250_000),
+          new SwapFixedAmountStep(bridge, usdtData, busdData, 500_000),
           new WithdrawPercentStep(busdData, 100),
           new SwapFixedAmountStep(bridge, busdData, usdtData, 122_077),
         )
@@ -337,25 +332,27 @@ describe('Pool balance', () => {
   describe('D < Total LP Test', () => {
     beforeEach(async () => {
       bridge = bridge.connect(owner);
-      busdData = await PoolData.setup('BUSD', bridge, user, '100000', 1);
-      usdtData = await PoolData.setup('USDT', bridge, user, '100000', 1);
+      busdData = await PoolData.setup('BUSD', bridge, user, '100000', 0);
+      usdtData = await PoolData.setup('USDT', bridge, user, '100000', 0);
       testEnv = new TestEnv(user, [busdData, usdtData]);
     });
 
     it('Success', async () => {
-      const s = strategy
+      await strategy
         .addSteps(
           new DepositFixedAmountStep(usdtData, '49999999.999999999999999998'),
           new DepositFixedAmountStep(busdData, '26879046.493764933909030207'),
           new SwapFixedAmountStep(bridge, usdtData, busdData, '13489523.246'),
           new DepositFixedAmountStep(usdtData, '49999999.000084443571595002'),
           new SwapFixedAmountStep(bridge, usdtData, busdData, '1466056.52'),
-          new SwapFixedAmountStep(bridge, busdData, usdtData, '78286336.347'),
+          new SwapFixedAmountStep(bridge, busdData, usdtData, '53000000.000'),
           new DepositFixedAmountStep(usdtData, '35791241.528386537981938678'),
           new WithdrawFixedAmountStep(usdtData, '86.706'),
-        );
-      await expect(s.runSteps()).revertedWith(
-        'Pool: low token balance',
+        )
+        .runSteps();
+      expect(+(await usdtData.d())).closeTo(
+        +(await usdtData.totalLpBalance()),
+        0.01,
       );
     });
   });
@@ -371,7 +368,7 @@ describe('Pool balance', () => {
         bridge,
         busdData,
         usdtData,
-        50,
+        100,
       ).run(owner);
       testEnv = new TestEnv(user, [busdData, usdtData]);
     });
@@ -398,13 +395,13 @@ describe('Pool balance', () => {
           )
           .runSteps();
         expect(+(await getPoolData().userLpBalance())).eq(0);
-        expect(+(await testEnv.getTotalProfit())).lte(0);
+        await assertNoProfit();
       });
-      it(`withdraw a small amount many times  (${description})`, async () => {
+      it(`withdraw small amount many times  (${description})`, async () => {
         await strategy
           .addSteps(
             new DepositFixedAmountStep(getPoolData(), 10_000),
-            ...new Array(99)
+            ...new Array(100)
               .fill(0)
               .map((_) => new WithdrawFixedAmountStep(getPoolData(), 0.008)),
           )
@@ -422,7 +419,7 @@ describe('Pool balance', () => {
           )
           .runSteps();
         expect(+(await getPoolData().userLpBalance())).eq(0);
-        expect(+(await testEnv.getTotalProfit())).lte(0);
+        await assertNoProfit();
       });
 
       it(`deposit - withdraw in loop (${description})`, async () => {
@@ -436,7 +433,7 @@ describe('Pool balance', () => {
           );
         }
         await strategy.addSteps(...steps).runSteps();
-        expect(+(await testEnv.getTotalProfit())).lte(0);
+        await assertNoProfit();
       });
 
       it(`random deposit - withdraw in loop (${description})`, async () => {
@@ -478,7 +475,7 @@ describe('Pool balance', () => {
       it(`deposit - unbalance swap - withdraw (${description})`, async () => {
         await strategy
           .addSteps(
-            new DepositFixedAmountStep(getPoolData(), 500_000),
+            new DepositFixedAmountStep(getPoolData(), 250_000),
             new SwapFixedAmountStep(bridge, busdData, usdtData, 250_000),
             new WithdrawPercentStep(getPoolData(), 100),
           )
@@ -502,7 +499,7 @@ describe('Pool balance', () => {
   describe('balance ratio validation', () => {
     beforeEach(async () => {
       bridge = bridge.connect(owner);
-      busdData = await PoolData.setup('BUSD', bridge, user, 0, 190);
+      busdData = await PoolData.setup('BUSD', bridge, user, 0, 2700);
       usdtData = await PoolData.setup('USDT', bridge, user, 1_000_000, 500);
 
       bridge = bridge.connect(user);
@@ -522,11 +519,11 @@ describe('Pool balance', () => {
     it("disbalancing that doesn't exceed the threshold should be OK", async () => {
       strategy.addSteps(
         new DepositFixedAmountStep(busdData, 50_000),
-        new SwapFixedAmountStep(bridge, busdData, usdtData, 15_000),
+        new SwapFixedAmountStep(bridge, busdData, usdtData, 30_000),
       );
 
       await strategy.runSteps();
-      expect((await testEnv.getTotalProfit()).lte(0)).to.eq(true);
+      await assertNoProfit();
     });
   });
 });
