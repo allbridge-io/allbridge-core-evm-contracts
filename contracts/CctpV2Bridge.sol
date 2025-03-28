@@ -111,7 +111,7 @@ contract CctpV2Bridge is GasUsage {
             }
             amountToSend -= adminFee;
         }
-        uint maxFee = amountToSend * maxFeeShare / MAX_FEE_SHARE_P + 1;
+        uint maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         cctpMessenger.depositForBurn(
             amountToSend,
@@ -120,7 +120,8 @@ contract CctpV2Bridge is GasUsage {
             address(token),
             bytes32(0),
             maxFee,
-            minFinalityThreshold);
+            minFinalityThreshold
+        );
         emit TokensSent(
             amountToSend,
             msg.sender,
@@ -162,7 +163,7 @@ contract CctpV2Bridge is GasUsage {
         require(cctpTransmitter.receiveMessage(message, signature), "CCTP: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
-            (bool sent,) = payable(recipient).call{value: msg.value}("");
+            (bool sent, ) = payable(recipient).call{value: msg.value}("");
             if (sent) {
                 emit ReceivedExtraGas(recipient, msg.value);
             }
@@ -210,6 +211,7 @@ contract CctpV2Bridge is GasUsage {
         require(adminFeeShareBP_ <= BP, "CCTP: Too high");
         adminFeeShareBP = adminFeeShareBP_;
     }
+
     /**
      * @notice Sets the maximum fee share for the relayer.
      */
