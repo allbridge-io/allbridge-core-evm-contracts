@@ -349,7 +349,7 @@ describe('CctpBridge', () => {
       const response = cctpBridge
         .connect(user)
         .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value });
-      await expect(response).revertedWith('Not enough fee');
+      await expect(response).revertedWith('CCTP: Not enough fee');
     });
 
     it('Failure: should revert when destination is unknown', async () => {
@@ -361,7 +361,7 @@ describe('CctpBridge', () => {
       const response = cctpBridge
         .connect(user)
         .bridge(amount, recipient, unknownChainId, '0', { value });
-      await expect(response).revertedWith('Unknown chain id');
+      await expect(response).revertedWith('CCTP: Unknown chain id');
     });
   });
 
@@ -507,7 +507,7 @@ describe('CctpBridge', () => {
         .receiveTokens(recipient, message, signature, {
           value: extraGasAmount,
         });
-      await expect(response).revertedWith('Receive message failed');
+      await expect(response).revertedWith('CCTP: Receive message failed');
     });
 
     it('Failure: should be OK when passing extra gas fails', async () => {
@@ -540,7 +540,7 @@ describe('CctpBridge', () => {
     it('Failure: should revert when chain ID is not registered', async () => {
       const unknownChainId = 0;
       await expect(cctpBridge.getDomainByChainId(unknownChainId)).revertedWith(
-        'Unknown chain id',
+        'CCTP: Unknown chain id',
       );
     });
   });
@@ -575,7 +575,7 @@ describe('CctpBridge', () => {
         await cctpBridge.unregisterBridgeDestination(OTHER_CHAIN_ID);
         await expect(
           cctpBridge.getDomainByChainId(OTHER_CHAIN_ID),
-        ).revertedWith('Unknown chain id');
+        ).revertedWith('CCTP: Unknown chain id');
       });
 
       it('Failure: should revert when the caller is not the owner', async () => {
@@ -643,7 +643,7 @@ describe('CctpBridge', () => {
 
       it('Failure: should revert when the new fee is more than 100%', async () => {
         await expect(cctpBridge.setAdminFeeShare(10001)).to.be.revertedWith(
-          'Too high',
+          'CCTP: Too high',
         );
       });
 

@@ -4,6 +4,7 @@ import { ethers, waffle } from 'hardhat';
 import { Messenger } from '../typechain';
 import { abi as GasOracleABI } from '../artifacts/contracts/GasOracle.sol/GasOracle.json';
 import { encodeMessage, signMessage, receiveParams } from './utils';
+import { MockContract } from 'ethereum-waffle';
 
 const { deployMockContract, provider } = waffle;
 
@@ -19,7 +20,7 @@ describe('Messenger', () => {
   let secondaryValidatorAddress: string;
 
   let messenger: Messenger;
-  let mockedGasOracle: any;
+  let mockedGasOracle: MockContract;
 
   beforeEach(async function () {
     const [
@@ -34,12 +35,11 @@ describe('Messenger', () => {
     primaryValidatorAddress = primaryValidatorAccount.address;
     secondaryValidatorAddress = secondaryValidatorAccount.address;
 
+    // @ts-ignore
     mockedGasOracle = await deployMockContract(
       deployerOfContract,
       GasOracleABI,
     );
-
-    mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
 
     const messengerContract = (await ethers.getContractFactory(
       'Messenger',
@@ -59,6 +59,9 @@ describe('Messenger', () => {
       message: 'Test message',
     });
 
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(
+      0
+    );
     const response = await messenger.sendMessage(message);
 
     expect(response).emit(messenger, 'MessageSent').withArgs(message);
@@ -107,6 +110,9 @@ describe('Messenger', () => {
       message: 'Test message',
     });
 
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(
+      0
+    );
     await messenger.sendMessage(message);
     await expect(messenger.sendMessage(message)).revertedWith(
       'Messenger: has message',

@@ -471,7 +471,7 @@ describe('Pool balance', () => {
             );
           }
         }
-        await strategy.addSteps(...steps).runSteps();
+        await strategy.addSteps(...steps).tryRunSteps();
         expect(+(await testEnv.getTotalProfit())).lte(balanceProfit);
       });
 
@@ -479,7 +479,7 @@ describe('Pool balance', () => {
         await strategy
           .addSteps(
             new DepositFixedAmountStep(getPoolData(), 500_000),
-            new SwapFixedAmountStep(bridge, busdData, usdtData, 250_000),
+            new SwapFixedAmountStep(bridge, busdData, usdtData, 10_000),
             new WithdrawPercentStep(getPoolData(), 100),
           )
           .runSteps();

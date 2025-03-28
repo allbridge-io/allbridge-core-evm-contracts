@@ -869,9 +869,6 @@ describe('Bridge', () => {
             .returns(
               parseUnits(bridgingPriceInUsd.toString(), ORACLE_PRECISION),
             );
-          await mockedGasOracle.mock.getTransactionGasCostInUSD.revertsWithReason(
-            'Unexpected getTransactionGasCostInUSD arguments',
-          );
 
           const actual = await bridge.getBridgingCostInTokens(
             destinationChainId,

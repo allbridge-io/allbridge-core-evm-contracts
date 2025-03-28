@@ -507,7 +507,7 @@ describe('Router: common flow', () => {
   it('Withdraw small amount', async () => {
     await poolA.deposit(parseUnits('2000000', AP)); // 1M
 
-    await expect(poolA.withdraw(1)).revertedWith(`zero changes`);
+    await expect(poolA.withdraw(1)).revertedWith(`Pool: zero changes`);
   });
 
   it('Liquidity add(after)-withdraw(before)', async () => {
@@ -590,7 +590,7 @@ describe('Router: common flow', () => {
           bob,
           AddressZero,
         ),
-      ).to.be.revertedWith('transfer to the zero address');
+      ).to.be.revertedWith('ERC20: transfer to the zero address');
     });
   });
 });

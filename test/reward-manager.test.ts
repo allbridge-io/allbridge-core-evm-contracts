@@ -285,7 +285,7 @@ describe('Reward manager', () => {
       {
         await rewardManager.deposit(parseUnits('100'));
         await expect(rewardManager.transferFrom(alice, bob, 1)).revertedWith(
-          'insufficient allowance',
+          'ERC20: insufficient allowance',
         );
       }
     });
@@ -309,7 +309,7 @@ describe('Reward manager', () => {
       {
         await rewardManager.deposit(parseUnits('100'));
         await expect(rewardManager.decreaseAllowance(bob, 1)).revertedWith(
-          'allowance below zero',
+          'ERC20: decreased allowance below zero',
         );
       }
     });
