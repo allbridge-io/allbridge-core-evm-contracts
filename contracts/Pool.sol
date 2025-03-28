@@ -317,7 +317,7 @@ contract Pool is RewardManager {
         balanceRatioMinBP = balanceRatioMinBP_;
 
         // Also calculate the new absolute imbalance, effective immediately
-        maxBalanceDiff = 2 * d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
+        maxBalanceDiff = d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
         maxBalanceDiffOld = maxBalanceDiff;
     }
 
@@ -422,7 +422,7 @@ contract Pool is RewardManager {
         }
 
         // Calculate max difference between token balances using D
-        uint maxBalanceDiffNew = 2 * d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
+        uint maxBalanceDiffNew = d * (BP - balanceRatioMinBP) / (BP + balanceRatioMinBP);
         // Calculate current dynamic max imbalance
         uint maxBalanceDiffCurrent = getMaxBalanceDiffCurrent();
         if (maxBalanceDiffNew <= maxBalanceDiffCurrent) {
