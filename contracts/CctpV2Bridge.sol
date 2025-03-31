@@ -165,7 +165,12 @@ contract CctpV2Bridge is GasUsage {
      * @param message The message information emitted by the CCTP contract `MessageTransmitter` on the source chain.
      * @param signature Concatenated 65-byte signature(s) of `message`.
      */
-    function receiveTokens(address recipient, bytes32 messageId, bytes calldata message, bytes calldata signature) external payable {
+    function receiveTokens(
+        address recipient,
+        bytes32 messageId,
+        bytes calldata message,
+        bytes calldata signature
+    ) external payable {
         require(cctpTransmitter.receiveMessage(message, signature), "CCTP: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {

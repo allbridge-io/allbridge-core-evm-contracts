@@ -39,10 +39,9 @@ const calcMaxFee = (
   return BigNumber.from(v.mul(maxFeeShare).div(MAX_FEE_SHARE_P).add(1));
 };
 
-describe('CctpV2Bridge', () => {
+describe.only('CctpV2Bridge', () => {
   const currentChainPrecision = 18;
   const tokenPrecision = 18;
-  const nonce = 18167805839882137372n;
   const gasAmountOfFinalizingTransfer = 1000;
   const costOfFinalizingTransfer = 10_000;
   const amount = parseUnits('1000', tokenPrecision);
@@ -117,7 +116,6 @@ describe('CctpV2Bridge', () => {
       mockedGasOracle.getTransactionGasCostInNativeToken
         .whenCalledWith(OTHER_CHAIN_ID, gasAmountOfFinalizingTransfer)
         .returns(costOfFinalizingTransfer);
-      mockedCctpMessengerV2.depositForBurn.returns(nonce);
     });
 
     afterEach(async () => {
@@ -150,9 +148,9 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
-          amount,
           user.address,
           recipient,
+          amount,
           OTHER_CHAIN_ID,
           value,
           '0',
@@ -201,9 +199,9 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
-          expectedSentAmount,
           user.address,
           recipient,
+          expectedSentAmount,
           OTHER_CHAIN_ID,
           '0',
           expectedRelayerFeeAmountFromStables,
@@ -261,9 +259,9 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
-          expectedSentAmount,
           user.address,
           recipient,
+          expectedSentAmount,
           OTHER_CHAIN_ID,
           '0',
           expectedRelayerFeeAmountFromStables,
@@ -324,9 +322,9 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
-          expectedSentAmount,
           user.address,
           recipient,
+          expectedSentAmount,
           OTHER_CHAIN_ID,
           '0',
           expectedRelayerFeeAmountFromStables,
@@ -379,9 +377,9 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
-          expectedSentAmount,
           user.address,
           recipient,
+          expectedSentAmount,
           OTHER_CHAIN_ID,
           value,
           '0',
@@ -430,22 +428,30 @@ describe('CctpV2Bridge', () => {
     });
 
     it('Success: should invoke receiveMessage', async () => {
-      await cctpV2Bridge
+      const sentTxId = addressToBase32('0x1');
+
+      const tx = await cctpV2Bridge
         .connect(owner)
-        .receiveTokens(recipient, message, signature, { value: '0' });
+        .receiveTokens(recipient, sentTxId, message, signature, {
+          value: '0',
+        });
 
       expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
         message,
         signature,
       );
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'ReceivedMessageId')
+        .withArgs(sentTxId);
     });
 
     it('Success: should pass extra gas to the recipient', async () => {
+      const sentTxId = addressToBase32('0x1');
       const extraGasAmount = parseUnits('0.001', currentChainPrecision);
 
       const tx = await cctpV2Bridge
         .connect(owner)
-        .receiveTokens(recipient, message, signature, {
+        .receiveTokens(recipient, sentTxId, message, signature, {
           value: extraGasAmount,
         });
       await expect(tx).to.changeEtherBalance(
@@ -461,6 +467,9 @@ describe('CctpV2Bridge', () => {
         message,
         signature,
       );
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'ReceivedMessageId')
+        .withArgs(sentTxId);
     });
 
     it('Failure: should revert when receiveMessage fails', async () => {
@@ -469,7 +478,7 @@ describe('CctpV2Bridge', () => {
       const extraGasAmount = parseUnits('0.001', currentChainPrecision);
       const response = cctpV2Bridge
         .connect(owner)
-        .receiveTokens(recipient, message, signature, {
+        .receiveTokens(recipient, addressToBase32('0x1'), message, signature, {
           value: extraGasAmount,
         });
       await expect(response).revertedWith('Receive message failed');
@@ -481,9 +490,15 @@ describe('CctpV2Bridge', () => {
 
       const tx = await cctpV2Bridge
         .connect(owner)
-        .receiveTokens(invalidGasRecipient, message, signature, {
-          value: extraGasAmount,
-        });
+        .receiveTokens(
+          invalidGasRecipient,
+          addressToBase32('0x1'),
+          message,
+          signature,
+          {
+            value: extraGasAmount,
+          },
+        );
       await expect(tx).to.changeEtherBalance(
         await ethers.getSigner(invalidGasRecipient),
         '0',
