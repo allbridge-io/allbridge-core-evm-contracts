@@ -60,8 +60,11 @@ describe('Messenger', () => {
     });
 
     const response = await messenger.sendMessage(message);
-    const expectedHash = '0x03002c1b0950d4e9e5e2c2d7142b1f017127ea90ef8dfd290f8250cbd3f44c59'
-    await expect(response).emit(messenger, 'MessageSent').withArgs(expectedHash);
+    const expectedHash =
+      '0x03002c1b0950d4e9e5e2c2d7142b1f017127ea90ef8dfd290f8250cbd3f44c59';
+    await expect(response)
+      .emit(messenger, 'MessageSent')
+      .withArgs(expectedHash);
   });
 
   it('Failure: Send message to unsupported chain', async () => {
@@ -188,7 +191,7 @@ describe('Messenger', () => {
       message,
       ...receiveParams(primarySignature, secondarySignature),
     );
-    // There is no problem if message is confirmed twice
+    // There is no problem if a message is confirmed twice
     await messenger.receiveMessage(
       message,
       ...receiveParams(primarySignature, secondarySignature),
