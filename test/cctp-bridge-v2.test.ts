@@ -39,7 +39,7 @@ const calcMaxFee = (
   return BigNumber.from(v.mul(maxFeeShare).div(MAX_FEE_SHARE_P).add(1));
 };
 
-describe.only('CctpV2Bridge', () => {
+describe('CctpV2Bridge', () => {
   const currentChainPrecision = 18;
   const tokenPrecision = 18;
   const gasAmountOfFinalizingTransfer = 1000;
