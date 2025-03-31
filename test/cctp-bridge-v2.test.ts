@@ -487,18 +487,13 @@ describe.only('CctpV2Bridge', () => {
     it('Failure: should be OK when passing extra gas fails', async () => {
       const invalidGasRecipient = token.address;
       const extraGasAmount = parseUnits('0.001', currentChainPrecision);
+      const sentTxId = addressToBase32('0x1');
 
       const tx = await cctpV2Bridge
         .connect(owner)
-        .receiveTokens(
-          invalidGasRecipient,
-          addressToBase32('0x1'),
-          message,
-          signature,
-          {
-            value: extraGasAmount,
-          },
-        );
+        .receiveTokens(invalidGasRecipient, sentTxId, message, signature, {
+          value: extraGasAmount,
+        });
       await expect(tx).to.changeEtherBalance(
         await ethers.getSigner(invalidGasRecipient),
         '0',
@@ -508,6 +503,9 @@ describe.only('CctpV2Bridge', () => {
         message,
         signature,
       );
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'ReceivedMessageId')
+        .withArgs(sentTxId);
     });
   });
 
