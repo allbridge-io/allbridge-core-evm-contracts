@@ -37,6 +37,11 @@ contract CctpV2Bridge is GasUsage {
     event ReceivedGas(address sender, uint amount);
 
     /**
+     * @notice Emitted when the contract receives message
+     */
+    event ReceivedMessageId(bytes32 messageId);
+
+    /**
      * @notice Emitted when the contract sends some extra gas to the recipient of tokens.
      */
     event ReceivedExtraGas(address recipient, uint amount);
@@ -45,9 +50,9 @@ contract CctpV2Bridge is GasUsage {
      * @notice Emitted when tokens are sent on the source blockchain.
      */
     event TokensSent(
-        uint amount,
         address sender,
         bytes32 recipient,
+        uint amount,
         uint destinationChainId,
         uint receivedRelayerFeeFromGas,
         uint receivedRelayerFeeFromTokens,
@@ -123,9 +128,9 @@ contract CctpV2Bridge is GasUsage {
             minFinalityThreshold
         );
         emit TokensSent(
-            amountToSend,
             msg.sender,
             recipient,
+            amountToSend,
             destinationChainId,
             msg.value,
             gasFromStables,
@@ -156,10 +161,11 @@ contract CctpV2Bridge is GasUsage {
     /**
      * @notice Completes the bridging process by sending the tokens on the destination blockchain to the recipient.
      * @param recipient The recipient address.
+     * @param messageId The message id to connect sent and received transaction (Sent tx id)
      * @param message The message information emitted by the CCTP contract `MessageTransmitter` on the source chain.
      * @param signature Concatenated 65-byte signature(s) of `message`.
      */
-    function receiveTokens(address recipient, bytes calldata message, bytes calldata signature) external payable {
+    function receiveTokens(address recipient, bytes32 messageId, bytes calldata message, bytes calldata signature) external payable {
         require(cctpTransmitter.receiveMessage(message, signature), "CCTP: Receive message failed");
         // pass extra gas to the recipient
         if (msg.value > 0) {
@@ -168,6 +174,8 @@ contract CctpV2Bridge is GasUsage {
                 emit ReceivedExtraGas(recipient, msg.value);
             }
         }
+
+        emit ReceivedMessageId(messageId);
     }
 
     /**
