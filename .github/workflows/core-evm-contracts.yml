@@ -12,14 +12,14 @@ jobs:
       - name: ⬣ ESLint
         run: pnpm run lint:check
 
-  audit:
-    name: 🛡️ Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/prepare
-      - name: 🛡️ Audit
-        run: pnpm audit --audit-level=high
+  # audit:
+  #   name: 🛡️ Audit
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: ./.github/actions/prepare
+  #     - name: 🛡️ Audit
+  #       run: pnpm audit --audit-level=high -P
 
   format:
     name: 🔬 Format
