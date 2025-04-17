@@ -113,7 +113,7 @@ contract Pool is RewardManager {
      * and to the Y
      * @param amount The deposited amount
      */
-    function deposit(uint amount) external whenCanDeposit {
+    function deposit(uint amount) external whenCanDeposit extraAmountRewards(0) nonReentrant {
         uint oldD = d;
 
         uint amountSP = _toSystemPrecision(amount);
@@ -147,7 +147,7 @@ contract Pool is RewardManager {
      * the price
      * @param amount The deposited amount
      */
-    function withdraw(uint amountLp) external whenCanWithdraw {
+    function withdraw(uint amountLp) external whenCanWithdraw extraAmountRewards(0) nonReentrant {
         uint oldD = d;
         _withdrawLp(msg.sender, amountLp);
 
@@ -186,7 +186,7 @@ contract Pool is RewardManager {
         address user,
         uint amount,
         bool zeroFee
-    ) external onlyRouter validateBalanceRatio returns (uint) {
+    ) external onlyRouter validateBalanceRatio extraAmountRewards(amount) nonReentrant returns (uint) {
         uint result; // 0 by default
         uint fee;
         if (amount > 0) {
@@ -229,7 +229,7 @@ contract Pool is RewardManager {
         uint amount,
         uint receiveAmountMin,
         bool zeroFee
-    ) external onlyRouter validateBalanceRatio returns (uint) {
+    ) external onlyRouter validateBalanceRatio extraAmountRewards(0) nonReentrant returns (uint) {
         uint resultSP; // 0 by default
         uint result; // 0 by default
         uint fee;
@@ -270,7 +270,7 @@ contract Pool is RewardManager {
         feeShareBP = feeShareBP_;
     }
 
-    function adjustTotalLpAmount() external onlyOwner {
+    function adjustTotalLpAmount() external extraAmountRewards(0) nonReentrant onlyOwner {
         if (d > totalSupply()) {
             _depositLp(owner(), d - totalSupply());
         }
