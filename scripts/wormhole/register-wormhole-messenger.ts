@@ -1,5 +1,9 @@
 import { ethers } from 'hardhat';
-import { addressToBytes32, handleTransactionResult, solanaAddressToBytes32 } from '../helper';
+import {
+  addressToBytes32,
+  handleTransactionResult,
+  solanaAddressToBytes32,
+} from '../helper';
 
 async function main() {
   const wormholeMessengerAddress = process.env.WORMHOLE_MESSENGER_ADDRESS;
@@ -18,7 +22,7 @@ async function main() {
       // addressToBytes32(
       //   '0xc78642d8e80f0ee195600599cb5498dc53049202a18cc07aac90b68b72dd9943', // deployed wormhole address
       // ),
-      solanaAddressToBytes32('3dPvx6iKLAqLfeisJdeyzrVSaN6BDSHMYuCSdbm2TUPZ') // bridge authority address
+      solanaAddressToBytes32('3dPvx6iKLAqLfeisJdeyzrVSaN6BDSHMYuCSdbm2TUPZ'), // bridge authority address
     ),
   );
 }

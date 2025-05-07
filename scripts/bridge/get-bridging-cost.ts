@@ -13,12 +13,14 @@ async function main() {
   const bridgingCost = await bridge.getBridgingCostInTokens(
     destinationChainId,
     messengerProtocol,
-    tokenAddress
+    tokenAddress,
   );
   const decimals = await token.decimals();
   const symbol = await token.symbol();
-  const bridgingCostInUsd = Big(bridgingCost.toString()).div(Big(10).pow(decimals));
-  console.log(`bridgingCost = ${bridgingCostInUsd} ${symbol}`);
+  const bridgingCostInUsd = Big(bridgingCost.toString()).div(
+    Big(10).pow(decimals),
+  );
+  console.log(`bridgingCost = ${bridgingCostInUsd.toFixed()} ${symbol}`);
 }
 
 main().catch((error) => {

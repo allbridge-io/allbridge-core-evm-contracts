@@ -8,9 +8,7 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('Pool', poolAddress);
-  const result = await contract.setFeeShare(
-    5,
-  );
+  const result = await contract.setFeeShare(5);
   await handleTransactionResult(result);
 }
 

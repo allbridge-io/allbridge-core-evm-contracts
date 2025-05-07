@@ -1,11 +1,8 @@
 import { ethers } from 'hardhat';
-import { handleTransactionResult } from '../helper';
+import { getEnv, handleTransactionResult } from '../helper';
 
 async function main() {
-  const poolAddress = process.env.POOL_ADDRESS;
-  if (!poolAddress) {
-    throw new Error('No bridge address');
-  }
+  const poolAddress = getEnv('POOL_ADDRESS');
 
   const pool = await ethers.getContractAt('Pool', poolAddress);
   const token = await ethers.getContractAt('Token', await pool.token());

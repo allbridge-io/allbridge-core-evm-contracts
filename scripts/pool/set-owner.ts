@@ -1,20 +1,15 @@
 import { ethers } from 'hardhat';
-import { handleTransactionResult } from '../helper';
+import { getEnv, handleTransactionResult } from '../helper';
 
 async function main() {
-  const poolAddress = process.env.POOL_ADDRESS;
-  if (!poolAddress) {
-    throw new Error('No pool address');
-  }
-
-  const newOwner = process.env.OWNER;
-  if (!newOwner) {
-    throw new Error('No owner address');
-  }
-
+  const poolAddress = getEnv('POOL_ADDRESS');
+  const newOwner = getEnv('OWNER');
   const contract = await ethers.getContractAt('Pool', poolAddress);
-  const result = await contract.transferOwnership(newOwner);
-  await handleTransactionResult(result);
+  const currentOwner = await contract.owner();
+  if (currentOwner !== newOwner) {
+    const result = await contract.transferOwnership(newOwner);
+    await handleTransactionResult(result);
+  }
 }
 
 main().catch((error) => {

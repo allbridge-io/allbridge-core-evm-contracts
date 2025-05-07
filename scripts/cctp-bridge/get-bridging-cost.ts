@@ -6,7 +6,10 @@ const destinationChainId = 6;
 
 async function main() {
   const cctpBridgeAddress = getEnv('CCTP_BRIDGE_ADDRESS');
-  const cctpBridge = await ethers.getContractAt('CctpBridge', cctpBridgeAddress);
+  const cctpBridge = await ethers.getContractAt(
+    'CctpBridge',
+    cctpBridgeAddress,
+  );
   const usdcAddress = getEnv('USDC_ADDRESS');
   const token = await ethers.getContractAt('Token', usdcAddress);
 
@@ -21,7 +24,9 @@ async function main() {
   );
   const decimals = await token.decimals();
   const symbol = await token.symbol();
-  console.log(`Bridging cost: ${formatUnits(bridgingCost, decimals)} ${symbol}`);
+  console.log(
+    `Bridging cost: ${formatUnits(bridgingCost, decimals)} ${symbol}`,
+  );
 }
 
 main().catch((error) => {

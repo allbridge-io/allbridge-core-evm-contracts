@@ -39,6 +39,8 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    arbitrumSepolia: baseNetwork,
+    baseGoerli: baseNetwork,
     goerli: baseNetwork,
     mumbai: baseNetwork,
     sepolia: baseNetwork,

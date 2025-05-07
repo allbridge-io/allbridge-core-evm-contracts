@@ -34,7 +34,7 @@ async function main() {
       addressToBytes32(tokenAddress),
       addressToBytes32('0xC7DBC4A896b34B7a10ddA2ef72052145A9122F43'),
       signer.address,
-      0
+      0,
     ),
   );
 }
