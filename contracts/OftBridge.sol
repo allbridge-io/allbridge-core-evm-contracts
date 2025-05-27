@@ -13,7 +13,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SendParam, IOFT, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
-contract OftProxy is Ownable {
+contract OftBridge is Ownable {
     using SafeERC20 for IERC20;
     using OptionsBuilder for bytes;
 
@@ -34,6 +34,20 @@ contract OftProxy is Ownable {
      * @notice Emitted when the contract receives some gas directly.
      */
     event ReceivedGas(address sender, uint amount);
+
+    event TokensSent(
+        address sender,
+        bytes32 recipient,
+        address tokenAddress,
+        uint amount,
+        uint destinationChainId,
+        uint receivedRelayerFeeFromGas,
+        uint receivedRelayerFeeFromTokens,
+        uint relayerFeeWithExtraGas,
+        uint receivedRelayerFeeTokenAmount,
+        uint adminFeeTokenAmount,
+        uint extraGasDestinationToken
+    );
 
     constructor(
         uint chainId_,
@@ -58,7 +72,8 @@ contract OftProxy is Ownable {
         require(recipient != 0, "Recipient must be nonzero");
         require(slippageBP <= BP, "Too high");
 
-        IERC20(oft).safeTransferFrom(msg.sender, address(this), amount);
+        address tokenAddress = IOFT(oft).token();
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
 
         require(maxExtraGas[destinationChainId] == 0 || extraGasDestinationToken <= maxExtraGas[destinationChainId], "Extra gas too high");
 
@@ -92,6 +107,18 @@ contract OftProxy is Ownable {
         require(msg.value + gasFromStables >= messagingFee.nativeFee, "Not enough fee");
 
         IOFT(oft).send{value: messagingFee.nativeFee}(sendParam, messagingFee, msg.sender);
+
+        emit TokensSent(msg.sender,
+            recipient,
+            tokenAddress,
+            amountToSend,
+            destinationChainId,
+            msg.value,
+            gasFromStables,
+            messagingFee.nativeFee,
+            relayerFeeTokenAmount,
+            adminFee,
+            extraGasDestinationToken);
     }
 
     function relayerFee(address oft, uint destinationChainId) external view returns (uint) {
