@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {GasUsage} from "./GasUsage.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IGasOracle} from "./interfaces/IGasOracle.sol";
 import {IMessageTransmitter} from "./interfaces/cctp/IMessageTransmitter.sol";
@@ -29,13 +28,14 @@ contract OftBridge is Ownable {
     mapping(address tokenAddress => uint scalingFactor) internal fromGasOracleScalingFactor;
     mapping(uint chainId => uint32 eid) private chainIdEidMap;
     mapping(uint chainId => uint maxExtraGas) internal maxExtraGas;
+    mapping(address tokenAddress => address oftAddress) public oftAddress;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
      */
     event ReceivedGas(address sender, uint amount);
 
-    event TokensSent(
+    event OftTokensSent(
         address sender,
         bytes32 recipient,
         address tokenAddress,
@@ -79,7 +79,7 @@ contract OftBridge is Ownable {
 
         bytes memory options = OptionsBuilder.newOptions();
         if (extraGasDestinationToken > 0) {
-            options.addExecutorNativeDropOption(uint128(extraGasDestinationToken), recipient);
+            options = options.addExecutorNativeDropOption(uint128(extraGasDestinationToken), recipient);
         }
         uint amountToSend = amount - relayerFeeTokenAmount;
         uint adminFee;
@@ -108,7 +108,7 @@ contract OftBridge is Ownable {
 
         IOFT(oft).send{value: messagingFee.nativeFee}(sendParam, messagingFee, msg.sender);
 
-        emit TokensSent(msg.sender,
+        emit OftTokensSent(msg.sender,
             recipient,
             tokenAddress,
             amountToSend,
@@ -121,12 +121,16 @@ contract OftBridge is Ownable {
             extraGasDestinationToken);
     }
 
-    function relayerFee(address oft, uint destinationChainId) external view returns (uint) {
+    function relayerFee(address tokenAddress, uint destinationChainId) external view returns (uint) {
+        address oft = oftAddress[tokenAddress];
+        require(oft != address(0), "Token is not registered");
         MessagingFee memory messagingFee = IOFT(oft).quoteSend(_createEmptySendParam(destinationChainId, 0), false);
         return messagingFee.nativeFee;
     }
 
-    function extraGasPrice(address oft, uint destinationChainId, uint128 extraGasAmount) external view returns (uint) {
+    function extraGasPrice(address tokenAddress, uint destinationChainId, uint128 extraGasAmount) external view returns (uint) {
+        address oft = oftAddress[tokenAddress];
+        require(oft != address(0), "Token is not registered");
         MessagingFee memory messagingFee1 = IOFT(oft).quoteSend(_createEmptySendParam(destinationChainId, extraGasAmount), false);
         MessagingFee memory messagingFee2 = IOFT(oft).quoteSend(_createEmptySendParam(destinationChainId, extraGasAmount * 2), false);
 
@@ -138,7 +142,7 @@ contract OftBridge is Ownable {
     ) private view returns (SendParam memory) {
         bytes memory options = OptionsBuilder.newOptions();
         if (extraGasDestinationToken > 0) {
-            options.addExecutorNativeDropOption(extraGasDestinationToken, bytes32(0));
+            options = options.addExecutorNativeDropOption(extraGasDestinationToken, bytes32(0));
         }
         return SendParam(
             getEidByChainId(destinationChainId),
@@ -176,12 +180,14 @@ contract OftBridge is Ownable {
         uint tokenDecimals = IERC20Metadata(tokenAddress).decimals();
         IERC20(tokenAddress).approve(oft, type(uint256).max);
         fromGasOracleScalingFactor[oft] = 10 ** (ORACLE_PRECISION - tokenDecimals);
+        oftAddress[tokenAddress] = oft;
     }
 
     function removeToken(address oft) external onlyOwner {
         fromGasOracleScalingFactor[oft] = 0;
         address tokenAddress = IOFT(oft).token();
         IERC20(tokenAddress).approve(oft, 0);
+        oftAddress[tokenAddress] = address(0);
     }
 
     /**
