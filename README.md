@@ -62,7 +62,7 @@ Config:
 
 - Add to env file `NODE_URL`, `PRIVATE_KEY`, `VALIDATOR_ADDRESS`, `CHAIN_ID`
 
-Deploy:
+Deploy: 
 
 - Gas oracle: `tronbox migrate --f 1 --to 1 --network nile` set `GAS_ORACLE_ADDRESS`
 - Messenger: `tronbox migrate --f 2 --to 2 --network nile` set `MESSENGER_ADDRESS`
@@ -74,12 +74,12 @@ Deploy:
 Config:
 
 - Approve token `node ./scripts/tron/approve-token.js --network nile`
-- Add pool liquidity (check amount): `node ./scripts/tron/add-pool-liquidity.js --network nile`
-- Add pool to the bridge: `node ./scripts/tron/add-pool.js --network nile`
-- Set bridge (check args): `node ./scripts/tron/add-bridge.js --network nile`
-- Add bridge token (check args): `node ./scripts/tron/add-bridge-token.js --network nile`
-- Set bridge gas usage (check args): `node ./scripts/tron/set-bridge-gas-usage.js --network nile`
-- Set messenger gas usage (check args): `node ./scripts/tron/set-messenger-gas-usage.js --network nile`
+- Add pool liquidity (check amount): `node ./scripts/tron/pool/add-pool-liquidity.js --network nile`
+- Add pool to the bridge: `node ./scripts/tron/bridge/add-pool.js --network nile`
+- Set bridge (check args): `node ./scripts/tron/bridge/add-bridge.js --network nile`
+- Add bridge token (check args): `node ./scripts/tron/bridge/add-bridge-token.js --network nile`
+- Set bridge gas usage (check args): `node ./scripts/tron/bridge/set-bridge-gas-usage.js --network nile`
+- Set messenger gas usage (check args): `node ./scripts/tron/messenger/set-messenger-gas-usage.js --network nile`
 
 ### CCTP
 

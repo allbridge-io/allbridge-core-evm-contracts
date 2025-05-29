@@ -92,6 +92,18 @@ devDependencies:
   '@ethersproject/providers':
     specifier: ^5.7.2
     version: 5.7.2
+  '@layerzerolabs/lz-evm-messagelib-v2':
+    specifier: ^3.0.94
+    version: 3.0.94(@axelar-network/axelar-gmp-sdk-solidity@5.10.0)(@chainlink/contracts-ccip@0.7.6)(@eth-optimism/contracts@0.6.0)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+  '@layerzerolabs/lz-evm-protocol-v2':
+    specifier: ^3.0.94
+    version: 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+  '@layerzerolabs/oapp-evm':
+    specifier: ^0.3.2
+    version: 0.3.2(@layerzerolabs/lz-evm-messagelib-v2@3.0.94)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)
+  '@layerzerolabs/oft-evm':
+    specifier: ^3.1.4
+    version: 3.1.4(@layerzerolabs/lz-evm-messagelib-v2@3.0.94)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@layerzerolabs/oapp-evm@0.3.2)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)
   '@nomicfoundation/hardhat-network-helpers':
     specifier: ^1.0.8
     version: 1.0.8(hardhat@2.14.0)
@@ -194,6 +206,9 @@ devDependencies:
   solhint:
     specifier: ^3.4.1
     version: 3.4.1
+  solidity-bytes-utils:
+    specifier: ^0.8.3
+    version: 0.8.3
   solidity-coverage:
     specifier: ^0.8.2
     version: 0.8.2(hardhat@2.14.0)
@@ -211,6 +226,11 @@ devDependencies:
     version: 5.0.4
 
 packages:
+
+  /@axelar-network/axelar-gmp-sdk-solidity@5.10.0:
+    resolution: {integrity: sha512-s8SImALvYB+5AeiT3tbfWNBI2Mhqw1x91i/zM3DNpVUCnAR2HKtsB9T84KnUn/OJjOVgb4h0lv7q9smeYniRPw==}
+    engines: {node: '>=18'}
+    dev: true
 
   /@babel/code-frame@7.21.4:
     resolution: {integrity: sha512-LYvhNKfwWSPpocw8GI7gpK2nq3HSDuEPC/uSYaALSJu9xjsalaaYFOq0Pwt5KmVqwEbZlDu81aLXwBOmD/Fv9g==}
@@ -266,7 +286,7 @@ packages:
       '@solana/web3.js': 1.98.0
       '@terra-money/terra.js': 3.1.8
       algosdk: 1.24.1
-      axios: 1.8.4
+      axios: 1.8.4(debug@4.4.0)
       bech32: 2.0.0
       js-base64: 3.7.5
     transitivePeerDependencies:
@@ -276,6 +296,19 @@ packages:
       - google-protobuf
       - utf-8-validate
     dev: false
+
+  /@chainlink/contracts-ccip@0.7.6(ethers@5.7.2):
+    resolution: {integrity: sha512-yNbCBFpLs3R+ALymto9dQYKz3vatnjqYGu1pnMD0i2fHEMthiXe0+otaNCGNht6n8k7ruNaA0DNpz3F+2jHQXw==}
+    dependencies:
+      '@eth-optimism/contracts': 0.5.40(ethers@5.7.2)
+      '@openzeppelin/contracts': 4.3.3
+      '@openzeppelin/contracts-upgradeable-4.7.3': /@openzeppelin/contracts-upgradeable@4.7.3
+      '@openzeppelin/contracts-v0.7': /@openzeppelin/contracts@3.4.2
+    transitivePeerDependencies:
+      - bufferutil
+      - ethers
+      - utf-8-validate
+    dev: true
 
   /@chainsafe/as-sha256@0.3.1:
     resolution: {integrity: sha512-hldFFYuf49ed7DAakWVXSJODuq3pzJEguD8tQ7h+sGkM18vja+OFoJI9krnGmgzyuZC2ETX0NOIcCTy31v2Mtg==}
@@ -691,6 +724,58 @@ packages:
   /@eslint/js@8.40.0:
     resolution: {integrity: sha512-ElyB54bJIhXQYVKjDSvCkPO1iU1tSAeVQJbllWJq1XQSmmA4dgFk8CbiBGpiOPxleE48vDogxCtmMYku4HSVLA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dev: true
+
+  /@eth-optimism/contracts@0.5.40(ethers@5.7.2):
+    resolution: {integrity: sha512-MrzV0nvsymfO/fursTB7m/KunkPsCndltVgfdHaT1Aj5Vi6R/doKIGGkOofHX+8B6VMZpuZosKCMQ5lQuqjt8w==}
+    peerDependencies:
+      ethers: ^5
+    dependencies:
+      '@eth-optimism/core-utils': 0.12.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
+      ethers: 5.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@eth-optimism/contracts@0.6.0(ethers@5.7.2):
+    resolution: {integrity: sha512-vQ04wfG9kMf1Fwy3FEMqH2QZbgS0gldKhcBeBUPfO8zu68L61VI97UDXmsMQXzTsEAxK8HnokW3/gosl4/NW3w==}
+    peerDependencies:
+      ethers: ^5
+    dependencies:
+      '@eth-optimism/core-utils': 0.12.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
+      ethers: 5.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@eth-optimism/core-utils@0.12.0:
+    resolution: {integrity: sha512-qW+7LZYCz7i8dRa7SRlUKIo1VBU8lvN0HeXCxJR+z+xtMzMQpPds20XJNCMclszxYQHkXY00fOT6GvFw9ZL6nw==}
+    dependencies:
+      '@ethersproject/abi': 5.7.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/bignumber': 5.8.0
+      '@ethersproject/bytes': 5.8.0
+      '@ethersproject/constants': 5.7.0
+      '@ethersproject/contracts': 5.7.0
+      '@ethersproject/hash': 5.7.0
+      '@ethersproject/keccak256': 5.7.0
+      '@ethersproject/properties': 5.7.0
+      '@ethersproject/providers': 5.7.2
+      '@ethersproject/rlp': 5.7.0
+      '@ethersproject/transactions': 5.7.0
+      '@ethersproject/web': 5.7.1
+      bufio: 1.2.3
+      chai: 4.3.10
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true
 
   /@ethereum-waffle/chai@3.4.4:
@@ -1185,6 +1270,98 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
+    dev: true
+
+  /@layerzerolabs/lz-evm-messagelib-v2@3.0.94(@axelar-network/axelar-gmp-sdk-solidity@5.10.0)(@chainlink/contracts-ccip@0.7.6)(@eth-optimism/contracts@0.6.0)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3):
+    resolution: {integrity: sha512-F7g0ETAEUUW35c/kHVFPXzisGfgs6cdhS8jweqTX6zJ7BIy6KncmjJASv7FXIbLBO/OUKonkLFyUcAhTCE4fXA==}
+    peerDependencies:
+      '@arbitrum/nitro-contracts': ^1.1.0
+      '@axelar-network/axelar-gmp-sdk-solidity': ^5.6.4
+      '@chainlink/contracts-ccip': ^0.7.6
+      '@eth-optimism/contracts': ^0.6.0
+      '@layerzerolabs/lz-evm-protocol-v2': ^3.0.94
+      '@layerzerolabs/lz-evm-v1-0.7': ^3.0.94
+      '@openzeppelin/contracts': ^4.8.1 || ^5.0.0
+      '@openzeppelin/contracts-upgradeable': ^4.8.1 || ^5.0.0
+      hardhat-deploy: ^0.12.4
+      solidity-bytes-utils: ^0.8.0
+    peerDependenciesMeta:
+      '@arbitrum/nitro-contracts':
+        optional: true
+    dependencies:
+      '@axelar-network/axelar-gmp-sdk-solidity': 5.10.0
+      '@chainlink/contracts-ccip': 0.7.6(ethers@5.7.2)
+      '@eth-optimism/contracts': 0.6.0(ethers@5.7.2)
+      '@layerzerolabs/lz-evm-protocol-v2': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+      '@layerzerolabs/lz-evm-v1-0.7': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 5.3.0(@openzeppelin/contracts@4.9.6)
+      hardhat-deploy: 0.12.4
+      solidity-bytes-utils: 0.8.3
+    dev: true
+
+  /@layerzerolabs/lz-evm-protocol-v2@3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3):
+    resolution: {integrity: sha512-KmGWR2LOCCeVY5YnPW3H9CKQKBJy50EiVdtXsxtDd4fQJ9i4bXu3JBsTO8cHe9IvjaHtoy2tKtUeGaTzv0Vnbg==}
+    peerDependencies:
+      '@openzeppelin/contracts': ^4.8.1 || ^5.0.0
+      '@openzeppelin/contracts-upgradeable': ^4.8.1 || ^5.0.0
+      hardhat-deploy: ^0.12.4
+      solidity-bytes-utils: ^0.8.0
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 5.3.0(@openzeppelin/contracts@4.9.6)
+      hardhat-deploy: 0.12.4
+      solidity-bytes-utils: 0.8.3
+    dev: true
+
+  /@layerzerolabs/lz-evm-v1-0.7@3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4):
+    resolution: {integrity: sha512-EERHd0hfWJQztGu+mfJAYQyT37oTPAHmLCdZK8KKYxPNqsD+0bZH0blyjt7ZDTzRO9efpnBlc6gtO6HExDOuOw==}
+    peerDependencies:
+      '@openzeppelin/contracts': 3.4.2-solc-0.7 || ^3.4.2 || ^4.0.0 || ^5.0.0
+      '@openzeppelin/contracts-upgradeable': 3.4.2-solc-0.7 || ^3.4.2 || ^4.0.0 || ^5.0.0
+      hardhat-deploy: ^0.12.4
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 5.3.0(@openzeppelin/contracts@4.9.6)
+      hardhat-deploy: 0.12.4
+    dev: true
+
+  /@layerzerolabs/oapp-evm@0.3.2(@layerzerolabs/lz-evm-messagelib-v2@3.0.94)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6):
+    resolution: {integrity: sha512-QqazLEl9KEPsipU/3m5eFDhyse+sG4bO2FWUEf/Kuee4JW6P3iIBI9wg0QfalUqLj0HL0ChFHL3yRTZVqzxrww==}
+    peerDependencies:
+      '@layerzerolabs/lz-evm-messagelib-v2': ^3.0.75
+      '@layerzerolabs/lz-evm-protocol-v2': ^3.0.75
+      '@layerzerolabs/lz-evm-v1-0.7': ^3.0.75
+      '@openzeppelin/contracts': ^4.8.1 || ^5.0.0
+      '@openzeppelin/contracts-upgradeable': ^4.8.1 || ^5.0.0
+    dependencies:
+      '@layerzerolabs/lz-evm-messagelib-v2': 3.0.94(@axelar-network/axelar-gmp-sdk-solidity@5.10.0)(@chainlink/contracts-ccip@0.7.6)(@eth-optimism/contracts@0.6.0)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+      '@layerzerolabs/lz-evm-protocol-v2': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+      '@layerzerolabs/lz-evm-v1-0.7': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 5.3.0(@openzeppelin/contracts@4.9.6)
+      ethers: 5.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@layerzerolabs/oft-evm@3.1.4(@layerzerolabs/lz-evm-messagelib-v2@3.0.94)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@layerzerolabs/oapp-evm@0.3.2)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6):
+    resolution: {integrity: sha512-jxuEXtzAv2x/ZErBtg6OI6rxq4KyMamPgy8+r3/AQ5uD4Ih2Sd51mBIebpzueJKqMk7MNdOauLfYRRK6tOFWXQ==}
+    peerDependencies:
+      '@layerzerolabs/lz-evm-messagelib-v2': ^3.0.75
+      '@layerzerolabs/lz-evm-protocol-v2': ^3.0.75
+      '@layerzerolabs/lz-evm-v1-0.7': ^3.0.75
+      '@layerzerolabs/oapp-evm': ^0.3.2
+      '@openzeppelin/contracts': ^4.8.1 || ^5.0.0
+      '@openzeppelin/contracts-upgradeable': ^4.8.1 || ^5.0.0
+    dependencies:
+      '@layerzerolabs/lz-evm-messagelib-v2': 3.0.94(@axelar-network/axelar-gmp-sdk-solidity@5.10.0)(@chainlink/contracts-ccip@0.7.6)(@eth-optimism/contracts@0.6.0)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+      '@layerzerolabs/lz-evm-protocol-v2': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)(solidity-bytes-utils@0.8.3)
+      '@layerzerolabs/lz-evm-v1-0.7': 3.0.94(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)(hardhat-deploy@0.12.4)
+      '@layerzerolabs/oapp-evm': 0.3.2(@layerzerolabs/lz-evm-messagelib-v2@3.0.94)(@layerzerolabs/lz-evm-protocol-v2@3.0.94)(@layerzerolabs/lz-evm-v1-0.7@3.0.94)(@openzeppelin/contracts-upgradeable@5.3.0)(@openzeppelin/contracts@4.9.6)
+      '@openzeppelin/contracts': 4.9.6
+      '@openzeppelin/contracts-upgradeable': 5.3.0(@openzeppelin/contracts@4.9.6)
     dev: true
 
   /@metamask/eth-sig-util@4.0.1:
@@ -1706,9 +1883,28 @@ packages:
       hardhat: 2.14.0(ts-node@10.9.1)(typescript@5.0.4)
     dev: true
 
+  /@openzeppelin/contracts-upgradeable@4.7.3:
+    resolution: {integrity: sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==}
+    dev: true
+
+  /@openzeppelin/contracts-upgradeable@5.3.0(@openzeppelin/contracts@4.9.6):
+    resolution: {integrity: sha512-yVzSSyTMWO6rapGI5tuqkcLpcGGXA0UA1vScyV5EhE5yw8By3Ewex9rDUw8lfVw0iTkvR/egjfcW5vpk03lqZg==}
+    peerDependencies:
+      '@openzeppelin/contracts': 5.3.0
+    dependencies:
+      '@openzeppelin/contracts': 4.9.6
+    dev: true
+
+  /@openzeppelin/contracts@3.4.2:
+    resolution: {integrity: sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA==}
+    dev: true
+
+  /@openzeppelin/contracts@4.3.3:
+    resolution: {integrity: sha512-tDBopO1c98Yk7Cv/PZlHqrvtVjlgK5R4J6jxLwoO7qxK4xqOiZG+zSkIvGFpPZ0ikc3QOED3plgdqjgNTnBc7g==}
+    dev: true
+
   /@openzeppelin/contracts@4.9.6:
     resolution: {integrity: sha512-xSmezSupL+y9VkHZJGDoCBpmnB2ogM13ccaYDWqJTfS3dbuHkgjuwDFUmaFauBCboQMGB/S5UqUl2y54X99BmA==}
-    dev: false
 
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -1991,7 +2187,7 @@ packages:
     dependencies:
       '@classic-terra/terra.proto': 1.1.0
       '@terra-money/terra.proto': 2.1.0
-      axios: 1.8.4
+      axios: 1.8.4(debug@4.4.0)
       bech32: 2.0.0
       bip32: 2.0.6
       bip39: 3.1.0
@@ -2871,15 +3067,14 @@ packages:
   /aws4@1.12.0:
     resolution: {integrity: sha512-NmWvPnx0F1SfrQbYwOi7OeaNGokp9XhzNioJ/CSBs8Qa4vxug81mhJEAVZwxXuBmYB5KDRfMq/F3RR0BIU7sWg==}
 
-  /axios@1.8.4:
+  /axios@1.8.4(debug@4.4.0):
     resolution: {integrity: sha512-eBSYY4Y68NNlHbHBMdeDmKNtDgXWhQsJcGqzO3iLUM0GraQFSS9cVgPX5I9b3lbdFKyYoAEGAZF1DwhTaljNAw==}
     dependencies:
-      follow-redirects: 1.15.9(debug@4.3.4)
+      follow-redirects: 1.15.9(debug@4.4.0)
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
-    dev: false
 
   /babel-code-frame@6.26.0:
     resolution: {integrity: sha512-XqYMR2dfdGMW+hd0IUZ2PwK+fGeFkOxZJ0wY+JaQAHzt1Zx8LcvpiZD2NiGkEG8qx0CfkAOr5xt76d1e8vG90g==}
@@ -3748,6 +3943,11 @@ packages:
     dependencies:
       node-gyp-build: 4.6.0
 
+  /bufio@1.2.3:
+    resolution: {integrity: sha512-5Tt66bRzYUSlVZatc0E92uDenreJ+DpTBmSAUwL4VSxJn3e6cUyYwx+PoqML0GRZatgA/VX8ybhxItF8InZgqA==}
+    engines: {node: '>=8.0.0'}
+    dev: true
+
   /builtins@5.0.1:
     resolution: {integrity: sha512-qwVpFEHNfhYJIzNRBvd2C1kyo6jz3ZSMPyyuR47OPdiKWlbYnZNyDWuyR175qDnAJLiCo5fBBqPb3RiXgWlkOQ==}
     dependencies:
@@ -4565,6 +4765,7 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 6.0.0
+    dev: true
 
   /debug@4.3.4(supports-color@8.1.1):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -4878,6 +5079,10 @@ packages:
 
   /emoji-regex@9.2.2:
     resolution: {integrity: sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==}
+
+  /encode-utf8@1.0.3:
+    resolution: {integrity: sha512-ucAnuBEhUK4boH2HjVYG5Q2mQyPorvv0u/ocS+zhdw0S8AlHYY+GOFhP1Gio5z4icpP2ivFSvhtFjQi8+T9ppw==}
+    dev: true
 
   /encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
@@ -6230,6 +6435,12 @@ packages:
     resolution: {integrity: sha512-rDjbZUKpN8OYhB0IE/vY/I8UWO/602IIJEU/76Tv4LvYnwHCk0BCsvz4eRr9n+FQcri7L5cyaXOo0+/Kh4HisA==}
     dev: true
 
+  /fmix@0.1.0:
+    resolution: {integrity: sha512-Y6hyofImk9JdzU8k5INtTXX1cu8LDlePWDFU5sftm9H+zKCr5SGrVjdhkvsim646cw5zD0nADj8oHyXMZmCZ9w==}
+    dependencies:
+      imul: 1.0.1
+    dev: true
+
   /follow-redirects@1.15.9(debug@4.3.4):
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
     engines: {node: '>=4.0'}
@@ -6240,6 +6451,18 @@ packages:
         optional: true
     dependencies:
       debug: 4.3.4(supports-color@6.0.0)
+    dev: true
+
+  /follow-redirects@1.15.9(debug@4.4.0):
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dependencies:
+      debug: 4.4.0
 
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
@@ -6298,7 +6521,6 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
-    dev: false
 
   /forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -6327,6 +6549,15 @@ packages:
       klaw: 1.3.1
       path-is-absolute: 1.0.1
       rimraf: 2.7.1
+    dev: true
+
+  /fs-extra@10.1.0:
+    resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.1.0
+      universalify: 2.0.0
     dev: true
 
   /fs-extra@4.0.3:
@@ -6805,6 +7036,39 @@ packages:
       hardhat: 2.14.0(ts-node@10.9.1)(typescript@5.0.4)
     dev: true
 
+  /hardhat-deploy@0.12.4:
+    resolution: {integrity: sha512-bYO8DIyeGxZWlhnMoCBon9HNZb6ji0jQn7ngP1t5UmGhC8rQYhji7B73qETMOFhzt5ECZPr+U52duj3nubsqdQ==}
+    dependencies:
+      '@ethersproject/abi': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
+      '@ethersproject/address': 5.7.0
+      '@ethersproject/bignumber': 5.8.0
+      '@ethersproject/bytes': 5.8.0
+      '@ethersproject/constants': 5.7.0
+      '@ethersproject/contracts': 5.7.0
+      '@ethersproject/providers': 5.7.2
+      '@ethersproject/solidity': 5.7.0
+      '@ethersproject/transactions': 5.7.0
+      '@ethersproject/wallet': 5.7.0
+      '@types/qs': 6.9.7
+      axios: 1.8.4(debug@4.4.0)
+      chalk: 4.1.2
+      chokidar: 3.5.3
+      debug: 4.4.0
+      enquirer: 2.3.6
+      ethers: 5.7.2
+      form-data: 4.0.0
+      fs-extra: 10.1.0
+      match-all: 1.2.7
+      murmur-128: 0.2.1
+      qs: 6.14.0
+      zksync-ethers: 5.10.0(ethers@5.7.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
+
   /hardhat-gas-reporter@1.0.9(hardhat@2.14.0):
     resolution: {integrity: sha512-INN26G3EW43adGKBNzYWOlI3+rlLnasXTwW79YNnUhXPDa+yHESgt639dJEs37gCjhkbNKcRRJnomXEuMFBXJg==}
     peerDependencies:
@@ -6916,6 +7180,7 @@ packages:
   /has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
     engines: {node: '>=4'}
+    dev: true
 
   /has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -7172,6 +7437,11 @@ packages:
 
   /import-meta-resolve@3.0.0:
     resolution: {integrity: sha512-4IwhLhNNA8yy445rPjD/lWh++7hMDOml2eHtd58eG7h+qK3EryMuuRbsHGPikCoAgIkkDnckKfWSk2iDla/ejg==}
+    dev: true
+
+  /imul@1.0.1:
+    resolution: {integrity: sha512-WFAgfwPLAjU66EKt6vRdTlKj4nAgIDQzh29JonLa4Bqtl6D8JrIMvWjCnx7xEjVNmP3U0fM5o8ZObk7d0f62bA==}
+    engines: {node: '>=0.10.0'}
     dev: true
 
   /imurmurhash@0.1.4:
@@ -8189,6 +8459,10 @@ packages:
     resolution: {integrity: sha512-1RUZVgQlpJSPWYbFSpmudq5nHY1doEIv89gBtF0s4gW1GF2XorxcA/70M5vq7rLv0a6mhOUccRsqkwhwLCIQ2Q==}
     dev: true
 
+  /match-all@1.2.7:
+    resolution: {integrity: sha512-qSpsBKarh55r9KyXzFC3xBLRf2GlGasba2em9kbpRsSlGvdTAqjx3QD0r3FKSARiW+OE4iMHYsolM3aX9n5djw==}
+    dev: true
+
   /math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -8568,6 +8842,7 @@ packages:
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+    dev: true
 
   /ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -8610,6 +8885,14 @@ packages:
       buffer: 5.7.1
       multibase: 0.7.0
       varint: 5.0.2
+
+  /murmur-128@0.2.1:
+    resolution: {integrity: sha512-WseEgiRkI6aMFBbj8Cg9yBj/y+OdipwVC7zUo3W2W1JAJITwouUOtpqsmGSg67EQmwwSyod7hsVsWY5LsrfQVg==}
+    dependencies:
+      encode-utf8: 1.0.3
+      fmix: 0.1.0
+      imul: 1.0.1
+    dev: true
 
   /nan@2.17.0:
     resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
@@ -9375,7 +9658,6 @@ packages:
 
   /proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
-    dev: false
 
   /prr@1.0.1:
     resolution: {integrity: sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw==}
@@ -10345,6 +10627,10 @@ packages:
       prettier: 2.8.8
     dev: true
 
+  /solidity-bytes-utils@0.8.3:
+    resolution: {integrity: sha512-sbOHjKF9miqASaqYYC1vvxNnBrzA/wuFPQlOle7rZOSkDiFmCd5x8wQfx2vN95tNGfy8Cf1e5QumW8ZwcByBuQ==}
+    dev: true
+
   /solidity-comments-darwin-arm64@0.0.2:
     resolution: {integrity: sha512-HidWkVLSh7v+Vu0CA7oI21GWP/ZY7ro8g8OmIxE8oTqyMwgMbE8F1yc58Sj682Hj199HCZsjmtn1BE4PCbLiGA==}
     engines: {node: '>= 10'}
@@ -10796,6 +11082,7 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       has-flag: 3.0.0
+    dev: true
 
   /supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -11041,7 +11328,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.27.0
       '@tronweb3/google-protobuf': 3.21.2
-      axios: 1.8.4
+      axios: 1.8.4(debug@4.4.0)
       bignumber.js: 9.1.1
       elliptic: 6.6.1
       ethers: 5.7.2
@@ -12551,6 +12838,15 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+    dev: true
+
+  /zksync-ethers@5.10.0(ethers@5.7.2):
+    resolution: {integrity: sha512-OAjTGAHF9wbdkRGkj7XZuF/a1Sk/FVbwH4pmLjAKlR7mJ7sQtQhBhrPU2dCc67xLaNvEESPfwil19ES5wooYFg==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      ethers: ~5.7.0
+    dependencies:
+      ethers: 5.7.2
     dev: true
 
   github.com/ethereumjs/ethereumjs-abi/ee3994657fa7a427238e6ba92a84d0b529bbcde0:

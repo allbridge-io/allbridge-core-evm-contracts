@@ -70,3 +70,6 @@ oft-bridge:
 oft-get-fee:
 	npx hardhat run ./scripts/oft-bridge/estimate-fee.ts --network $(NETWORK)
 
+oft-set-lz-gas-limit:
+	npx hardhat run ./scripts/oft-bridge/set-lz-gas-limit.ts --network $(NETWORK)
+
