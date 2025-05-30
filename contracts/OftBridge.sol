@@ -21,6 +21,7 @@ contract OftBridge is Ownable {
     // Constants
     uint internal constant ORACLE_PRECISION = 18; // Decimals for gas cost calculations
     uint internal constant BP = 1e4;             // Basis points denominator (1 basis point = 0.01%)
+    uint private immutable chainPrecision;       // Current chain precision
 
     // State variables
     IGasOracle internal gasOracle;               // Gas price oracle for pricing gas in token terms
@@ -28,7 +29,7 @@ contract OftBridge is Ownable {
     uint public adminFeeShareBP;                 // Admin's share of fees in basis points (bps)
 
     // Mappings for managing token addresses and chain configurations
-    mapping(address tokenAddress => uint scalingFactor) internal fromGasOracleScalingFactor; // Scaling factor for token-to-gas conversion
+    mapping(address tokenAddress => uint scalingFactor) internal stableTokensForGasScalingFactor; // Scaling factor for token-to-gas conversion
     mapping(uint chainId => uint32 eid) private chainIdEidMap;                               // Map from chain ID to LayerZero Endpoint ID
     mapping(uint chainId => uint maxExtraGas) internal maxExtraGas;                         // Maximum allowed extra gas for each chain
     mapping(uint chainId => uint128 gasLimit) internal lzGasLimit;                          // LayerZero-specific gas limit for cross-chain transactions
@@ -65,10 +66,12 @@ contract OftBridge is Ownable {
      */
     constructor(
         uint chainId_,
+        uint chainPrecision_,
         IGasOracle gasOracle_
     ) {
         chainId = chainId_;
         gasOracle = gasOracle_;
+        chainPrecision = chainPrecision_;
     }
 
     /**
@@ -78,7 +81,7 @@ contract OftBridge is Ownable {
      * @param recipient The recipient address on the destination chain (as bytes32).
      * @param destinationChainId The ID of the destination chain.
      * @param relayerFeeTokenAmount The portion of the fee in tokens.
-     * @param extraGasDestinationToken Additional gas for execution on the destination chain.
+     * @param extraGasInDestinationToken Additional gas for execution on the destination chain.
      * @param slippageBP The acceptable slippage in basis points.
      */
     function bridge(
@@ -87,7 +90,7 @@ contract OftBridge is Ownable {
         bytes32 recipient,
         uint destinationChainId,
         uint relayerFeeTokenAmount,
-        uint extraGasDestinationToken,
+        uint extraGasInDestinationToken,
         uint slippageBP
     ) public payable {
         // Validate input parameters
@@ -101,15 +104,15 @@ contract OftBridge is Ownable {
         IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), amount);
 
         // Ensure extra gas is within the allowed limit
-        require(maxExtraGas[destinationChainId] == 0 || extraGasDestinationToken <= maxExtraGas[destinationChainId], "Extra gas too high");
+        require(maxExtraGas[destinationChainId] == 0 || extraGasInDestinationToken <= maxExtraGas[destinationChainId], "Extra gas too high");
 
         // Initialize LayerZero options for the transaction
         bytes memory options = OptionsBuilder.newOptions();
         if (lzGasLimit[destinationChainId] > 0) {
             options = options.addExecutorLzReceiveOption(lzGasLimit[destinationChainId], 0);
         }
-        if (extraGasDestinationToken > 0) {
-            options = options.addExecutorNativeDropOption(uint128(extraGasDestinationToken), recipient);
+        if (extraGasInDestinationToken > 0) {
+            options = options.addExecutorNativeDropOption(uint128(extraGasInDestinationToken), recipient);
         }
 
         // Calculate the amount to send after deducting fees
@@ -142,6 +145,7 @@ contract OftBridge is Ownable {
         require(msg.value + gasFromStables >= messagingFee.nativeFee, "Not enough fee");
 
         // Send the transaction through the OFT protocol
+        require(address(this).balance >= messagingFee.nativeFee, "Insufficient contract balance");
         IOFT(oft).send{value: messagingFee.nativeFee}(sendParam, messagingFee, msg.sender);
 
         // Emit an event for tracking the token bridge
@@ -156,7 +160,7 @@ contract OftBridge is Ownable {
             messagingFee.nativeFee,
             relayerFeeTokenAmount,
             adminFee,
-            extraGasDestinationToken
+            extraGasInDestinationToken
         );
     }
 
@@ -187,8 +191,10 @@ contract OftBridge is Ownable {
     function addToken(address oft_) external onlyOwner {
         address tokenAddress = IOFT(oft_).token();
         uint tokenDecimals = IERC20Metadata(tokenAddress).decimals();
-        IERC20(tokenAddress).approve(oft_, type(uint256).max);
-        fromGasOracleScalingFactor[tokenAddress] = 10 ** (ORACLE_PRECISION - tokenDecimals);
+        if (oft_ != tokenAddress) {
+            IERC20(tokenAddress).approve(oft_, type(uint256).max);
+        }
+        stableTokensForGasScalingFactor[tokenAddress] = 10 ** (ORACLE_PRECISION - tokenDecimals + chainPrecision);
         oftAddress[tokenAddress] = oft_;
     }
 
@@ -198,8 +204,10 @@ contract OftBridge is Ownable {
      */
     function removeToken(address oft_) external onlyOwner {
         address tokenAddress = IOFT(oft_).token();
-        fromGasOracleScalingFactor[tokenAddress] = 0;
-        IERC20(tokenAddress).approve(oft_, 0);
+        stableTokensForGasScalingFactor[tokenAddress] = 0;
+        if (oft_ != tokenAddress) {
+            IERC20(tokenAddress).approve(oft_, 0);
+        }
         oftAddress[tokenAddress] = address(0);
     }
 
@@ -331,9 +339,9 @@ contract OftBridge is Ownable {
      * @return amount of gas tokens.
      */
     function _getStableTokensValueInGas(address tokenAddress_, uint stableTokenAmount_) internal view returns (uint) {
-        require(fromGasOracleScalingFactor[tokenAddress_] > 0, "Token is not set");
+        require(stableTokensForGasScalingFactor[tokenAddress_] > 0, "Token is not set");
         if (stableTokenAmount_ == 0) return 0;
-        return (fromGasOracleScalingFactor[tokenAddress_] * stableTokenAmount_) / gasOracle.price(chainId);
+        return (stableTokensForGasScalingFactor[tokenAddress_] * stableTokenAmount_) / gasOracle.price(chainId);
     }
 
     fallback() external payable {
