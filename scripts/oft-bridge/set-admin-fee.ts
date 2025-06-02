@@ -8,15 +8,20 @@ async function main() {
     throw new Error('No oft bridge address');
   }
 
+  const tokenAddress = process.env.OFT_TOKEN;
+  if (!tokenAddress) {
+    throw new Error('No token address');
+  }
+
   const contract = await ethers.getContractAt('OftBridge', oftBridgeAddress);
 
-  const currentFeeBp = await contract.adminFeeShareBP();
+  const currentFeeBp = await contract.adminFeeShareBP(tokenAddress);
   const feeBP = getEnv('OFT_FEE_BP');
   console.log('Current Fee BP:', currentFeeBp.toString());
   console.log('New Fee BP:', feeBP);
 
   if (!Big(currentFeeBp.toString()).eq(feeBP)) {
-    const result = await contract.setAdminFeeShare(feeBP);
+    const result = await contract.setAdminFeeShare(tokenAddress, feeBP);
     await handleTransactionResult(result);
   }
 }

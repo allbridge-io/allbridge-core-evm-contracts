@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { Contract } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { MockERC20 } from '../typechain';
 
 describe('OftBridge', function () {
   // Test variables
@@ -73,7 +74,7 @@ describe('OftBridge', function () {
       ethers.utils.parseUnits('0.05', 18),
     ); // Set max extra gas
     await oftBridge.setLzGasLimit(destinationChainId, 300000); // Set LayerZero gas limit
-    await oftBridge.setAdminFeeShare(500); // 5% admin fee
+    await oftBridge.setAdminFeeShare(mockERC20.address, 500); // 5% admin fee
 
     // Approve token spending for user
     await mockERC20
@@ -93,7 +94,7 @@ describe('OftBridge', function () {
   describe('Constructor and Initialization', function () {
     it('Should set the correct initial values', async function () {
       expect(await oftBridge.chainId()).to.equal(chainId);
-      expect(await oftBridge.adminFeeShareBP()).to.equal(500);
+      expect(await oftBridge.adminFeeShareBP(mockERC20.address)).to.equal(500);
     });
 
     it('Should register token properly', async function () {
@@ -349,12 +350,12 @@ describe('OftBridge', function () {
     });
 
     it('Should allow owner to update admin fee share', async function () {
-      await oftBridge.connect(owner).setAdminFeeShare(1000); // 10%
-      expect(await oftBridge.adminFeeShareBP()).to.equal(1000);
+      await oftBridge.connect(owner).setAdminFeeShare(mockERC20.address, 1000); // 10%
+      expect(await oftBridge.adminFeeShareBP(mockERC20.address)).to.equal(1000);
 
       // Try setting too high
       await expect(
-        oftBridge.connect(owner).setAdminFeeShare(BP + 1),
+        oftBridge.connect(owner).setAdminFeeShare(mockERC20.address, BP + 1),
       ).to.be.revertedWith('Too high');
     });
 
@@ -414,7 +415,7 @@ describe('OftBridge', function () {
 
     it('Should allow only owner to call admin functions', async function () {
       await expect(
-        oftBridge.connect(user).setAdminFeeShare(1000),
+        oftBridge.connect(user).setAdminFeeShare(mockERC20.address, 1000),
       ).to.be.revertedWith('Ownable: caller is not the owner');
 
       await expect(

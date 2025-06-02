@@ -26,7 +26,7 @@ contract OftBridge is Ownable {
     // State variables
     IGasOracle internal gasOracle;               // Gas price oracle for pricing gas in token terms
     uint public immutable chainId;               // Chain ID of the current blockchain
-    uint public adminFeeShareBP;                 // Admin's share of fees in basis points (bps)
+    mapping(address tokenAddress => uint feeShare) public adminFeeShareBP;    // Admin's fee share per token (bps)
 
     // Mappings for managing token addresses and chain configurations
     mapping(address tokenAddress => uint scalingFactor) internal stableTokensForGasScalingFactor; // Scaling factor for token-to-gas conversion
@@ -118,8 +118,8 @@ contract OftBridge is Ownable {
         // Calculate the amount to send after deducting fees
         uint amountToSend = amount - relayerFeeTokenAmount;
         uint adminFee;
-        if (adminFeeShareBP != 0) {
-            adminFee = (amountToSend * adminFeeShareBP) / BP;
+        if (adminFeeShareBP[tokenAddress] != 0) {
+            adminFee = (amountToSend * adminFeeShareBP[tokenAddress]) / BP;
             if (adminFee == 0) {
                 adminFee = 1;
             }
@@ -264,14 +264,15 @@ contract OftBridge is Ownable {
 
     /**
      * @notice Sets the basis points of the admin fee share from each bridge.
+     * @param tokenAddress_ The address of the token for which to set the admin fee share.
      * @param adminFeeShareBP_ The percentage of the fee in basis points (1 BP = 0.01%) to be allocated to admin.
      * @dev Only callable by the contract owner.
      * The value must be less than or equal to the BP constant (10000).
      * This fee is deducted from the token amount before bridging.
      */
-    function setAdminFeeShare(uint adminFeeShareBP_) external onlyOwner {
+    function setAdminFeeShare(address tokenAddress_, uint adminFeeShareBP_) external onlyOwner {
         require(adminFeeShareBP_ <= BP, "Too high");
-        adminFeeShareBP = adminFeeShareBP_;
+        adminFeeShareBP[tokenAddress_] = adminFeeShareBP_;
     }
 
     /**
