@@ -8,7 +8,6 @@ contract MockOFT {
     using ExecutorOptions for bytes;
     address public token;
     uint public defaultNativeFee = 0.01 ether;
-    uint public extraGasPrice = 0.001 ether;
 
     constructor(address _token) {
         token = _token;
@@ -16,10 +15,6 @@ contract MockOFT {
 
     function setDefaultNativeFee(uint fee) external {
         defaultNativeFee = fee;
-    }
-
-    function setExtraGasPrice(uint price) external {
-        extraGasPrice = price;
     }
 
     function quoteSend(SendParam calldata sendParam, bool payInLzToken) external view returns (MessagingFee memory) {

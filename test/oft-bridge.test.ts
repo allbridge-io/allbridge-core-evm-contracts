@@ -1,15 +1,14 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Contract } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { MockERC20 } from '../typechain';
+import { MockERC20, MockGasOracle, MockOFT, OftBridge } from '../typechain';
 
-describe('OftBridge', function () {
+describe('OftBridge', function() {
   // Test variables
-  let oftBridge: Contract;
-  let mockGasOracle: Contract;
-  let mockERC20: Contract;
-  let mockOFT: Contract;
+  let oftBridge: OftBridge;
+  let mockGasOracle: MockGasOracle;
+  let mockERC20: MockERC20;
+  let mockOFT: MockOFT;
   let owner: SignerWithAddress;
   let user: SignerWithAddress;
   let recipient: string;
@@ -20,8 +19,9 @@ describe('OftBridge', function () {
   let extraGasInDestinationToken: bigint;
   let slippageBP: number;
   const BP = 10000; // Basis points denominator (10000 = 100%)
+  const defaulrRelayerFee = BigInt(ethers.utils.parseUnits('0.01', 18).toString());
 
-  beforeEach(async function () {
+  beforeEach(async function() {
     // Get signers
     [owner, user] = await ethers.getSigners();
 
@@ -91,13 +91,13 @@ describe('OftBridge', function () {
     });
   });
 
-  describe('Constructor and Initialization', function () {
-    it('Should set the correct initial values', async function () {
+  describe('Constructor and Initialization', function() {
+    it('Should set the correct initial values', async function() {
       expect(await oftBridge.chainId()).to.equal(chainId);
       expect(await oftBridge.adminFeeShareBP(mockERC20.address)).to.equal(500);
     });
 
-    it('Should register token properly', async function () {
+    it('Should register token properly', async function() {
       expect(await oftBridge.oftAddress(mockERC20.address)).to.equal(
         mockOFT.address,
       );
@@ -111,12 +111,14 @@ describe('OftBridge', function () {
     });
   });
 
-  describe('Bridge Functionality', function () {
-    it('Should bridge tokens successfully', async function () {
+  describe('Bridge Functionality', function() {
+    it('Should bridge tokens successfully', async function() {
       // Calculate expected values
       const amountMinusRelayerFee = amount - relayerFeeTokenAmount;
-      const adminFee = (amountMinusRelayerFee * BigInt(500)) / BigInt(BP); // 5% admin fee
-      const amountToReceive = amountMinusRelayerFee - adminFee;
+      const adminFee = (amountMinusRelayerFee * 500n) / BigInt(BP); // 5% admin fee
+      const amountToSend = amountMinusRelayerFee - adminFee;
+
+      const relayerFeeGasAmount = ethers.utils.parseEther('0.1');
 
       // Bridge tokens
       const tx = await oftBridge
@@ -130,7 +132,7 @@ describe('OftBridge', function () {
           extraGasInDestinationToken,
           slippageBP,
           {
-            value: ethers.utils.parseEther('0.1'), // Send 0.01 ETH for gas fees
+            value: relayerFeeGasAmount,
           },
         );
 
@@ -141,12 +143,11 @@ describe('OftBridge', function () {
           user.address,
           recipient.toLowerCase(),
           ethers.utils.getAddress(mockERC20.address.toLowerCase()),
-          // amountToReceive,
-          95000000000000000000n,
+          amountToSend,
           destinationChainId,
-          BigInt(ethers.utils.parseEther('0.1').toString()),
+          relayerFeeGasAmount,
           '0',
-          '20000000000000000',
+          defaulrRelayerFee + extraGasInDestinationToken,
           relayerFeeTokenAmount,
           adminFee,
           extraGasInDestinationToken,
@@ -156,9 +157,12 @@ describe('OftBridge', function () {
       expect(await mockERC20.balanceOf(oftBridge.address)).to.equal(
         relayerFeeTokenAmount + adminFee,
       );
+      expect(await mockERC20.balanceOf(mockOFT.address)).to.equal(
+        amountToSend,
+      );
     });
 
-    it('Should fail when amount <= relayer fee', async function () {
+    it('Should fail when amount <= relayer fee', async function() {
       await expect(
         oftBridge.connect(user).bridge(
           mockERC20.address,
@@ -173,7 +177,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Amount <= relayer fee');
     });
 
-    it('Should fail with zero recipient', async function () {
+    it('Should fail with zero recipient', async function() {
       const zeroRecipient = ethers.constants.HashZero;
 
       await expect(
@@ -192,7 +196,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Recipient must be nonzero');
     });
 
-    it('Should fail when extra gas is too high', async function () {
+    it('Should fail when extra gas is too high', async function() {
       const tooHighExtraGas = ethers.utils.parseUnits('0.1', 18); // Above the limit set in beforeEach
 
       await expect(
@@ -211,7 +215,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Extra gas too high');
     });
 
-    it('Should fail when not enough fee is provided', async function () {
+    it('Should fail when not enough fee is provided', async function() {
       // Set mockOFT to require a higher fee
       await mockOFT.setDefaultNativeFee(ethers.utils.parseEther('0.05')); // 0.05 ETH
 
@@ -229,7 +233,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Not enough fee');
     });
 
-    it('Should fail for unknown destination chain', async function () {
+    it('Should fail for unknown destination chain', async function() {
       const unknownChainId = 999;
 
       await expect(
@@ -249,8 +253,8 @@ describe('OftBridge', function () {
     });
   });
 
-  describe('Fee Calculation and Queries', function () {
-    it('Should calculate relayer fee correctly', async function () {
+  describe('Fee Calculation and Queries', function() {
+    it('Should calculate relayer fee correctly', async function() {
       const fee = await oftBridge.relayerFee(
         mockERC20.address,
         destinationChainId,
@@ -258,47 +262,68 @@ describe('OftBridge', function () {
       expect(fee).to.equal(ethers.utils.parseEther('0.01')); // Default fee we set
     });
 
-    it('Should calculate extra gas price correctly', async function () {
-      // Set mock OFT to return different fees based on extra gas
-      await mockOFT.setExtraGasPrice(ethers.utils.parseEther('0.002')); // 0.002 ETH per unit of extraGas
-
+    it('Should calculate extra gas price correctly', async function() {
+      const amount = ethers.utils.parseUnits('0.002', 18);
       const extraGasCost = await oftBridge.extraGasPrice(
         mockERC20.address,
         destinationChainId,
-        2000000000000000, // Test with 10000 units
+        amount,
       );
 
-      // Should be approximately 0.002 ETH (may have slight difference due to calculation precision)
-      expect(extraGasCost).to.equal(ethers.utils.parseEther('0.002'));
+      // Should be equal to amount in tests
+      expect(extraGasCost).to.equal(amount);
     });
 
-    it('Should return correct token-to-gas conversion', async function () {
+    it('Should return correct token-to-gas conversion', async function() {
       // We'll test the internal _getStableTokensValueInGas function indirectly through bridge
       // First, set a fixed relayer fee
       await mockOFT.setDefaultNativeFee(ethers.utils.parseEther('0.01'));
 
       // Then set gas oracle price to make token-to-gas conversion predictable
       await mockGasOracle.setPrice(chainId, ethers.utils.parseEther('2')); // 1 token = 0.5 ETH
-
+      const relayerFeeTokenAmount = BigInt(ethers.utils.parseUnits('0.02', 18).toString());
+      const relayerFeeGasAmount = '0';
+      const extraGasInDestinationToken = 0n; // No ETH, tokens should cover fee
       // Bridge with 0 ETH value and let token conversion cover the fee
       const tx = oftBridge.connect(user).bridge(
         mockERC20.address,
         amount,
         recipient,
         destinationChainId,
-        ethers.utils.parseUnits('0.02', 18), // 0.02 tokens = 0.01 ETH at our price
-        0, // No extra gas
+        relayerFeeTokenAmount, // 0.02 tokens = 0.01 ETH at our price
+        extraGasInDestinationToken, // No extra gas
         slippageBP,
-        { value: 0 }, // No ETH, tokens should cover fee
+        { value: relayerFeeGasAmount },
       );
 
       // Transaction should succeed if token conversion worked correctly
       await expect(tx).to.not.be.reverted;
+
+      const amountMinusRelayerFee = amount - relayerFeeTokenAmount;
+      const adminFee = (amountMinusRelayerFee * 500n) / BigInt(BP); // 5% admin fee
+      const amountToSend = amountMinusRelayerFee - adminFee;
+
+      // Verify event was emitted
+      await expect(await tx)
+        .to.emit(oftBridge, 'OftTokensSent')
+        .withArgs(
+          user.address,
+          recipient.toLowerCase(),
+          ethers.utils.getAddress(mockERC20.address.toLowerCase()),
+          amountToSend,
+          destinationChainId,
+          relayerFeeGasAmount,
+          ethers.utils.parseUnits('0.01', 18), // 0.02 tokens = 0.01 ETH at our price
+          defaulrRelayerFee + extraGasInDestinationToken,
+          relayerFeeTokenAmount,
+          adminFee,
+          extraGasInDestinationToken,
+        );
     });
   });
 
-  describe('Admin Functions', function () {
-    it('Should allow owner to withdraw gas', async function () {
+  describe('Admin Functions', function() {
+    it('Should allow owner to withdraw gas', async function() {
       // Send some ETH to the contract
       await owner.sendTransaction({
         to: oftBridge.address,
@@ -321,7 +346,7 @@ describe('OftBridge', function () {
       );
     });
 
-    it('Should allow owner to withdraw token fees', async function () {
+    it('Should allow owner to withdraw token fees', async function() {
       // First, bridge some tokens to generate fees
       await oftBridge
         .connect(user)
@@ -349,7 +374,7 @@ describe('OftBridge', function () {
       expect(finalBalance.sub(initialBalance)).to.be.gt(0);
     });
 
-    it('Should allow owner to update admin fee share', async function () {
+    it('Should allow owner to update admin fee share', async function() {
       await oftBridge.connect(owner).setAdminFeeShare(mockERC20.address, 1000); // 10%
       expect(await oftBridge.adminFeeShareBP(mockERC20.address)).to.equal(1000);
 
@@ -359,7 +384,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Too high');
     });
 
-    it('Should allow owner to update max extra gas', async function () {
+    it('Should allow owner to update max extra gas', async function() {
       const newMaxExtraGas = ethers.utils.parseUnits('0.1', 18);
       await oftBridge
         .connect(owner)
@@ -382,7 +407,7 @@ describe('OftBridge', function () {
       await expect(tx).to.not.be.reverted;
     });
 
-    it('Should allow owner to remove a token', async function () {
+    it('Should allow owner to remove a token', async function() {
       // First check the token is registered
       expect(await oftBridge.oftAddress(mockERC20.address)).to.equal(
         mockOFT.address,
@@ -413,7 +438,7 @@ describe('OftBridge', function () {
       ).to.be.revertedWith('Token is not registered');
     });
 
-    it('Should allow only owner to call admin functions', async function () {
+    it('Should allow only owner to call admin functions', async function() {
       await expect(
         oftBridge.connect(user).setAdminFeeShare(mockERC20.address, 1000),
       ).to.be.revertedWith('Ownable: caller is not the owner');
@@ -436,8 +461,53 @@ describe('OftBridge', function () {
     });
   });
 
-  describe('Edge Cases and Security', function () {
-    it('Should handle zero slippage value', async function () {
+  describe('Withdraw fee', () => {
+    it('success withdrawGas', async  () => {
+
+      const initialContractBalance = await ethers.provider.getBalance(
+        oftBridge.address,
+      );
+      const initialBalance = await ethers.provider.getBalance(owner.address);
+
+      await oftBridge.withdrawGas(ethers.utils.parseEther('0.5'));
+
+      const finalBalance = await ethers.provider.getBalance(owner.address);
+      const finalContractBalance = await ethers.provider.getBalance(
+        oftBridge.address,
+      );
+
+      expect(finalBalance.sub(initialBalance)).to.be.closeTo(
+        ethers.utils.parseEther('0.5'),
+        ethers.utils.parseEther('0.0001'),
+      );
+      expect(initialContractBalance.sub(finalContractBalance)).to.equal(
+        ethers.utils.parseEther('0.5'),
+      );
+    })
+    
+    it('success withdrawFeeInTokens', async () => {
+      const transferAmount = ethers.utils.parseUnits('1.0', 18);
+
+      // Transfer tokens directly to bridge contract
+      await mockERC20.mint(oftBridge.address, transferAmount);
+
+      const initialContractBalance = await mockERC20.balanceOf(
+        oftBridge.address,
+      );
+      const initialBalance = await mockERC20.balanceOf(owner.address);
+
+      await oftBridge.withdrawFeeInTokens(mockERC20.address);
+
+      const finalBalance = await mockERC20.balanceOf(owner.address);
+      const finalContractBalance = await mockERC20.balanceOf(oftBridge.address);
+
+      expect(finalBalance.sub(initialBalance)).to.equal(initialContractBalance);
+      expect(finalContractBalance).to.equal(0);
+    });
+  })
+
+  describe('Edge Cases and Security', function() {
+    it('Should handle zero slippage value', async function() {
       const tx = oftBridge.connect(user).bridge(
         mockERC20.address,
         amount,
@@ -452,7 +522,7 @@ describe('OftBridge', function () {
       await expect(tx).to.not.be.reverted;
     });
 
-    it('Should handle minimum token amounts', async function () {
+    it('Should handle minimum token amounts', async function() {
       // Test with very small amount, just above relayer fee
       const smallAmount = relayerFeeTokenAmount + 2n; // relayer fee + 2 wei
 
@@ -485,7 +555,7 @@ describe('OftBridge', function () {
       );
     });
 
-    it('Should receive direct gas transfers', async function () {
+    it('Should receive direct gas transfers', async function() {
       const tx = await owner.sendTransaction({
         to: oftBridge.address,
         value: ethers.utils.parseEther('1.0'),
@@ -496,7 +566,7 @@ describe('OftBridge', function () {
         .withArgs(owner.address, ethers.utils.parseEther('1.0'));
     });
 
-    it('Should reject direct calls to fallback function', async function () {
+    it('Should reject direct calls to fallback function', async function() {
       // Create calldata for a non-existent function
       const callData = ethers.utils.hexlify(ethers.utils.randomBytes(4));
 

@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import { addressToBytes32, handleTransactionResult } from '../helper';
+import { handleTransactionResult } from '../helper';
 
 async function main() {
   const oftBridgeAddress = process.env.OFT_BRIDGE_ADDRESS;

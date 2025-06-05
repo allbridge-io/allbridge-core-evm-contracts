@@ -8,7 +8,7 @@ async function main() {
     throw new Error('No oft bridge address');
   }
 
-  const tokenAddress = process.env.OFT_TOKEN;
+  const tokenAddress = process.env.TOKEN_ADDRESS;
   if (!tokenAddress) {
     throw new Error('No token address');
   }

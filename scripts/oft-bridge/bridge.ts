@@ -21,12 +21,12 @@ async function main() {
 
   const contract = await ethers.getContractAt('OftBridge', oftBridgeAddress);
   const result = await contract.bridge(
-    oftAddress,
+    tokenAddress,
     '1000000000000000000',
     '0x000000000000000000000000be959eed208225aab424505569d41bf3212142c0',
-    9,
+    2,
     0,
-    1000000000000,
+    0,
     0,
     { value: '0x6b9e6df7d5630', gasLimit: '500000' },
   );

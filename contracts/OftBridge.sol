@@ -191,9 +191,7 @@ contract OftBridge is Ownable {
     function addToken(address oft_) external onlyOwner {
         address tokenAddress = IOFT(oft_).token();
         uint tokenDecimals = IERC20Metadata(tokenAddress).decimals();
-        if (oft_ != tokenAddress) {
-            IERC20(tokenAddress).approve(oft_, type(uint256).max);
-        }
+        IERC20(tokenAddress).approve(oft_, type(uint256).max);
         stableTokensForGasScalingFactor[tokenAddress] = 10 ** (ORACLE_PRECISION - tokenDecimals + chainPrecision);
         oftAddress[tokenAddress] = oft_;
     }
@@ -205,9 +203,7 @@ contract OftBridge is Ownable {
     function removeToken(address oft_) external onlyOwner {
         address tokenAddress = IOFT(oft_).token();
         stableTokensForGasScalingFactor[tokenAddress] = 0;
-        if (oft_ != tokenAddress) {
-            IERC20(tokenAddress).approve(oft_, 0);
-        }
+        IERC20(tokenAddress).approve(oft_, 0);
         oftAddress[tokenAddress] = address(0);
     }
 

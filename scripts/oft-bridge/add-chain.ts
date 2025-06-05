@@ -13,9 +13,9 @@ async function main() {
   }
 
   const contract = await ethers.getContractAt('OftBridge', oftBridgeAddress);
-  const result = await contract.registerBridgeDestination(6, 40231, 20000);
-  // const result = await contract.registerBridgeDestination(9, 40106, 20000);
-  // const result = await contract.registerBridgeDestination(2, 40161, 20000);
+  // const result = await contract.registerBridgeDestination(6, 40231, 20000); // ARB
+  // const result = await contract.registerBridgeDestination(9, 40106, 20000); // AVA
+  const result = await contract.registerBridgeDestination(2, 40161, 20000); // SPL
   await handleTransactionResult(result);
 }
 
