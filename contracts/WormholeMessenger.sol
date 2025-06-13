@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IGasOracle} from "./interfaces/IGasOracle.sol";
-import {IMessenger} from "./interfaces/IMessenger.sol";
-import {IWormhole} from "./interfaces/IWormhole.sol";
 import {GasUsage} from "./GasUsage.sol";
-import {GasOracle} from "./GasOracle.sol";
+import {IGasOracle} from "./interfaces/IGasOracle.sol";
+import {IWormhole, Structs} from "./interfaces/IWormhole.sol";
 import {HashUtils} from "./libraries/HashUtils.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract WormholeMessenger is Ownable, GasUsage {
     using HashUtils for bytes32;
@@ -48,7 +46,8 @@ contract WormholeMessenger is Ownable, GasUsage {
 
         uint32 nonce_ = nonce;
 
-        uint64 sequence = wormhole.publishMessage(nonce_, abi.encodePacked(messageWithSender), commitmentLevel);
+        uint256 wormholeFee = wormhole.messageFee();
+        uint64 sequence = wormhole.publishMessage{value: wormholeFee}(nonce_, abi.encodePacked(messageWithSender), commitmentLevel);
 
         unchecked {
             nonce = nonce_ + 1;
