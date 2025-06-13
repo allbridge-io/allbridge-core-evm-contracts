@@ -47,7 +47,11 @@ contract WormholeMessenger is Ownable, GasUsage {
         uint32 nonce_ = nonce;
 
         uint256 wormholeFee = wormhole.messageFee();
-        uint64 sequence = wormhole.publishMessage{value: wormholeFee}(nonce_, abi.encodePacked(messageWithSender), commitmentLevel);
+        uint64 sequence = wormhole.publishMessage{value: wormholeFee}(
+            nonce_,
+            abi.encodePacked(messageWithSender),
+            commitmentLevel
+        );
 
         unchecked {
             nonce = nonce_ + 1;
