@@ -24,7 +24,7 @@ const OTHER_CHAIN_ID = 2;
 const OTHER_DOMAIN = 22;
 const ORACLE_PRECISION = 18;
 
-describe('CctpBridge', () => {
+describe('CctpV1Bridge', () => {
   const currentChainPrecision = 18;
   const tokenPrecision = 18;
   const nonce = 18167805839882137372n;
