@@ -201,13 +201,22 @@ describe('BridgePayerWithToken', function () {
         });
 
         it('Success: should call bridge with native tokens value for extra gas', async function () {
-          const requiredAbrAmount = BigInt((await bridgePayer.getBridgeFeeInAbr(
-            destinationChainId,
-            messengerProtocol,
-          )).toString());
-          const extraAbrAmount = BigInt(parseUnits('1', abrTokenPrecision).toString());
-          const extraNativeAmount = BigInt(parseUnits('2', chainPrecision).toString());
-          const expectedFeeAmount = receiveTxCost + messageCost + extraNativeAmount;
+          const requiredAbrAmount = BigInt(
+            (
+              await bridgePayer.getBridgeFeeInAbr(
+                destinationChainId,
+                messengerProtocol,
+              )
+            ).toString(),
+          );
+          const extraAbrAmount = BigInt(
+            parseUnits('1', abrTokenPrecision).toString(),
+          );
+          const extraNativeAmount = BigInt(
+            parseUnits('2', chainPrecision).toString(),
+          );
+          const expectedFeeAmount =
+            receiveTxCost + messageCost + extraNativeAmount;
           const response = await bridgePayer
             .connect(alice)
             .swapAndBridge(
@@ -235,9 +244,17 @@ describe('BridgePayerWithToken', function () {
             );
         });
 
-        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
-          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
-          await expect(bridgePayer
+        it('Success: should call bridge with native tokens from sender', async function () {
+          const abrAmount = BigInt(
+            parseUnits('0.5', abrTokenPrecision).toString(),
+          );
+          const nativeTokenAmountFromSender = BigInt(
+            parseUnits('1', chainPrecision).toString(),
+          );
+          const expectedFeeAmount = BigInt(
+            parseUnits('2', chainPrecision).toString(),
+          );
+          const response = await bridgePayer
             .connect(alice)
             .swapAndBridge(
               addressToBytes32(token.address),
@@ -247,8 +264,42 @@ describe('BridgePayerWithToken', function () {
               addressToBytes32(recipientTokenAddress),
               nonce,
               messengerProtocol,
-              lowAbrAmount,
-            )).revertedWith('Payer: not enough fee');
+              abrAmount,
+              {
+                value: nativeTokenAmountFromSender,
+              },
+            );
+          await expect(response)
+            .to.emit(bridge, 'SwapAndBridgeEvent')
+            .withArgs(
+              addressToBytes32(token.address),
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              addressToBytes32(recipientTokenAddress),
+              nonce,
+              messengerProtocol,
+              '0',
+              expectedFeeAmount,
+            );
+        });
+
+        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
+          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
+          await expect(
+            bridgePayer
+              .connect(alice)
+              .swapAndBridge(
+                addressToBytes32(token.address),
+                amount,
+                addressToBytes32(recipient),
+                destinationChainId,
+                addressToBytes32(recipientTokenAddress),
+                nonce,
+                messengerProtocol,
+                lowAbrAmount,
+              ),
+          ).revertedWith('Payer: not enough fee');
         });
       });
 
