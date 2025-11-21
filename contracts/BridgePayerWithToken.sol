@@ -25,19 +25,17 @@ contract BridgePayerWithToken is Ownable {
      * Exchange rate: ABR tokens per native tokens with decimals EXCHANGE_RATE_PRECISION
      */
     uint public exchangeRate;
-    uint private immutable chainPrecision;
     uint private immutable conversionScalingFactor;
 
     constructor(address _abrTokenAddress, uint _chainPrecision, address _bridgeAddress) {
-        chainPrecision = _chainPrecision;
         bridge = _bridgeAddress;
         abrToken = IERC20Metadata(_abrTokenAddress);
         uint abrTokenDecimals = abrToken.decimals();
-        conversionScalingFactor = 10 ** (EXCHANGE_RATE_PRECISION + chainPrecision - abrTokenDecimals);
+        conversionScalingFactor = 10 ** (EXCHANGE_RATE_PRECISION + _chainPrecision - abrTokenDecimals);
     }
 
     /**
-     * @dev Bridge stable tokens using ABR for bridging fee.
+     * @notice Bridge stable tokens using ABR for bridging fee.
      */
     function swapAndBridge(
         bytes32 _token,
@@ -46,19 +44,20 @@ contract BridgePayerWithToken is Ownable {
         uint _destinationChainId,
         bytes32 _receiveToken,
         uint _nonce,
-        MessengerProtocol _messenger
+        MessengerProtocol _messenger,
+        uint _feeAbrAmount
     ) external payable {
-        uint feeAmount = _getBridgeFeeInNativeTokens(_destinationChainId, _messenger);
-
         // charge bridging fee in ABR
-        uint abrNeeded = _calculateBridgeFeeInAbr(feeAmount);
-        abrToken.safeTransferFrom(msg.sender, address(this), abrNeeded);
+        abrToken.safeTransferFrom(msg.sender, address(this), _feeAbrAmount);
+        uint amount = msg.value + _abrToNativeTokens(_feeAbrAmount);
 
-        address tokenAddress = address(uint160(uint256(_token)));
-        // transfer tokens to bridge
-        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+        uint requiredFeeAmount = _getBridgeFeeInNativeTokens(_destinationChainId, _messenger);
+        require(amount >= requiredFeeAmount, "Payer: not enough fee");
 
-        IBridge(payable(bridge)).swapAndBridge{value: feeAmount}(
+        // transfer the tokens to bridge
+        IERC20(address(uint160(uint256(_token)))).safeTransferFrom(msg.sender, address(this), _amount);
+
+        IBridge(bridge).swapAndBridge{value: amount}(
             _token,
             _amount,
             _recipient,
@@ -71,18 +70,16 @@ contract BridgePayerWithToken is Ownable {
     }
 
     /**
-     * @dev Get ABR amount enough to pay the bridging fee.
+     * @notice Get ABR amount enough to pay the bridging fee.
      */
     function getBridgeFeeInAbr(uint _destinationChainId, MessengerProtocol _messenger) external view returns (uint) {
-        return _calculateBridgeFeeInAbr(_getBridgeFeeInNativeTokens(_destinationChainId, _messenger));
+        return _nativeTokensToAbr(_getBridgeFeeInNativeTokens(_destinationChainId, _messenger));
     }
 
     /**
      * @dev Function to update the exchange rate between ABR0 and ETH by the owner.
      */
     function setExchangeRate(uint _newExchangeRate) external onlyOwner {
-        require(_newExchangeRate > 0, "New exchange rate must be greater than zero");
-
         exchangeRate = _newExchangeRate;
     }
 
@@ -120,15 +117,22 @@ contract BridgePayerWithToken is Ownable {
         MessengerProtocol _messenger
     ) internal view returns (uint) {
         return
-            IMessengerGateway(payable(bridge)).getMessageCost(_destinationChainId, _messenger) +
-            GasUsage(payable(bridge)).getTransactionCost(_destinationChainId);
+            IMessengerGateway(bridge).getMessageCost(_destinationChainId, _messenger) +
+            GasUsage(bridge).getTransactionCost(_destinationChainId);
     }
 
     /**
-     * @dev Calculate ABR amount enough to pay bridging fee.
+     * @dev Calculate ABR amount from native tokens based on exchange rate
      */
-    function _calculateBridgeFeeInAbr(uint _feeAmount) internal view returns (uint) {
-        return (_feeAmount * exchangeRate) / conversionScalingFactor;
+    function _nativeTokensToAbr(uint _amount) internal view returns (uint) {
+        return (_amount * exchangeRate) / conversionScalingFactor;
+    }
+
+    /**
+     * @dev Calculate native token amount from ABR tokens based on exchange rate
+     */
+    function _abrToNativeTokens(uint _abrAmount) internal view returns (uint) {
+        return (_abrAmount * conversionScalingFactor) / exchangeRate;
     }
 
     receive() external payable {}

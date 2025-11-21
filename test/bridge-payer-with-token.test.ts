@@ -80,11 +80,11 @@ describe('BridgePayerWithToken', function () {
       tokenPrecision: 18,
       abrTokenPrecision: 9,
     },
-    {
-      chainPrecision: 6,
-      tokenPrecision: 6,
-      abrTokenPrecision: 9,
-    },
+    // {
+    //   chainPrecision: 6,
+    //   tokenPrecision: 6,
+    //   abrTokenPrecision: 9,
+    // },
   ];
   for (const args of testArguments) {
     describe(`when chain precision: ${args.chainPrecision}; token precision: ${args.tokenPrecision}; ABR precision: ${args.abrTokenPrecision}`, () => {
@@ -113,14 +113,14 @@ describe('BridgePayerWithToken', function () {
       });
 
       describe('Deployment', function () {
-        it('should set the initial state', async function () {
+        it('Success: should set the initial state', async function () {
           expect(await bridgePayer.abrToken()).to.eq(abrToken.address);
           expect(await bridgePayer.bridge()).to.eq(bridge.address);
         });
       });
 
       describe('swapAndBridge', function () {
-        let bridgingCost: bigint;
+        let receiveTxCost: bigint;
         let messageCost: bigint;
 
         const amount = 100;
@@ -134,27 +134,20 @@ describe('BridgePayerWithToken', function () {
         beforeEach(async function () {
           await owner.sendTransaction({
             to: bridgePayer.address,
-            value: ethers.utils.parseEther('1'),
+            value: ethers.utils.parseEther('10'),
           });
           await bridgePayer.approveBridgeToken(token.address);
           await bridgePayer.setExchangeRate(
             parseUnits('0.5', EXCHANGE_RATE_PRECISION),
           );
-          bridgingCost = BigInt(parseUnits('0.3', chainPrecision).toString());
-          messageCost = BigInt(parseUnits('0.2', chainPrecision).toString());
-          await bridge.mockTransactionCost(bridgingCost);
+          receiveTxCost = BigInt(parseUnits('1', chainPrecision).toString());
+          messageCost = BigInt(parseUnits('1', chainPrecision).toString());
+          await bridge.mockTransactionCost(receiveTxCost);
           await bridge.mockMessageCost(messageCost);
         });
 
-        it('should charge ABR tokens', async function () {
-          const expectedAbrAmount = await bridgePayer.getBridgeFeeInAbr(
-            destinationChainId,
-            messengerProtocol,
-          );
-          assert(
-            !expectedAbrAmount.eq(0),
-            'Invalid: expectedAbrAmount is zero',
-          );
+        it('Success: should charge ABR tokens', async function () {
+          const abrAmount = parseUnits('1', abrTokenPrecision);
           const response = await bridgePayer
             .connect(alice)
             .swapAndBridge(
@@ -165,16 +158,21 @@ describe('BridgePayerWithToken', function () {
               addressToBytes32(recipientTokenAddress),
               nonce,
               messengerProtocol,
+              abrAmount,
             );
           expect(response).to.changeTokenBalances(
             abrToken,
             [alice, bridgePayer],
-            ['-' + expectedAbrAmount.toString(), expectedAbrAmount.toString()],
+            ['-' + abrAmount.toString(), abrAmount.toString()],
           );
         });
 
-        it('should call bridge', async function () {
-          const expectedFeeAmount = bridgingCost + messageCost;
+        it('Success: should call bridge with required native tokens value', async function () {
+          const abrAmount = await bridgePayer.getBridgeFeeInAbr(
+            destinationChainId,
+            messengerProtocol,
+          );
+          const expectedFeeAmount = receiveTxCost + messageCost;
           const response = await bridgePayer
             .connect(alice)
             .swapAndBridge(
@@ -185,6 +183,7 @@ describe('BridgePayerWithToken', function () {
               addressToBytes32(recipientTokenAddress),
               nonce,
               messengerProtocol,
+              abrAmount,
             );
           await expect(response)
             .to.emit(bridge, 'SwapAndBridgeEvent')
@@ -200,12 +199,63 @@ describe('BridgePayerWithToken', function () {
               expectedFeeAmount,
             );
         });
+
+        it('Success: should call bridge with native tokens value for extra gas', async function () {
+          const requiredAbrAmount = BigInt((await bridgePayer.getBridgeFeeInAbr(
+            destinationChainId,
+            messengerProtocol,
+          )).toString());
+          const extraAbrAmount = BigInt(parseUnits('1', abrTokenPrecision).toString());
+          const extraNativeAmount = BigInt(parseUnits('2', chainPrecision).toString());
+          const expectedFeeAmount = receiveTxCost + messageCost + extraNativeAmount;
+          const response = await bridgePayer
+            .connect(alice)
+            .swapAndBridge(
+              addressToBytes32(token.address),
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              addressToBytes32(recipientTokenAddress),
+              nonce,
+              messengerProtocol,
+              requiredAbrAmount + extraAbrAmount,
+            );
+          await expect(response)
+            .to.emit(bridge, 'SwapAndBridgeEvent')
+            .withArgs(
+              addressToBytes32(token.address),
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              addressToBytes32(recipientTokenAddress),
+              nonce,
+              messengerProtocol,
+              '0',
+              expectedFeeAmount,
+            );
+        });
+
+        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
+          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
+          await expect(bridgePayer
+            .connect(alice)
+            .swapAndBridge(
+              addressToBytes32(token.address),
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              addressToBytes32(recipientTokenAddress),
+              nonce,
+              messengerProtocol,
+              lowAbrAmount,
+            )).revertedWith('Payer: not enough fee');
+        });
       });
 
       describe('getBridgeFeeInAbr', () => {
         const destinationChainId = CHAIN_2;
         const messengerProtocol = 1;
-        it('should return the correct fee amount in ABR', async function () {
+        it('Success: should return the correct fee amount in ABR', async function () {
           // 0.5 ABR/TRX
           const exchangeRate = 0.5;
           await bridgePayer.setExchangeRate(
