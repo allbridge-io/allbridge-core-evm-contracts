@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
         runs: 1000,
         details: {
           yulDetails: {
-            optimizerSteps: "u",
+            optimizerSteps: 'u',
           },
         },
       },
@@ -70,6 +70,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
         ':CctpBridge$',
+        ':BridgePayerWithToken$',
       ],
     },
   ],

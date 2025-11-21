@@ -1,38 +1,44 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import {MockBridge} from "./test/MockBridge.sol";
+import {GasUsage} from "./GasUsage.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IMessengerGateway} from "./interfaces/IMessengerGateway.sol";
+
+import {MessengerProtocol, IBridge} from "./interfaces/IBridge.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {MessengerProtocol} from "./interfaces/IBridge.sol";
-import {Bridge} from "./Bridge.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+// Uncomment this line to use console.log
+//import "hardhat/console.sol";
 
 contract BridgePayerWithToken is Ownable {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IERC20;
 
     IERC20Metadata public abrToken;
-    Bridge public bridge;
+    address public bridge;
 
     uint private constant EXCHANGE_RATE_PRECISION = 18;
     /**
-      * Exchange rate: ABR tokens per native tokens with decimals EXCHANGE_RATE_PRECISION
-      */
+     * Exchange rate: ABR tokens per native tokens with decimals EXCHANGE_RATE_PRECISION
+     */
     uint public exchangeRate;
     uint private immutable chainPrecision;
     uint private immutable conversionScalingFactor;
 
     constructor(address _abrTokenAddress, uint _chainPrecision, address _bridgeAddress) {
         chainPrecision = _chainPrecision;
-        bridge = Bridge(payable(_bridgeAddress));
+        bridge = _bridgeAddress;
         abrToken = IERC20Metadata(_abrTokenAddress);
         uint abrTokenDecimals = abrToken.decimals();
         conversionScalingFactor = 10 ** (EXCHANGE_RATE_PRECISION + chainPrecision - abrTokenDecimals);
     }
 
     /**
-     * @dev Bridge tokens
+     * @dev Bridge stable tokens using ABR for bridging fee.
      */
     function swapAndBridge(
         bytes32 _token,
@@ -43,17 +49,17 @@ contract BridgePayerWithToken is Ownable {
         uint _nonce,
         MessengerProtocol _messenger
     ) external payable {
-        address tokenAddress = address(uint160(uint256(_token)));
-        // transfer tokens to bridge
-        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
-
         uint feeAmount = _getBridgeFeeInNativeTokens(_destinationChainId, _messenger);
 
         // charge bridging fee in ABR
         uint abrNeeded = _calculateBridgeFeeInAbr(feeAmount);
         abrToken.safeTransferFrom(msg.sender, address(this), abrNeeded);
 
-        bridge.swapAndBridge{value: feeAmount}(
+        address tokenAddress = address(uint160(uint256(_token)));
+        // transfer tokens to bridge
+        IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+
+        IBridge(payable(bridge)).swapAndBridge{value: feeAmount}(
             _token,
             _amount,
             _recipient,
@@ -68,10 +74,7 @@ contract BridgePayerWithToken is Ownable {
     /**
      * @dev Get ABR amount enough to pay the bridging fee.
      */
-    function getBridgeFeeInAbr(
-        uint _destinationChainId,
-        MessengerProtocol _messenger
-    ) external view returns (uint) {
+    function getBridgeFeeInAbr(uint _destinationChainId, MessengerProtocol _messenger) external view returns (uint) {
         return _calculateBridgeFeeInAbr(_getBridgeFeeInNativeTokens(_destinationChainId, _messenger));
     }
 
@@ -85,11 +88,11 @@ contract BridgePayerWithToken is Ownable {
     }
 
     function setBridge(address _bridge) external onlyOwner {
-        bridge = Bridge(payable(_bridge));
+        bridge = _bridge;
     }
 
-    function approveBridge(address _tokenAddress) external onlyOwner {
-        IERC20(_tokenAddress).safeApprove(address(bridge), type(uint256).max);
+    function approveBridgeToken(address _tokenAddress) external onlyOwner {
+        IERC20(_tokenAddress).safeApprove(bridge, type(uint256).max);
     }
 
     /**
@@ -117,8 +120,9 @@ contract BridgePayerWithToken is Ownable {
         uint _destinationChainId,
         MessengerProtocol _messenger
     ) internal view returns (uint) {
-        return bridge.getMessageCost(_destinationChainId, _messenger)
-            + bridge.getTransactionCost(_destinationChainId);
+        return
+            IMessengerGateway(payable(bridge)).getMessageCost(_destinationChainId, _messenger) +
+            GasUsage(payable(bridge)).getTransactionCost(_destinationChainId);
     }
 
     /**

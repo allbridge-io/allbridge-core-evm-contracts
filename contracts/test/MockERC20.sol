@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 contract MockERC20 {
     string public name;

@@ -1,7 +1,12 @@
 import {UlnOptions} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/uln/libs/UlnOptions.sol";
 import {ExecutorOptions} from "@layerzerolabs/lz-evm-messagelib-v2/contracts/libs/ExecutorOptions.sol";
 import {MockERC20} from "./MockERC20.sol";
-import {SendParam, MessagingFee, MessagingReceipt, OFTReceipt} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
+import {
+    SendParam,
+    MessagingFee,
+    MessagingReceipt,
+    OFTReceipt
+} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 
 // SPDX-License-Identifier: MIT
 contract MockOFT {
@@ -18,7 +23,7 @@ contract MockOFT {
     }
 
     function quoteSend(SendParam calldata sendParam, bool payInLzToken) external view returns (MessagingFee memory) {
-        // Calculate fee based on options - in real implementation this would parse the options 
+        // Calculate fee based on options - in real implementation this would parse the options
         uint fee = defaultNativeFee;
         bytes calldata _options = sendParam.extraOptions[2:];
 
@@ -32,10 +37,7 @@ contract MockOFT {
             }
         }
 
-        return MessagingFee({
-            nativeFee: fee,
-            lzTokenFee: 0
-        });
+        return MessagingFee({nativeFee: fee, lzTokenFee: 0});
     }
 
     function send(
