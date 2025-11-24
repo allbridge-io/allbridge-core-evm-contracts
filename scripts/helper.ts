@@ -62,9 +62,7 @@ function tronAddressToEthAddress(address: string): string {
 
 export function tronAddressToBytes32(address: string): string {
   const ethAddress = tronAddressToEthAddress(address);
-  const buffer = hexToBuffer(ethAddress);
-  const sizedBuffer = bufferToSize(buffer, 32);
-  return bufferToHex(sizedBuffer);
+  return addressToBytes32(ethAddress);
 }
 
 export function getEnv(name: string): string {

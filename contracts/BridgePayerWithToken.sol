@@ -77,7 +77,7 @@ contract BridgePayerWithToken is Ownable {
     }
 
     /**
-     * @dev Function to update the exchange rate between ABR0 and ETH by the owner.
+     * @dev Set the exchange rate of ABR per gas token with decimals EXCHANGE_RATE_PRECISION.
      */
     function setExchangeRate(uint _newExchangeRate) external onlyOwner {
         exchangeRate = _newExchangeRate;
