@@ -5,6 +5,8 @@ enum MessengerProtocol {
     None,
     Allbridge,
     Wormhole,
+    CCTP,
+    CCTPv2,
     LayerZero
 }
 

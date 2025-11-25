@@ -80,11 +80,11 @@ describe('BridgePayerWithToken', function () {
       tokenPrecision: 18,
       abrTokenPrecision: 9,
     },
-    // {
-    //   chainPrecision: 6,
-    //   tokenPrecision: 6,
-    //   abrTokenPrecision: 9,
-    // },
+    {
+      chainPrecision: 6,
+      tokenPrecision: 6,
+      abrTokenPrecision: 9,
+    },
   ];
   for (const args of testArguments) {
     describe(`when chain precision: ${args.chainPrecision}; token precision: ${args.tokenPrecision}; ABR precision: ${args.abrTokenPrecision}`, () => {
@@ -171,6 +171,8 @@ describe('BridgePayerWithToken', function () {
           const abrAmount = await bridgePayer.getBridgeFeeInAbr(
             destinationChainId,
             messengerProtocol,
+            ethers.constants.AddressZero,
+            '0',
           );
           const expectedFeeAmount = receiveTxCost + messageCost;
           const response = await bridgePayer
@@ -206,6 +208,8 @@ describe('BridgePayerWithToken', function () {
               await bridgePayer.getBridgeFeeInAbr(
                 destinationChainId,
                 messengerProtocol,
+                ethers.constants.AddressZero,
+                '0',
               )
             ).toString(),
           );
@@ -325,6 +329,8 @@ describe('BridgePayerWithToken', function () {
           const amount = await bridgePayer.getBridgeFeeInAbr(
             destinationChainId,
             messengerProtocol,
+            ethers.constants.AddressZero,
+            '0',
           );
           expect(amount.toString()).to.equal(expectedAmount);
         });
