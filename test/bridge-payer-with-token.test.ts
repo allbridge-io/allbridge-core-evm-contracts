@@ -1,7 +1,13 @@
 import { ethers } from 'hardhat';
 import { assert, expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { BridgePayerWithToken, MockBridge, Token } from '../typechain';
+import {
+  BridgePayerWithToken,
+  MockBridge,
+  MockCctpBridge,
+  MockOftBridge,
+  Token,
+} from '../typechain';
 import { parseUnits } from 'ethers/lib/utils';
 import { addressToBytes32 } from '../scripts/helper';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
@@ -16,6 +22,8 @@ describe('BridgePayerWithToken', function () {
   let token: Token;
   let abrToken: Token;
   let bridge: MockBridge;
+  let cctpBridge: MockCctpBridge;
+  let oftBridge: MockOftBridge;
   let bridgePayer: BridgePayerWithToken;
 
   async function setupContractsFixture(
@@ -30,10 +38,18 @@ describe('BridgePayerWithToken', function () {
     const mockBridgeFactory = (await ethers.getContractFactory(
       'MockBridge',
     )) as any;
+    const mockCctpBridgeFactory = (await ethers.getContractFactory(
+      'MockCctpBridge',
+    )) as any;
+    const mockOftBridgeFactory = (await ethers.getContractFactory(
+      'MockOftBridge',
+    )) as any;
 
     [owner, alice] = await ethers.getSigners();
 
     bridge = await mockBridgeFactory.deploy();
+    cctpBridge = await mockCctpBridgeFactory.deploy();
+    oftBridge = await mockOftBridgeFactory.deploy();
 
     abrToken = await tokenContractFactory.deploy(
       'ABR',
@@ -55,6 +71,9 @@ describe('BridgePayerWithToken', function () {
       bridge.address,
     );
     console.log('Contracts deployed');
+
+    await bridgePayer.setCctpBridge(cctpBridge.address, token.address);
+    await bridgePayer.setOftBridge(oftBridge.address);
 
     await abrToken.transfer(
       alice.address,
@@ -123,7 +142,7 @@ describe('BridgePayerWithToken', function () {
         let receiveTxCost: bigint;
         let messageCost: bigint;
 
-        const amount = 100;
+        const amount = parseUnits('100', tokenPrecision);
         const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
         const destinationChainId = CHAIN_2;
         const recipientTokenAddress =
@@ -307,6 +326,274 @@ describe('BridgePayerWithToken', function () {
         });
       });
 
+      describe('cctpBridge', function () {
+        let receiveTxCost: bigint;
+
+        const amount = parseUnits('100', tokenPrecision);
+        const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
+        const destinationChainId = CHAIN_2;
+        const messengerProtocol = 3;
+
+        beforeEach(async function () {
+          await owner.sendTransaction({
+            to: bridgePayer.address,
+            value: ethers.utils.parseEther('10'),
+          });
+          await bridgePayer.approveBridgeToken(token.address);
+          await bridgePayer.setExchangeRate(
+            parseUnits('0.5', EXCHANGE_RATE_PRECISION),
+          );
+          receiveTxCost = BigInt(parseUnits('1', chainPrecision).toString());
+          await cctpBridge.mockTransactionCost(receiveTxCost);
+        });
+
+        it('Success: should charge ABR tokens', async function () {
+          const abrAmount = parseUnits('1', abrTokenPrecision);
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeCctp(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              messengerProtocol,
+              abrAmount,
+            );
+          expect(response).to.changeTokenBalances(
+            abrToken,
+            [alice, bridgePayer],
+            ['-' + abrAmount.toString(), abrAmount.toString()],
+          );
+        });
+
+        it('Success: should call CCTP bridge with required native tokens value', async function () {
+          const abrAmount = await bridgePayer.getBridgeFeeInAbr(
+            destinationChainId,
+            messengerProtocol,
+            ethers.constants.AddressZero,
+            '0',
+          );
+          const expectedFeeAmount = receiveTxCost;
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeCctp(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              messengerProtocol,
+              abrAmount,
+            );
+          await expect(response)
+            .to.emit(cctpBridge, 'BridgeEvent')
+            .withArgs(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              '0',
+              expectedFeeAmount,
+            );
+        });
+
+        it('Success: should call CCTP bridge with native tokens value for extra gas', async function () {
+          const requiredAbrAmount = BigInt(
+            (
+              await bridgePayer.getBridgeFeeInAbr(
+                destinationChainId,
+                messengerProtocol,
+                ethers.constants.AddressZero,
+                '0',
+              )
+            ).toString(),
+          );
+          const extraAbrAmount = BigInt(
+            parseUnits('1', abrTokenPrecision).toString(),
+          );
+          const extraNativeAmount = BigInt(
+            parseUnits('2', chainPrecision).toString(),
+          );
+          const expectedFeeAmount = receiveTxCost + extraNativeAmount;
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeCctp(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              messengerProtocol,
+              requiredAbrAmount + extraAbrAmount,
+            );
+          await expect(response)
+            .to.emit(cctpBridge, 'BridgeEvent')
+            .withArgs(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              '0',
+              expectedFeeAmount,
+            );
+        });
+
+        it('Success: should call CCTP bridge with native tokens from sender', async function () {
+          const abrAmount = BigInt(
+            parseUnits('0.5', abrTokenPrecision).toString(),
+          );
+          const nativeTokenAmountFromSender = BigInt(
+            parseUnits('1', chainPrecision).toString(),
+          );
+          const expectedFeeAmount = BigInt(
+            parseUnits('2', chainPrecision).toString(),
+          );
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeCctp(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              messengerProtocol,
+              abrAmount,
+              {
+                value: nativeTokenAmountFromSender,
+              },
+            );
+          await expect(response)
+            .to.emit(cctpBridge, 'BridgeEvent')
+            .withArgs(
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              '0',
+              expectedFeeAmount,
+            );
+        });
+
+        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
+          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
+          await expect(
+            bridgePayer
+              .connect(alice)
+              .bridgeCctp(
+                amount,
+                addressToBytes32(recipient),
+                destinationChainId,
+                messengerProtocol,
+                lowAbrAmount,
+              ),
+          ).revertedWith('Payer: not enough fee');
+        });
+      });
+
+      describe('bridgeOft', function () {
+        const amount = parseUnits('100', tokenPrecision);
+        const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
+        const destinationChainId = CHAIN_2;
+        const extraGasInDestinationToken = 0;
+        const slippageBP = 50;
+        const messengerProtocol = 5;
+        const relayerFeeAmount = parseUnits('2', chainPrecision).toString();
+
+        beforeEach(async function () {
+          await owner.sendTransaction({
+            to: bridgePayer.address,
+            value: ethers.utils.parseEther('10'),
+          });
+          await bridgePayer.approveBridgeToken(token.address);
+          await bridgePayer.setExchangeRate(
+            parseUnits('0.5', EXCHANGE_RATE_PRECISION),
+          );
+          await oftBridge.mockRelayerFee(relayerFeeAmount);
+        });
+
+        it('Success: should charge ABR tokens', async function () {
+          const abrAmount = parseUnits('1', abrTokenPrecision);
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeOft(
+              token.address,
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              extraGasInDestinationToken,
+              slippageBP,
+              abrAmount,
+            );
+          expect(response).to.changeTokenBalances(
+            abrToken,
+            [alice, bridgePayer],
+            ['-' + abrAmount.toString(), abrAmount.toString()],
+          );
+        });
+
+        it('Success: should call OFT bridge with required native tokens value', async function () {
+          const abrAmount = await bridgePayer.getBridgeFeeInAbr(
+            destinationChainId,
+            messengerProtocol,
+            token.address,
+            amount,
+          );
+
+          const expectedFeeAmount = relayerFeeAmount;
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeOft(
+              token.address,
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              extraGasInDestinationToken,
+              slippageBP,
+              abrAmount,
+            );
+          await expect(response)
+            .to.emit(oftBridge, 'BridgeEvent')
+            .withArgs(
+              token.address,
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              '0',
+              extraGasInDestinationToken,
+              slippageBP,
+              expectedFeeAmount,
+            );
+        });
+
+        it('Success: should call OFT bridge with native tokens from sender', async function () {
+          const abrAmount = BigInt(
+            parseUnits('0.5', abrTokenPrecision).toString(),
+          );
+          const nativeTokenAmountFromSender = BigInt(
+            parseUnits('1', chainPrecision).toString(),
+          );
+          const expectedFeeAmount = BigInt(
+            parseUnits('2', chainPrecision).toString(),
+          );
+          const response = await bridgePayer
+            .connect(alice)
+            .bridgeOft(
+              token.address,
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              extraGasInDestinationToken,
+              slippageBP,
+              abrAmount,
+              {
+                value: nativeTokenAmountFromSender,
+              },
+            );
+          await expect(response)
+            .to.emit(oftBridge, 'BridgeEvent')
+            .withArgs(
+              token.address,
+              amount,
+              addressToBytes32(recipient),
+              destinationChainId,
+              '0',
+              extraGasInDestinationToken,
+              slippageBP,
+              expectedFeeAmount,
+            );
+        });
+      });
+
       describe('getBridgeFeeInAbr', () => {
         const destinationChainId = CHAIN_2;
         const messengerProtocol = 1;
@@ -363,6 +650,55 @@ describe('BridgePayerWithToken', function () {
           it('Failure: should revert when the caller is not the owner', async () => {
             await expect(
               bridgePayer.connect(alice).setBridge(newBridge),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('setCctpBridge', () => {
+          const newBridge = '0xf2042dEff251a1B4ea1Da9d1e952a62cD626fDb3';
+
+          it('Success: should set CCTP bridge', async () => {
+            await bridgePayer.setCctpBridge(newBridge, token.address);
+            expect(await bridgePayer.cctpBridge()).to.eq(newBridge);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              bridgePayer
+                .connect(alice)
+                .setCctpBridge(newBridge, token.address),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('setCctpV2Bridge', () => {
+          const newBridge = '0xf2042dEff251a1B4ea1Da9d1e952a62cD626fDb3';
+
+          it('Success: should set CCTP V2 bridge', async () => {
+            await bridgePayer.setCctpV2Bridge(newBridge, token.address);
+            expect(await bridgePayer.cctpV2Bridge()).to.eq(newBridge);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              bridgePayer
+                .connect(alice)
+                .setCctpV2Bridge(newBridge, token.address),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('setOftBridge', () => {
+          const newBridge = '0xf2042dEff251a1B4ea1Da9d1e952a62cD626fDb3';
+
+          it('Success: should set OFT bridge', async () => {
+            await bridgePayer.setOftBridge(newBridge);
+            expect(await bridgePayer.oftBridge()).to.eq(newBridge);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              bridgePayer.connect(alice).setOftBridge(newBridge),
             ).revertedWith('Ownable: caller is not the owner');
           });
         });
