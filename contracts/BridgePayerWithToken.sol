@@ -142,7 +142,7 @@ contract BridgePayerWithToken is Ownable {
         } else {
             revert("Payer: Not supported messenger");
         }
-        return _nativeTokensToAbr(amountNative);
+        return nativeTokensToAbr(amountNative);
     }
 
     /**
@@ -192,20 +192,20 @@ contract BridgePayerWithToken is Ownable {
         }
     }
 
+    /**
+     * @notice Calculate ABR amount from native tokens based on exchange rate
+     */
+    function nativeTokensToAbr(uint _amount) public view returns (uint) {
+        return (_amount * exchangeRate) / conversionScalingFactor;
+    }
+
     function _coverBridgingFee(uint _feeAbrAmount) internal returns (uint) {
         abrToken.safeTransferFrom(msg.sender, address(this), _feeAbrAmount);
         return msg.value + _abrToNativeTokens(_feeAbrAmount);
     }
 
     /**
-     * @dev Calculate ABR amount from native tokens based on exchange rate
-     */
-    function _nativeTokensToAbr(uint _amount) internal view returns (uint) {
-        return (_amount * exchangeRate) / conversionScalingFactor;
-    }
-
-    /**
-     * @dev Calculate native token amount from ABR tokens based on exchange rate
+     * @notice Calculate native token amount from ABR tokens based on exchange rate
      */
     function _abrToNativeTokens(uint _abrAmount) internal view returns (uint) {
         return (_abrAmount * conversionScalingFactor) / exchangeRate;
