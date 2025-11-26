@@ -53,7 +53,7 @@ contract BridgePayerWithToken is Ownable {
         uint _feeAbrAmount
     ) external payable {
         // charge bridging fee in ABR
-        uint nativeAmount = _coverBridgingFee(_destinationChainId, _messenger, _feeAbrAmount);
+        uint nativeAmount = _coverBridgingFee(_feeAbrAmount);
 
         // transfer the tokens to bridge
         IERC20(address(uint160(uint256(_token)))).safeTransferFrom(msg.sender, address(this), _amount);
@@ -78,7 +78,7 @@ contract BridgePayerWithToken is Ownable {
         uint _feeAbrAmount
     ) external payable {
         // charge bridging fee in ABR
-        uint nativeAmount = _coverBridgingFee(_destinationChainId, _messenger, _feeAbrAmount);
+        uint nativeAmount = _coverBridgingFee(_feeAbrAmount);
 
         // transfer the tokens to bridge
         IERC20(cctpToken).safeTransferFrom(msg.sender, address(this), _amount);
@@ -102,8 +102,7 @@ contract BridgePayerWithToken is Ownable {
         uint _feeAbrAmount
     ) external payable {
         // charge bridging fee in ABR
-        abrToken.safeTransferFrom(msg.sender, address(this), _feeAbrAmount);
-        uint nativeAmount = msg.value + _abrToNativeTokens(_feeAbrAmount);
+        uint nativeAmount = _coverBridgingFee(_feeAbrAmount);
 
         // transfer the tokens to bridge
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -128,11 +127,20 @@ contract BridgePayerWithToken is Ownable {
         address _token,
         uint _amount
     ) external view returns (uint) {
+        // native token amount enough to pay the bridging fee.
         uint amountNative;
-        if (_messenger == MessengerProtocol.LayerZero) {
+        if (_messenger == MessengerProtocol.Allbridge || _messenger == MessengerProtocol.Wormhole) {
+            amountNative =
+                IMessengerGateway(bridge).getMessageCost(_destinationChainId, _messenger) +
+                GasUsage(bridge).getTransactionCost(_destinationChainId);
+        } else if (_messenger == MessengerProtocol.CCTP) {
+            amountNative = GasUsage(cctpBridge).getTransactionCost(_destinationChainId);
+        } else if (_messenger == MessengerProtocol.CCTPv2) {
+            amountNative = GasUsage(cctpV2Bridge).getTransactionCost(_destinationChainId);
+        } else if (_messenger == MessengerProtocol.LayerZero) {
             amountNative = OftBridge(oftBridge).relayerFee(_token, _destinationChainId, _amount);
         } else {
-            amountNative = _getBridgeFeeInNativeTokens(_destinationChainId, _messenger);
+            revert("Payer: Not supported messenger");
         }
         return _nativeTokensToAbr(amountNative);
     }
@@ -184,36 +192,9 @@ contract BridgePayerWithToken is Ownable {
         }
     }
 
-    function _coverBridgingFee(
-        uint _destinationChainId,
-        MessengerProtocol _messenger,
-        uint _feeAbrAmount
-    ) internal returns (uint amount) {
+    function _coverBridgingFee(uint _feeAbrAmount) internal returns (uint) {
         abrToken.safeTransferFrom(msg.sender, address(this), _feeAbrAmount);
-        amount = msg.value + _abrToNativeTokens(_feeAbrAmount);
-
-        uint requiredFeeAmount = _getBridgeFeeInNativeTokens(_destinationChainId, _messenger);
-        require(amount >= requiredFeeAmount, "Payer: not enough fee");
-    }
-
-    /**
-     * @dev Get native token amount enough to pay the bridging fee.
-     */
-    function _getBridgeFeeInNativeTokens(
-        uint _destinationChainId,
-        MessengerProtocol _messenger
-    ) internal view returns (uint amount) {
-        if (_messenger == MessengerProtocol.Allbridge || _messenger == MessengerProtocol.Wormhole) {
-            amount =
-                IMessengerGateway(bridge).getMessageCost(_destinationChainId, _messenger) +
-                GasUsage(bridge).getTransactionCost(_destinationChainId);
-        } else if (_messenger == MessengerProtocol.CCTP) {
-            amount = GasUsage(cctpBridge).getTransactionCost(_destinationChainId);
-        } else if (_messenger == MessengerProtocol.CCTPv2) {
-            amount = GasUsage(cctpV2Bridge).getTransactionCost(_destinationChainId);
-        } else {
-            revert("Not supported messenger");
-        }
+        return msg.value + _abrToNativeTokens(_feeAbrAmount);
     }
 
     /**

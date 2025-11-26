@@ -306,24 +306,6 @@ describe('BridgePayerWithToken', function () {
               expectedFeeAmount,
             );
         });
-
-        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
-          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
-          await expect(
-            bridgePayer
-              .connect(alice)
-              .swapAndBridge(
-                addressToBytes32(token.address),
-                amount,
-                addressToBytes32(recipient),
-                destinationChainId,
-                addressToBytes32(recipientTokenAddress),
-                nonce,
-                messengerProtocol,
-                lowAbrAmount,
-              ),
-          ).revertedWith('Payer: not enough fee');
-        });
       });
 
       describe('cctpBridge', function () {
@@ -462,21 +444,6 @@ describe('BridgePayerWithToken', function () {
               '0',
               expectedFeeAmount,
             );
-        });
-
-        it('Failure: should revert when not enough ABR tokens to cover the bridging fee', async function () {
-          const lowAbrAmount = parseUnits('0.1', abrTokenPrecision);
-          await expect(
-            bridgePayer
-              .connect(alice)
-              .bridgeCctp(
-                amount,
-                addressToBytes32(recipient),
-                destinationChainId,
-                messengerProtocol,
-                lowAbrAmount,
-              ),
-          ).revertedWith('Payer: not enough fee');
         });
       });
 
