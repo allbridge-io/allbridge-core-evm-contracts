@@ -16,6 +16,8 @@ contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
     // Info about tokens on other chains
     mapping(uint chainId => mapping(bytes32 tokenAddress => bool isSupported)) public override otherBridgeTokens;
 
+    bool private mockedRevertNotEnoughFee = false;
+
     event SwapAndBridgeEvent(
         bytes32 token,
         uint amount,
@@ -40,6 +42,7 @@ contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
         MessengerProtocol messenger,
         uint feeTokenAmount
     ) external payable override {
+        require(!mockedRevertNotEnoughFee, "Bridge: not enough fee");
         emit SwapAndBridgeEvent(
             token,
             amount,
@@ -85,5 +88,9 @@ contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
         MessengerProtocol
     ) external pure override returns (bytes32) {
         return 0;
+    }
+
+    function mockRevertNotEnoughFee(bool _value) external {
+        mockedRevertNotEnoughFee = _value;
     }
 }
