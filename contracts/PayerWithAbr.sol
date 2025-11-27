@@ -57,24 +57,6 @@ contract PayerWithAbr is Ownable {
         targets[_id] = TargetMeta({target: _target, selector: bytes4(keccak256(bytes(_signature)))});
     }
 
-    function _routeCall(uint _targetId, uint _value, bytes calldata _params) internal {
-        TargetMeta memory m = targets[_targetId];
-        require(m.target != address(0), "Payer: target not found");
-
-        (bool success, bytes memory returnData) = m.target.call{value: _value}(abi.encodePacked(m.selector, _params));
-        if (!success) {
-            // Revert the transaction
-            if (returnData.length > 0) {
-                // Decode the error message
-                assembly {
-                    revert(add(32, returnData), mload(returnData))
-                }
-            } else {
-                revert("Payer: target call failed");
-            }
-        }
-    }
-
     /**
      * @dev Set the exchange rate of ABR per gas token with decimals EXCHANGE_RATE_PRECISION.
      */
@@ -109,6 +91,24 @@ contract PayerWithAbr is Ownable {
      */
     function nativeTokensToAbr(uint _amount) external view returns (uint) {
         return (_amount * exchangeRate) / conversionScalingFactor;
+    }
+
+    function _routeCall(uint _targetId, uint _value, bytes calldata _params) internal {
+        TargetMeta memory m = targets[_targetId];
+        require(m.target != address(0), "Payer: target not found");
+
+        (bool success, bytes memory returnData) = m.target.call{value: _value}(abi.encodePacked(m.selector, _params));
+        if (!success) {
+            // Revert the transaction
+            if (returnData.length > 0) {
+                // Decode the error message
+                assembly {
+                    revert(add(32, returnData), mload(returnData))
+                }
+            } else {
+                revert("Payer: target call failed");
+            }
+        }
     }
 
     function _coverBridgingFee(uint _feeAbrAmount) internal returns (uint) {
