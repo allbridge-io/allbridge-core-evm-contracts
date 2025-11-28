@@ -14,6 +14,8 @@ async function main() {
   const cost = await contract.getBridgeFeeInAbr(
     destinationChainId,
     messenger,
+    ethers.constants.AddressZero,
+    0,
   );
   const decimals = await abrToken.decimals();
   const symbol = await abrToken.symbol();
