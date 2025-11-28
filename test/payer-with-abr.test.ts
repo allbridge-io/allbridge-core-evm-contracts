@@ -516,6 +516,134 @@ describe('PayerWithAbr', function () {
             );
         });
       });
+
+      describe('Admin methods', () => {
+        describe('setExchangeRate', () => {
+          const rate = parseUnits('0.0001', EXCHANGE_RATE_PRECISION).toString();
+
+          it('Success: should set exchange rate', async () => {
+            await payer.setExchangeRate(rate);
+            expect((await payer.exchangeRate()).toString()).to.eq(rate);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).setExchangeRate(rate),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('registerTarget', () => {
+          it('Success: should register target', async () => {
+            const expectedMethodSelector = '0x4cd480bd';
+            await payer.registerTarget(
+              ALLBRIDGE_MESSENGER,
+              bridge.address,
+              `swapAndBridge(${bridgeSwapAndBridgeInputTypes.join()})`,
+            );
+            const targetMeta = await payer.targets(ALLBRIDGE_MESSENGER);
+            expect(targetMeta[0]).to.eq(bridge.address)
+            expect(targetMeta[1]).to.eq(expectedMethodSelector);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).registerTarget(
+                ALLBRIDGE_MESSENGER,
+                bridge.address,
+                `swapAndBridge(${bridgeSwapAndBridgeInputTypes.join()})`,
+              ),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('unregisterTarget', () => {
+          beforeEach(async () => {
+            await payer.registerTarget(
+              ALLBRIDGE_MESSENGER,
+              bridge.address,
+              `swapAndBridge(${bridgeSwapAndBridgeInputTypes.join()})`,
+            );
+          });
+
+          it('Success: should remove target registration', async () => {
+            await payer.unregisterTarget(
+              ALLBRIDGE_MESSENGER,
+            );
+            const targetMeta = await payer.targets(ALLBRIDGE_MESSENGER);
+            expect(targetMeta[0]).to.eq(ethers.constants.AddressZero)
+            expect(targetMeta[1]).to.eq('0x00000000');
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).unregisterTarget(
+                ALLBRIDGE_MESSENGER,
+              ),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('approveBridgeToken', () => {
+          it('Success: should approve bridge', async () => {
+            await payer.approveBridgeToken(token.address, bridge.address);
+            expect(
+              await token.allowance(payer.address, bridge.address),
+            ).to.eq(ethers.constants.MaxUint256);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).approveBridgeToken(token.address, bridge.address),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('withdrawGas', () => {
+          const amount = '123456789123456789';
+          beforeEach(async function () {
+            await alice.sendTransaction({
+              to: payer.address,
+              value: amount,
+            });
+          });
+
+          it('Success: should withdraw gas', async () => {
+            await expect(
+              await payer.withdrawGas(amount),
+            ).changeEtherBalances([owner, payer], [amount, '-' + amount]);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).withdrawGas(amount),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('withdrawTokens', () => {
+          const amount = '123456789123456789';
+          beforeEach(async function () {
+            await abrToken.transfer(payer.address, amount);
+          });
+
+          it('Success: should withdraw tokens', async () => {
+            await expect(() =>
+              payer.withdrawTokens(abrToken.address),
+            ).to.changeTokenBalances(
+              abrToken,
+              [payer, owner],
+              ['-' + amount.toString(), amount.toString()],
+            );
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).withdrawTokens(abrToken.address),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+      });
     });
   }
 });

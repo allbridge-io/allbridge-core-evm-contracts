@@ -57,6 +57,10 @@ contract PayerWithAbr is Ownable {
         targets[_id] = TargetMeta({target: _target, selector: bytes4(keccak256(bytes(_signature)))});
     }
 
+    function unregisterTarget(uint _id) external onlyOwner {
+        delete targets[_id];
+    }
+
     /**
      * @dev Set the exchange rate of ABR per gas token with decimals EXCHANGE_RATE_PRECISION.
      */
