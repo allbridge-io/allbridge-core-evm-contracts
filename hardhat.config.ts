@@ -70,7 +70,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
         ':CctpBridge$',
-        ':BridgePayerWithToken$',
+        ':PayerWithAbr$',
       ],
     },
   ],
