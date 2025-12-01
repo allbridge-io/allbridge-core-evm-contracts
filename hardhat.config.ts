@@ -50,7 +50,8 @@ const config: HardhatUserConfig = {
     sepolia: baseNetwork,
     holesky: baseNetwork,
     bsc: baseNetwork,
-    arbitrumGoerli: baseNetwork,
+    base: baseNetwork,
+    arbitrum: baseNetwork,
   },
   gasReporter: {
     enabled: !!process.env.NODE_GAS,
@@ -70,6 +71,8 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
         ':CctpBridge$',
+        ':AutoDepositFactory$',
+        ':AutoDepositWallet$',
         ':PayerWithAbr$',
       ],
     },

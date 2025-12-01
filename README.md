@@ -17,6 +17,7 @@ npm run test-fuzzy
 ## More Tests
 
 ### Foundry
+
 In order to run the foundry tests, install Foundry:
 
 [Installation](https://book.getfoundry.sh/getting-started/installation)
@@ -28,6 +29,7 @@ In order to run the foundry tests, install Foundry:
 3. `pip3 install slither-analyzer`
 
 Run static analysis with
+
 ```
 slither .
 ```
@@ -51,7 +53,7 @@ Deploy:
 Config:
 
 - Add pool liquidity: `npx hardhat run ./scripts/bridge/add-liquidity.ts --network goerli`
-- Add pool to the bridge:  `npx hardhat run ./scripts/bridge/add-pool.ts --network goerli`
+- Add pool to the bridge: `npx hardhat run ./scripts/bridge/add-pool.ts --network goerli`
 - Set bridge (check args): `npx hardhat run ./scripts/bridge/add-bridge.ts --network goerli`
 - Add bridge token (check args): `npx hardhat run ./scripts/bridge/add-bridge-token.ts --network goerli`
 - Set bridge gas usage (check args): `npx hardhat run ./scripts/bridge/set-gas-usage.ts --network goerli`
@@ -62,7 +64,7 @@ Config:
 
 - Add to env file `NODE_URL`, `PRIVATE_KEY`, `VALIDATOR_ADDRESS`, `CHAIN_ID`
 
-Deploy: 
+Deploy:
 
 - Gas oracle: `tronbox migrate --f 1 --to 1 --network nile` set `GAS_ORACLE_ADDRESS`
 - Messenger: `tronbox migrate --f 2 --to 2 --network nile` set `MESSENGER_ADDRESS`
@@ -70,6 +72,7 @@ Deploy:
 - Optional deploy test token, check args inside : `tronbox migrate --f 4 --to 4 --network nile`
   set `TOKEN_ADDRESS`
 - Pool: `tronbox migrate --f 5 --to 5 --network nile` set `POOL_ADDRESS`
+- Auto Deposit Factory: `tronbox migrate --f 7 --to 7 --network nile` set `CHAIN_ID` & `GAS_ORACLE_ADDRESS`
 
 Config:
 
@@ -84,17 +87,20 @@ Config:
 ### CCTP
 
 Deploy:
-  - Add to env file `USDC_ADDRESS`, `CCTP_MESSENGER_ADDRESS`, `CCTP_TRANSMITTER_ADDRESS`
-  - CCTP Bridge `npx hardhat run scripts/deploy/cctp-bridge.ts --network goerli`
+
+- Add to env file `USDC_ADDRESS`, `CCTP_MESSENGER_ADDRESS`, `CCTP_TRANSMITTER_ADDRESS`
+- CCTP Bridge `npx hardhat run scripts/deploy/cctp-bridge.ts --network goerli`
 
 Config:
-  - Add to env file `CCTP_BRIDGE_ADDRESS`
-  - Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network goerli`
-  - Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`
-  - Add to env file `CCTP_FEE_BP`
-  - Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network goerli`
+
+- Add to env file `CCTP_BRIDGE_ADDRESS`
+- Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network goerli`
+- Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`
+- Add to env file `CCTP_FEE_BP`
+- Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network goerli`
 
 ### Etherscan verification
+
 - Add to env file `ETHERSCAN_API_KEY` and `<CONTRACT_ADDRESS>`
 - Check `./scripts/verify/<contract>.ts` file args to be the same as on deploy
 - Run `npx hardhat run ./scripts/verify/<contract>.ts --network goerli`

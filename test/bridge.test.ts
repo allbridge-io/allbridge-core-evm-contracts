@@ -1,4 +1,4 @@
-import { ethers, waffle } from 'hardhat';
+import { ethers, network, waffle } from 'hardhat';
 import { assert, expect } from 'chai';
 import { Bridge, Pool, TestMessenger, Token } from '../typechain';
 import { formatEther, parseUnits } from 'ethers/lib/utils';
@@ -37,6 +37,7 @@ describe('Bridge', () => {
     chainPrecision: number,
     tokenPrecision: number,
   ) {
+    await network.provider.request({ method: 'hardhat_reset', params: [] });
     const tokenContractFactory = await ethers.getContractFactory('Token');
     const poolContractFactory = await ethers.getContractFactory('Pool');
     const bridgeContractFactory = (await ethers.getContractFactory(
@@ -540,10 +541,7 @@ describe('Bridge', () => {
             0,
           );
 
-          const hash =
-            tokenPrecision === 18
-              ? '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870'
-              : '0x02015eb6d37df337e31bae069d57b08a76a37419f0c4fb11713529930f44a418';
+          const hash = '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870';
 
           await expect(response)
             .emit(bridge, 'TokensReceived')
