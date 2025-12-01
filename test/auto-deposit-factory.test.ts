@@ -635,7 +635,7 @@ function _printTxSummary() {
     grandTotalGas = grandTotalGas.add(testTotalGas);
     grandTotalCalls += testTotalCalls;
 
-    console.log(`  Test totals: gas=${testTotalGas.toString()}`);
+    console.log(`  Test totals: gas=${testTotalGas.toString()} calls=${grandTotalCalls}`);
   }
 }
 
@@ -643,5 +643,6 @@ process.on('beforeExit', _printTxSummary);
 process.on('exit', _printTxSummary);
 process.on('SIGINT', () => {
   _printTxSummary();
+  // eslint-disable-next-line no-process-exit
   process.exit();
 });

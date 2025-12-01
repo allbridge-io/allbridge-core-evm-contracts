@@ -54,7 +54,7 @@ contract AutoDepositWallet is Initializable {
     }
 
     modifier onlyFactoryOwner() {
-        require(Ownable(factory).owner() == msg.sender, "ADW: caller is not the factory owner");
+        require(Ownable(factory).owner() == msg.sender, "ADW: caller is not factory owner");
         _;
     }
 
