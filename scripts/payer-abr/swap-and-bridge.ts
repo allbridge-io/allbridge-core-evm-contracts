@@ -38,7 +38,7 @@ async function main() {
   const signer = (await ethers.getSigners())[0];
 
   const currentBalanceAbr = await abrToken.balanceOf(signer.address);
-  console.log(`Sender ${abrSymbol} balance is ${formatUnits(currentBalanceAbr)}`);
+  console.log(`Sender ${abrSymbol} balance is ${formatUnits(currentBalanceAbr, abrDecimals)}`);
   if (currentBalanceAbr.lt(feeAbrAmount)) {
     console.log(`Not enough ${abrSymbol}. Refill address ${signer.address}`);
     return;
@@ -68,12 +68,13 @@ async function main() {
   const nonce = ethers.BigNumber.from(ethers.utils.randomBytes(32));
 
   const tokenSymbol = await token.symbol();
+  const tokenDecimals = await token.decimals();
   console.log(
     `Sending ${tokenAmount} ${tokenSymbol} to chain ${destinationChainId}`,
   );
-  const amount = parseUnits(tokenAmount, await token.decimals());
+  const amount = parseUnits(tokenAmount, tokenDecimals);
   const currentTokenBalance = await token.balanceOf(signer.address);
-  console.log(`Sender ${tokenSymbol} balance is ${formatUnits(currentTokenBalance)}`);
+  console.log(`Sender ${tokenSymbol} balance is ${formatUnits(currentTokenBalance, tokenDecimals)}`);
   if (currentTokenBalance.lt(amount)) {
     console.log(`Not enough ${tokenSymbol}. Refill address ${signer.address}`);
     return;

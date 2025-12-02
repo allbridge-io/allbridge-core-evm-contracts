@@ -28,6 +28,11 @@ contract PayerWithAbr is Ownable {
     uint public exchangeRate;
     uint private immutable conversionScalingFactor;
 
+    /**
+     * @dev Emitted when ABR tokens are spent.
+     */
+    event ConvertedAbr(uint abrAmount, uint convertedNativeAmount, uint receivedNativeAmount);
+
     constructor(address _abrTokenAddress, uint _chainPrecision) {
         abrToken = IERC20Metadata(_abrTokenAddress);
         uint abrTokenDecimals = abrToken.decimals();
@@ -42,11 +47,13 @@ contract PayerWithAbr is Ownable {
         bytes calldata _params
     ) external payable {
         // convert ABR into native tokens
-        uint nativeAmount = _coverBridgingFee(_abrAmount);
+        uint convertedNativeAmount = _covertAbrToNativeTokens(_abrAmount);
+        emit ConvertedAbr(_abrAmount, convertedNativeAmount, msg.value);
+
         // transfer the tokens for bridging
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
 
-        _routeCall(_targetId, nativeAmount, _params);
+        _routeCall(_targetId, convertedNativeAmount + msg.value, _params);
     }
 
     function registerTarget(uint _id, address _target, string calldata _signature) external onlyOwner {
@@ -115,9 +122,9 @@ contract PayerWithAbr is Ownable {
         }
     }
 
-    function _coverBridgingFee(uint _feeAbrAmount) internal returns (uint) {
-        abrToken.safeTransferFrom(msg.sender, address(this), _feeAbrAmount);
-        return msg.value + _abrToNativeTokens(_feeAbrAmount);
+    function _covertAbrToNativeTokens(uint _abrAmount) internal returns (uint) {
+        abrToken.safeTransferFrom(msg.sender, address(this), _abrAmount);
+        return _abrToNativeTokens(_abrAmount);
     }
 
     /**
