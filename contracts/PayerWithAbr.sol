@@ -5,6 +5,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IGasOracle} from "./interfaces/IGasOracle.sol";
 
 // Uncomment this line to use console.log
 //import "hardhat/console.sol";
@@ -19,11 +20,15 @@ contract PayerWithAbr is Ownable {
     }
 
     IERC20Metadata public abrToken;
+    IGasOracle private gasOracle;
     mapping(uint id => TargetMeta) public targets;
 
-    uint private constant EXCHANGE_RATE_PRECISION = 18;
+    uint private immutable chainId;
+    uint public constant EXCHANGE_RATE_PRECISION = 18;
+    uint private constant CHAIN_PRECISION = 18;
+    uint private constant ORACLE_PRECISION = 18;
     /**
-     * Exchange rate: ABR tokens per native tokens with decimals EXCHANGE_RATE_PRECISION
+     * Exchange rate: ABR/USD with decimals EXCHANGE_RATE_PRECISION
      */
     uint public exchangeRate;
     uint private immutable conversionScalingFactor;
@@ -33,10 +38,13 @@ contract PayerWithAbr is Ownable {
      */
     event ConvertedAbr(uint abrAmount, uint convertedNativeAmount, uint receivedNativeAmount);
 
-    constructor(address _abrTokenAddress, uint _chainPrecision) {
+    constructor(address _abrTokenAddress, address _gasOracle, uint _chainId) {
         abrToken = IERC20Metadata(_abrTokenAddress);
         uint abrTokenDecimals = abrToken.decimals();
-        conversionScalingFactor = 10 ** (EXCHANGE_RATE_PRECISION + _chainPrecision - abrTokenDecimals);
+        conversionScalingFactor =
+            10 ** (CHAIN_PRECISION + ORACLE_PRECISION - EXCHANGE_RATE_PRECISION - abrTokenDecimals);
+        gasOracle = IGasOracle(_gasOracle);
+        chainId = _chainId;
     }
 
     function transferTokensAndCallTarget(
@@ -98,10 +106,25 @@ contract PayerWithAbr is Ownable {
     }
 
     /**
-     * @notice Calculate ABR amount from native tokens based on exchange rate
+     * @dev Sets the Gas Oracle contract address.
+     * @param _gasOracle The address of the Gas Oracle contract.
+     */
+    function setGasOracle(IGasOracle _gasOracle) external onlyOwner {
+        gasOracle = _gasOracle;
+    }
+
+    /**
+     * @notice Calculate ABR amount from native tokens amount based on current exchange rates
      */
     function nativeTokensToAbr(uint _amount) external view returns (uint) {
-        return (_amount * exchangeRate) / conversionScalingFactor;
+        return (_amount * gasOracle.price(chainId)) / (exchangeRate * conversionScalingFactor);
+    }
+
+    /**
+     * @notice Calculate native token amount from ABR tokens based on current exchange rates
+     */
+    function abrToNativeTokens(uint _abrAmount) public view returns (uint) {
+        return (_abrAmount * conversionScalingFactor * exchangeRate) / gasOracle.price(chainId);
     }
 
     function _routeCall(uint _targetId, uint _value, bytes calldata _params) internal {
@@ -124,14 +147,7 @@ contract PayerWithAbr is Ownable {
 
     function _covertAbrToNativeTokens(uint _abrAmount) internal returns (uint) {
         abrToken.safeTransferFrom(msg.sender, address(this), _abrAmount);
-        return _abrToNativeTokens(_abrAmount);
-    }
-
-    /**
-     * @notice Calculate native token amount from ABR tokens based on exchange rate
-     */
-    function _abrToNativeTokens(uint _abrAmount) internal view returns (uint) {
-        return (_abrAmount * conversionScalingFactor) / exchangeRate;
+        return abrToNativeTokens(_abrAmount);
     }
 
     receive() external payable {}

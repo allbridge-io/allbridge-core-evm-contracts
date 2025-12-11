@@ -3,6 +3,7 @@ import { assert, expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   PayerWithAbr,
+  GasOracle,
   MockBridge,
   MockCctpBridge,
   MockOftBridge,
@@ -12,7 +13,9 @@ import { parseUnits } from 'ethers/lib/utils';
 import { addressToBytes32 } from '../scripts/helper';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 
+const CHAIN_1 = 1;
 const CHAIN_2 = 2;
+const ORACLE_PRECISION = 18;
 const EXCHANGE_RATE_PRECISION = 18;
 const ALLBRIDGE_MESSENGER = 1;
 const CCTP_MESSENGER = 3;
@@ -24,6 +27,7 @@ describe('PayerWithAbr', function () {
   const coder = ethers.utils.defaultAbiCoder;
 
   let token: Token;
+  let gasOracle: GasOracle;
   let abrToken: Token;
   let payer: PayerWithAbr;
   let bridge: MockBridge;
@@ -34,14 +38,18 @@ describe('PayerWithAbr', function () {
   let cctpBridgeInputTypes: string[];
   let oftBridgeInputTypes: string[];
 
+  const chainPrecision = 18;
+
   async function setupContractsFixture(
-    chainPrecision: number,
     tokenPrecision: number,
     abrTokenPrecision: number,
   ) {
     const tokenContractFactory = await ethers.getContractFactory('Token');
     const contractFactory = (await ethers.getContractFactory(
       'PayerWithAbr',
+    )) as any;
+    const gasOracleFactory = (await ethers.getContractFactory(
+      'GasOracle',
     )) as any;
     const mockBridgeFactory = await ethers.getContractFactory('MockBridge');
     const mockCctpBridgeFactory = await ethers.getContractFactory(
@@ -53,6 +61,7 @@ describe('PayerWithAbr', function () {
 
     [owner, alice] = await ethers.getSigners();
 
+    gasOracle = await gasOracleFactory.deploy(CHAIN_1, chainPrecision);
     bridge = await mockBridgeFactory.deploy();
     cctpBridge = await mockCctpBridgeFactory.deploy();
     oftBridge = await mockOftBridgeFactory.deploy();
@@ -71,8 +80,23 @@ describe('PayerWithAbr', function () {
       tokenPrecision,
     )) as any;
 
-    payer = await contractFactory.deploy(abrToken.address, chainPrecision);
+    payer = await contractFactory.deploy(
+      abrToken.address,
+      gasOracle.address,
+      CHAIN_1,
+    );
     console.log('Contracts deployed');
+
+    await gasOracle.setChainData(
+      CHAIN_1,
+      parseUnits('2', ORACLE_PRECISION),
+      '0',
+    );
+    await gasOracle.setChainData(
+      CHAIN_2,
+      parseUnits('2', ORACLE_PRECISION),
+      parseUnits('3.0', 'gwei'),
+    );
 
     bridgeSwapAndBridgeInputTypes = mockBridgeFactory.interface
       .getFunction('swapAndBridge')
@@ -86,7 +110,7 @@ describe('PayerWithAbr', function () {
 
     await abrToken.transfer(
       alice.address,
-      parseUnits('1000', abrTokenPrecision),
+      parseUnits('100000', abrTokenPrecision),
     );
     await abrToken
       .connect(alice)
@@ -104,28 +128,21 @@ describe('PayerWithAbr', function () {
 
   const testArguments = [
     {
-      chainPrecision: 18,
       tokenPrecision: 18,
-      abrTokenPrecision: 9,
+      abrTokenPrecision: 6,
     },
     {
-      chainPrecision: 6,
       tokenPrecision: 6,
-      abrTokenPrecision: 9,
+      abrTokenPrecision: 18,
     },
   ];
   for (const args of testArguments) {
-    describe(`when chain precision: ${args.chainPrecision}; token precision: ${args.tokenPrecision}; ABR precision: ${args.abrTokenPrecision}`, () => {
-      const chainPrecision = args.chainPrecision;
+    describe(`when token precision: ${args.tokenPrecision}; ABR precision: ${args.abrTokenPrecision}`, () => {
       const tokenPrecision = args.tokenPrecision;
       const abrTokenPrecision = args.abrTokenPrecision;
 
       async function setupContractsFixtureWithGivenPrecision() {
-        await setupContractsFixture(
-          chainPrecision,
-          tokenPrecision,
-          abrTokenPrecision,
-        );
+        await setupContractsFixture(tokenPrecision, abrTokenPrecision);
       }
 
       beforeEach(async () => {
@@ -146,9 +163,41 @@ describe('PayerWithAbr', function () {
         });
       });
 
+      describe('conversion ABR and native token', function () {
+        const abrPriceInUsd = '0.5';
+        const nativeTokenPriceInUsd = '2.0';
+
+        beforeEach(async function () {
+          await gasOracle.setPrice(
+            CHAIN_1,
+            parseUnits(nativeTokenPriceInUsd, ORACLE_PRECISION),
+          );
+          await payer.setExchangeRate(
+            parseUnits(abrPriceInUsd, EXCHANGE_RATE_PRECISION),
+          );
+        });
+
+        it('Success: nativeTokensToAbr should return ABR amount equivalent to given native token amount', async function () {
+          const nativeTokenAmount = parseUnits('1', chainPrecision);
+          const expectedAbrAmount = parseUnits('4', abrTokenPrecision);
+          const actual = await payer.nativeTokensToAbr(nativeTokenAmount);
+          expect(actual.toString()).to.eq(expectedAbrAmount.toString());
+        });
+
+        it('Success: abrToNativeTokens should return native token amount equivalent to given ABR amount', async function () {
+          const expectedNativeTokenAmount = parseUnits('1', chainPrecision);
+          const abrAmount = parseUnits('4', abrTokenPrecision);
+          const actual = await payer.abrToNativeTokens(abrAmount);
+          expect(actual.toString()).to.eq(expectedNativeTokenAmount.toString());
+        });
+      });
+
       describe('swapAndBridge', function () {
-        let receiveTxCost: bigint;
-        let messageCost: bigint;
+        const receiveTxCost = BigInt(
+          parseUnits('1', chainPrecision).toString(),
+        );
+        const messageCost = BigInt(parseUnits('1', chainPrecision).toString());
+        const abrPriceInUsd = '0.5';
 
         const amount = parseUnits('100', tokenPrecision);
         const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
@@ -164,12 +213,11 @@ describe('PayerWithAbr', function () {
             to: payer.address,
             value: ethers.utils.parseEther('10'),
           });
+
           await payer.approveBridgeToken(token.address, bridge.address);
           await payer.setExchangeRate(
-            parseUnits('0.5', EXCHANGE_RATE_PRECISION),
+            parseUnits(abrPriceInUsd, EXCHANGE_RATE_PRECISION),
           );
-          receiveTxCost = BigInt(parseUnits('1', chainPrecision).toString());
-          messageCost = BigInt(parseUnits('1', chainPrecision).toString());
           await bridge.mockTransactionCost(receiveTxCost);
           await bridge.mockMessageCost(messageCost);
 
@@ -237,7 +285,7 @@ describe('PayerWithAbr', function () {
 
         it('Success: should call bridge with native tokens from sender', async function () {
           const abrAmount = BigInt(
-            parseUnits('0.5', abrTokenPrecision).toString(),
+            parseUnits('4', abrTokenPrecision).toString(),
           );
           const nativeTokenAmountFromSender = BigInt(
             parseUnits('1', chainPrecision).toString(),
@@ -292,6 +340,7 @@ describe('PayerWithAbr', function () {
 
       describe('CCTP bridge', function () {
         let receiveTxCost: bigint;
+        const abrPriceInUsd = '0.5';
 
         const amount = parseUnits('100', tokenPrecision);
         const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
@@ -306,7 +355,7 @@ describe('PayerWithAbr', function () {
           });
           await payer.approveBridgeToken(token.address, cctpBridge.address);
           await payer.setExchangeRate(
-            parseUnits('0.5', EXCHANGE_RATE_PRECISION),
+            parseUnits(abrPriceInUsd, EXCHANGE_RATE_PRECISION),
           );
           receiveTxCost = BigInt(parseUnits('1', chainPrecision).toString());
           await cctpBridge.mockTransactionCost(receiveTxCost);
@@ -367,7 +416,7 @@ describe('PayerWithAbr', function () {
 
         it('Success: should call CCTP bridge with native tokens from sender', async function () {
           const abrAmount = BigInt(
-            parseUnits('0.5', abrTokenPrecision).toString(),
+            parseUnits('4', abrTokenPrecision).toString(),
           );
           const nativeTokenAmountFromSender = BigInt(
             parseUnits('1', chainPrecision).toString(),
@@ -400,6 +449,8 @@ describe('PayerWithAbr', function () {
       });
 
       describe('OFT bridge', function () {
+        const abrPriceInUsd = '0.5';
+
         const amount = parseUnits('100', tokenPrecision);
         const recipient = '0x40818739e51057D984B05Cbc82fee9B15A95674F';
         const destinationChainId = CHAIN_2;
@@ -416,7 +467,7 @@ describe('PayerWithAbr', function () {
           });
           await payer.approveBridgeToken(token.address, oftBridge.address);
           await payer.setExchangeRate(
-            parseUnits('0.5', EXCHANGE_RATE_PRECISION),
+            parseUnits(abrPriceInUsd, EXCHANGE_RATE_PRECISION),
           );
           await oftBridge.mockRelayerFee(relayerFeeAmount);
 
@@ -482,7 +533,7 @@ describe('PayerWithAbr', function () {
 
         it('Success: should call OFT bridge with native tokens from sender', async function () {
           const abrAmount = BigInt(
-            parseUnits('0.5', abrTokenPrecision).toString(),
+            parseUnits('4', abrTokenPrecision).toString(),
           );
           const nativeTokenAmountFromSender = BigInt(
             parseUnits('1', chainPrecision).toString(),
@@ -641,6 +692,41 @@ describe('PayerWithAbr', function () {
           it('Failure: should revert when the caller is not the owner', async () => {
             await expect(
               payer.connect(alice).withdrawTokens(abrToken.address),
+            ).revertedWith('Ownable: caller is not the owner');
+          });
+        });
+
+        describe('setGasOracle', () => {
+          let newGasOracle: GasOracle;
+          const newPrice = '999';
+          beforeEach(async function () {
+            await payer.setExchangeRate(
+              parseUnits('1', EXCHANGE_RATE_PRECISION),
+            );
+            const gasOracleFactory = (await ethers.getContractFactory(
+              'GasOracle',
+            )) as any;
+            newGasOracle = await gasOracleFactory.deploy(
+              CHAIN_1,
+              chainPrecision,
+            );
+            await newGasOracle.setPrice(
+              CHAIN_1,
+              parseUnits(newPrice, ORACLE_PRECISION),
+            );
+          });
+
+          it('Success: should set gas oracle', async () => {
+            await payer.setGasOracle(newGasOracle.address);
+            const nativeTokenAmount = parseUnits('1', chainPrecision);
+            const expectedAbrAmount = parseUnits(newPrice, abrTokenPrecision);
+            const actual = await payer.nativeTokensToAbr(nativeTokenAmount);
+            expect(actual.toString()).to.eq(expectedAbrAmount.toString());
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(
+              payer.connect(alice).setGasOracle(newGasOracle.address),
             ).revertedWith('Ownable: caller is not the owner');
           });
         });
