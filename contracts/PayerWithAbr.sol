@@ -24,25 +24,24 @@ contract PayerWithAbr is Ownable {
     mapping(uint id => TargetMeta) public targets;
 
     uint private immutable chainId;
-    uint public constant EXCHANGE_RATE_PRECISION = 18;
+    uint public constant PRICE_PRECISION = 18;
     uint private constant CHAIN_PRECISION = 18;
     uint private constant ORACLE_PRECISION = 18;
     /**
-     * Exchange rate: ABR/USD with decimals EXCHANGE_RATE_PRECISION
+     * Price of ABR0 in USD with decimals PRICE_PRECISION
      */
-    uint public exchangeRate;
+    uint public price;
     uint private immutable conversionScalingFactor;
 
     /**
-     * @dev Emitted when ABR tokens are spent.
+     * @dev Emitted when ABR0 tokens are spent.
      */
     event ConvertedAbr(uint abrAmount, uint convertedNativeAmount, uint receivedNativeAmount);
 
     constructor(address _abrTokenAddress, address _gasOracle, uint _chainId) {
         abrToken = IERC20Metadata(_abrTokenAddress);
         uint abrTokenDecimals = abrToken.decimals();
-        conversionScalingFactor =
-            10 ** (CHAIN_PRECISION + ORACLE_PRECISION - EXCHANGE_RATE_PRECISION - abrTokenDecimals);
+        conversionScalingFactor = 10 ** (CHAIN_PRECISION + ORACLE_PRECISION - PRICE_PRECISION - abrTokenDecimals);
         gasOracle = IGasOracle(_gasOracle);
         chainId = _chainId;
     }
@@ -77,10 +76,10 @@ contract PayerWithAbr is Ownable {
     }
 
     /**
-     * @dev Set the exchange rate of ABR per gas token with decimals EXCHANGE_RATE_PRECISION.
+     * @dev Set the price of ABR0 in USD with decimals PRICE_PRECISION.
      */
-    function setExchangeRate(uint _newExchangeRate) external onlyOwner {
-        exchangeRate = _newExchangeRate;
+    function setPrice(uint _newPrice) external onlyOwner {
+        price = _newPrice;
     }
 
     function approveBridgeToken(address _tokenAddress, address _bridge) external onlyOwner {
@@ -114,17 +113,17 @@ contract PayerWithAbr is Ownable {
     }
 
     /**
-     * @notice Calculate ABR amount from native tokens amount based on current exchange rates
+     * @notice Calculate ABR0 amount from native tokens amount based on current exchange rates
      */
     function nativeTokensToAbr(uint _amount) external view returns (uint) {
-        return (_amount * gasOracle.price(chainId)) / (exchangeRate * conversionScalingFactor);
+        return (_amount * gasOracle.price(chainId)) / (price * conversionScalingFactor);
     }
 
     /**
-     * @notice Calculate native token amount from ABR tokens based on current exchange rates
+     * @notice Calculate native token amount from ABR0 tokens based on current exchange rates
      */
     function abrToNativeTokens(uint _abrAmount) public view returns (uint) {
-        return (_abrAmount * conversionScalingFactor * exchangeRate) / gasOracle.price(chainId);
+        return (_abrAmount * conversionScalingFactor * price) / gasOracle.price(chainId);
     }
 
     function _routeCall(uint _targetId, uint _value, bytes calldata _params) internal {
