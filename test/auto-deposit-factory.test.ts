@@ -85,7 +85,7 @@ describe('AutoDepositFactory', () => {
       CHAIN_1,
       chainPrecision,
       gasOracle.address,
-      0xff
+      0xff,
     );
     console.log('Contracts deployed');
 
@@ -338,19 +338,21 @@ describe('AutoDepositFactory', () => {
           it('Success: success with exact min amount', async () => {
             const testName = 'swapAndBridge';
             const minDepositTokens = formatUnits(amount, tokenPrecision);
-            await initializeWallet({ testName, minDepositTokens: (+minDepositTokens).toString() });
+            await initializeWallet({
+              testName,
+              minDepositTokens: (+minDepositTokens).toString(),
+            });
 
             const expectedSendTxTokenFeeAmount = parseUnits(
               '0.4',
               tokenPrecision,
             ).toString();
-            const relayerFee = await autoDepositFactory.getSendTxFeeTokenAmount(token.address);
+            const relayerFee = await autoDepositFactory.getSendTxFeeTokenAmount(
+              token.address,
+            );
             console.log('relayerFee', relayerFee.toString());
             const expectedFeeAmount = bridgingCostInTokens + 1;
-            await token.transfer(
-              wallet.address,
-              amount.sub(1),
-            );
+            await token.transfer(wallet.address, amount.sub(1));
             await expect(
               autoDepositFactory.swapAndBridge(
                 wallet.address,
@@ -360,10 +362,7 @@ describe('AutoDepositFactory', () => {
               ),
             ).to.be.revertedWith('ADF: amount too low');
 
-            await token.transfer(
-              wallet.address,
-              1,
-            );
+            await token.transfer(wallet.address, 1);
             // assert balance
             const response = await autoDepositFactory.swapAndBridge(
               wallet.address,
@@ -636,9 +635,7 @@ function _printTxSummary() {
     grandTotalGas = grandTotalGas.add(testTotalGas);
     grandTotalCalls += testTotalCalls;
 
-    console.log(
-      `  Test totals: gas=${testTotalGas.toString()}`,
-    );
+    console.log(`  Test totals: gas=${testTotalGas.toString()}`);
   }
   const logTotalCalls = false;
   if (logTotalCalls) {

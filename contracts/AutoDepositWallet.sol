@@ -101,11 +101,16 @@ contract AutoDepositWallet is Initializable {
         _swapAndBridge(_token, amountSource, _nonce, _messenger);
     }
 
-    function factorySwapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) external onlyFactory {
+    function factorySwapAndBridge(
+        address _token,
+        uint _amount,
+        uint _nonce,
+        MessengerProtocol _messenger
+    ) external onlyFactory {
         _swapAndBridge(_token, _amount, _nonce, _messenger);
     }
 
-    function _swapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) internal  {
+    function _swapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) internal {
         IBridge(bridge).swapAndBridge(
             bytes32(uint(uint160(_token))),
             _amount,
