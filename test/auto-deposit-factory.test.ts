@@ -640,11 +640,16 @@ function _printTxSummary() {
       `  Test totals: gas=${testTotalGas.toString()}`,
     );
   }
+  const logTotalCalls = false;
+  if (logTotalCalls) {
+    console.log(`Test total calls: ${grandTotalCalls}`);
+  }
 }
 
 process.on('beforeExit', _printTxSummary);
 process.on('exit', _printTxSummary);
 process.on('SIGINT', () => {
   _printTxSummary();
+  // eslint-disable-next-line no-process-exit
   process.exit();
 });
