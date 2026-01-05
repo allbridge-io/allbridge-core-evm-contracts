@@ -1,6 +1,12 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { AutoDepositFactory, AutoDepositWallet, GasOracle, MockBridge, Token } from '../typechain';
+import {
+  AutoDepositFactory,
+  AutoDepositWallet,
+  GasOracle,
+  MockBridge,
+  Token,
+} from '../typechain';
 import { parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
@@ -64,7 +70,7 @@ describe('AutoDepositWallet', () => {
       CHAIN_1,
       chainPrecision,
       gasOracle.address,
-      0xff
+      0xff,
     );
 
     console.log('Contracts deployed');
@@ -104,7 +110,7 @@ describe('AutoDepositWallet', () => {
     );
     recipientTokenAddressBytes = addressToBytes32(
       params?.recipientTokenAddress ??
-      '0xF052839B48eE462fedC250F5CEF8263DD569228b',
+        '0xF052839B48eE462fedC250F5CEF8263DD569228b',
     );
     minDepositTokens = params?.minDepositTokens ?? '100';
 
@@ -233,7 +239,6 @@ describe('AutoDepositWallet', () => {
     });
   });
 
-
   describe('Admin methods', () => {
     describe('transferUnsupportedToken', () => {
       let supportedToken: Token;
@@ -279,23 +284,20 @@ describe('AutoDepositWallet', () => {
           wallet
             .connect(alice)
             .transferUnsupportedToken(unsupportedToken.address, alice.address),
-        ).revertedWith('ADW: caller is not the factory owner');
+        ).revertedWith('ADW: not the factory owner');
       });
     });
 
     describe('factorySwapAndBridge', () => {
       beforeEach(async () => {
         await initializeWallet();
-      })
+      });
 
       it('Failure: should revert when the caller is not the factory', async () => {
         await expect(
           wallet
             // .connect(alice)
-            .factorySwapAndBridge(tokenA.address,
-              parseUnits('100'),
-              1234,
-              1),
+            .factorySwapAndBridge(tokenA.address, parseUnits('100'), 1234, 1),
         ).revertedWith('ADW: caller is not the factory');
       });
     });

@@ -73,7 +73,13 @@ contract AutoDepositFactory is AutoDepositParent {
         uint _nonce,
         MessengerProtocol _messenger
     ) external {
-        AutoDepositWallet wallet = this.deployDepositWallet(_recipientChainId, _bridge, _recipient, _recipientToken, _minDepositAmount);
+        AutoDepositWallet wallet = this.deployDepositWallet(
+            _recipientChainId,
+            _bridge,
+            _recipient,
+            _recipientToken,
+            _minDepositAmount
+        );
         _swapAndBridge(wallet, _token, _nonce, _messenger);
     }
 
@@ -83,7 +89,12 @@ contract AutoDepositFactory is AutoDepositParent {
         _swapAndBridge(AutoDepositWallet(_wallet), _token, _nonce, _messenger);
     }
 
-    function _swapAndBridge(AutoDepositWallet _wallet, address _token, uint _nonce, MessengerProtocol _messenger) internal {
+    function _swapAndBridge(
+        AutoDepositWallet _wallet,
+        address _token,
+        uint _nonce,
+        MessengerProtocol _messenger
+    ) internal {
         uint minAmount = _wallet.minDepositTokenAmount(_token);
         if (minAmount == 0) {
             _wallet.registerToken(_token);
@@ -93,7 +104,7 @@ contract AutoDepositFactory is AutoDepositParent {
         uint tokenAmount = IERC20(_token).balanceOf(address(_wallet));
         require(tokenAmount >= minAmount, "ADF: amount too low");
         uint sendTxFeeTokenAmount = getSendTxFeeTokenAmount(_token);
-        IERC20(_token).safeTransferFrom(address (_wallet), address(this), sendTxFeeTokenAmount);
+        IERC20(_token).safeTransferFrom(address(_wallet), address(this), sendTxFeeTokenAmount);
         _wallet.factorySwapAndBridge(_token, tokenAmount - sendTxFeeTokenAmount, _nonce, _messenger);
     }
 
@@ -111,15 +122,11 @@ contract AutoDepositFactory is AutoDepositParent {
         return _getDepositWalletAddressBySalt(salt);
     }
 
-    function getDepositWalletAddressBySalt(
-        bytes32 _salt
-    ) external view returns (address addr) {
+    function getDepositWalletAddressBySalt(bytes32 _salt) external view returns (address addr) {
         return _getDepositWalletAddressBySalt(_salt);
     }
 
-    function _getDepositWalletAddressBySalt(
-        bytes32 _salt
-    ) internal view returns (address predicted) {
+    function _getDepositWalletAddressBySalt(bytes32 _salt) internal view returns (address predicted) {
         address implementation = autoDepositWalletImplementation;
         address deployer = address(this);
         bytes32 prefix = create2Prefix;

@@ -29,7 +29,13 @@
     "USDY",
     "YARO",
     "Soroban",
-    "Sepolia"
+    "Sepolia",
+    "layerzerolabs",
+    "messagelib",
+    "IOFT",
+    "oapp",
+    "Omnichain",
+    "Initializable"
   ],
   "flagWords": [],
   "ignorePaths": [

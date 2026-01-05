@@ -541,7 +541,8 @@ describe('Bridge', () => {
             0,
           );
 
-          const hash = '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870';
+          const hash =
+            '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870';
 
           await expect(response)
             .emit(bridge, 'TokensReceived')
