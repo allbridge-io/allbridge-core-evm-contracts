@@ -4,10 +4,16 @@ pragma solidity ^0.8.18;
 import {MessengerProtocol} from "../interfaces/IBridge.sol";
 import {ICctpBridge} from "../interfaces/ICctpBridge.sol";
 import {MockGasUsage} from "./MockGasUsage.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MockCctpBridge is MockGasUsage, ICctpBridge {
     uint public override chainId = 0;
     uint public override adminFeeShareBP = 0;
+    address public token;
+
+    constructor(address _token) {
+        token = _token;
+    }
 
     event BridgeEvent(uint amount, bytes32 recipient, uint destinationChainId, uint relayerFeeTokenAmount, uint value);
 
@@ -17,6 +23,7 @@ contract MockCctpBridge is MockGasUsage, ICctpBridge {
         uint _destinationChainId,
         uint _relayerFeeTokenAmount
     ) public payable override {
+        IERC20(token).transferFrom(msg.sender, address(this), _amount);
         emit BridgeEvent(_amount, _recipient, _destinationChainId, _relayerFeeTokenAmount, msg.value);
     }
 

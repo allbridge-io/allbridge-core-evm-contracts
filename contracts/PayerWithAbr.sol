@@ -54,13 +54,15 @@ contract PayerWithAbr is Ownable {
         bytes calldata _params
     ) external payable {
         // convert ABR into native tokens
-        uint convertedNativeAmount = _covertAbrToNativeTokens(_abrAmount);
+        uint convertedNativeAmount = _collectAbrAndConvertToNative(msg.sender, _abrAmount);
         emit ConvertedAbr(_abrAmount, convertedNativeAmount, msg.value);
 
         // transfer the tokens for bridging
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
 
         _routeCall(_targetId, convertedNativeAmount + msg.value, _params);
+
+        require(IERC20(_token).balanceOf(address(this)) == 0, "Payer: post-balance check failed");
     }
 
     function registerTarget(uint _id, address _target, string calldata _signature) external onlyOwner {
@@ -144,8 +146,8 @@ contract PayerWithAbr is Ownable {
         }
     }
 
-    function _covertAbrToNativeTokens(uint _abrAmount) internal returns (uint) {
-        abrToken.safeTransferFrom(msg.sender, address(this), _abrAmount);
+    function _collectAbrAndConvertToNative(address sender, uint _abrAmount) internal returns (uint) {
+        abrToken.safeTransferFrom(sender, address(this), _abrAmount);
         return abrToNativeTokens(_abrAmount);
     }
 

@@ -6,6 +6,7 @@ import {MessengerProtocol, IBridge} from "../interfaces/IBridge.sol";
 import {MockMessengerGateway} from "./MockMessengerGateway.sol";
 import {MockRouter} from "./MockRouter.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
     uint public chainId;
@@ -43,6 +44,7 @@ contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
         uint feeTokenAmount
     ) external payable override {
         require(!mockedRevertNotEnoughFee, "Bridge: not enough fee");
+        IERC20(address(uint160(uint(token)))).transferFrom(msg.sender, address(this), amount);
         emit SwapAndBridgeEvent(
             token,
             amount,

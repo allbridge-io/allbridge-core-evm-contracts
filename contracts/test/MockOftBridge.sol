@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract MockOftBridge {
     uint private mockedRelayerFee = 30000;
 
@@ -24,6 +26,7 @@ contract MockOftBridge {
         uint _extraGasInDestinationToken,
         uint _slippageBP
     ) public payable {
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
         emit BridgeEvent(
             _tokenAddress,
             _amount,
