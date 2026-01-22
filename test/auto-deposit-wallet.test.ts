@@ -284,7 +284,7 @@ describe('AutoDepositWallet', () => {
           wallet
             .connect(alice)
             .transferUnsupportedToken(unsupportedToken.address, alice.address),
-        ).revertedWith('ADW: caller is not the factory owner');
+        ).revertedWith('ADW: not the factory owner');
       });
     });
 

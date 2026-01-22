@@ -54,7 +54,7 @@ contract AutoDepositWallet is Initializable {
     }
 
     modifier onlyFactoryOwner() {
-        require(Ownable(factory).owner() == msg.sender, "ADW: caller is not the factory owner");
+        require(Ownable(factory).owner() == msg.sender, "ADW: not the factory owner");
         _;
     }
 
@@ -101,11 +101,16 @@ contract AutoDepositWallet is Initializable {
         _swapAndBridge(_token, amountSource, _nonce, _messenger);
     }
 
-    function factorySwapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) external onlyFactory {
+    function factorySwapAndBridge(
+        address _token,
+        uint _amount,
+        uint _nonce,
+        MessengerProtocol _messenger
+    ) external onlyFactory {
         _swapAndBridge(_token, _amount, _nonce, _messenger);
     }
 
-    function _swapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) internal  {
+    function _swapAndBridge(address _token, uint _amount, uint _nonce, MessengerProtocol _messenger) internal {
         IBridge(bridge).swapAndBridge(
             bytes32(uint(uint160(_token))),
             _amount,
@@ -121,7 +126,7 @@ contract AutoDepositWallet is Initializable {
     /**
      * @dev Transfer unsupported tokens.
      */
-    function transferUnsupportedToken(address _token, address _recipient) onlyFactoryOwner external {
+    function transferUnsupportedToken(address _token, address _recipient) external onlyFactoryOwner {
         // Check that bridging of the token is not supported
         require(
             address(Router(bridge).pools(bytes32(uint(uint160(_token))))) == address(0),

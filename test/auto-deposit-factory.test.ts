@@ -635,9 +635,11 @@ function _printTxSummary() {
     grandTotalGas = grandTotalGas.add(testTotalGas);
     grandTotalCalls += testTotalCalls;
 
-    console.log(
-      `  Test totals: gas=${testTotalGas.toString()} calls=${grandTotalCalls}`,
-    );
+    console.log(`  Test totals: gas=${testTotalGas.toString()} calls=${grandTotalCalls}`);
+  }
+  const logTotalCalls = false;
+  if (logTotalCalls) {
+    console.log(`Test total calls: ${grandTotalCalls}`);
   }
 }
 
