@@ -36,7 +36,7 @@ contract PayerWithAbr is Ownable {
     /**
      * @dev Emitted when ABR0 tokens are spent.
      */
-    event ConvertedAbr(uint abrAmount, uint convertedNativeAmount, uint receivedNativeAmount);
+    event ConvertedAbr(address sender, uint abrAmount, uint convertedNativeAmount, uint receivedNativeAmount);
 
     constructor(address _abrTokenAddress, address _gasOracle, uint _chainId) {
         abrToken = IERC20Metadata(_abrTokenAddress);
@@ -55,7 +55,7 @@ contract PayerWithAbr is Ownable {
     ) external payable {
         // convert ABR into native tokens
         uint convertedNativeAmount = _collectAbrAndConvertToNative(msg.sender, _abrAmount);
-        emit ConvertedAbr(_abrAmount, convertedNativeAmount, msg.value);
+        emit ConvertedAbr(msg.sender, _abrAmount, convertedNativeAmount, msg.value);
 
         // transfer the tokens for bridging
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -85,7 +85,7 @@ contract PayerWithAbr is Ownable {
     }
 
     function approveBridgeToken(address _tokenAddress, address _bridge) external onlyOwner {
-        IERC20(_tokenAddress).safeApprove(_bridge, type(uint256).max);
+        IERC20(_tokenAddress).forceApprove(_bridge, type(uint256).max);
     }
 
     /**
