@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {IBridge, MessengerProtocol} from "../interfaces/IBridge.sol";
+import {MockGasUsage} from "./MockGasUsage.sol";
+import {MessengerProtocol, IBridge} from "../interfaces/IBridge.sol";
+import {MockMessengerGateway} from "./MockMessengerGateway.sol";
 import {MockRouter} from "./MockRouter.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MockBridge is Ownable, IBridge, MockRouter {
+contract MockBridge is MockGasUsage, MockRouter, MockMessengerGateway, IBridge {
     uint public chainId;
     mapping(bytes32 messageHash => uint isProcessed) public override processedMessages;
     mapping(bytes32 messageHash => uint isSent) public override sentMessages;
@@ -13,6 +15,8 @@ contract MockBridge is Ownable, IBridge, MockRouter {
     mapping(uint chainId => bytes32 bridgeAddress) public override otherBridges;
     // Info about tokens on other chains
     mapping(uint chainId => mapping(bytes32 tokenAddress => bool isSupported)) public override otherBridgeTokens;
+
+    bool private mockedRevertNotEnoughFee = false;
 
     event SwapAndBridgeEvent(
         bytes32 token,
@@ -38,6 +42,7 @@ contract MockBridge is Ownable, IBridge, MockRouter {
         MessengerProtocol messenger,
         uint feeTokenAmount
     ) external payable override {
+        require(!mockedRevertNotEnoughFee, "Bridge: not enough fee");
         emit SwapAndBridgeEvent(
             token,
             amount,
@@ -83,5 +88,9 @@ contract MockBridge is Ownable, IBridge, MockRouter {
         MessengerProtocol
     ) external pure override returns (bytes32) {
         return 0;
+    }
+
+    function mockRevertNotEnoughFee(bool _value) external {
+        mockedRevertNotEnoughFee = _value;
     }
 }

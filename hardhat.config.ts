@@ -73,6 +73,7 @@ const config: HardhatUserConfig = {
         ':CctpBridge$',
         ':AutoDepositFactory$',
         ':AutoDepositWallet$',
+        ':PayerWithAbr$',
       ],
     },
   ],
