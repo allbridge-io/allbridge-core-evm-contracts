@@ -61,11 +61,6 @@ describe('PayerWithAbr', function () {
 
     [owner, alice] = await ethers.getSigners();
 
-    gasOracle = await gasOracleFactory.deploy(CHAIN_1, chainPrecision);
-    bridge = await mockBridgeFactory.deploy();
-    cctpBridge = await mockCctpBridgeFactory.deploy();
-    oftBridge = await mockOftBridgeFactory.deploy();
-
     abrToken = await tokenContractFactory.deploy(
       'ABR',
       'ABR',
@@ -79,6 +74,11 @@ describe('PayerWithAbr', function () {
       parseUnits('100000000000000000000', tokenPrecision),
       tokenPrecision,
     )) as any;
+
+    gasOracle = await gasOracleFactory.deploy(CHAIN_1, chainPrecision);
+    bridge = await mockBridgeFactory.deploy();
+    cctpBridge = await mockCctpBridgeFactory.deploy(token.address);
+    oftBridge = await mockOftBridgeFactory.deploy();
 
     payer = await contractFactory.deploy(
       abrToken.address,
@@ -333,6 +333,21 @@ describe('PayerWithAbr', function () {
                 params,
               ),
           ).revertedWith('Bridge: not enough fee');
+        });
+
+        it('Failure: token amount left on the contract', async function () {
+          const abrAmount = parseUnits('1', abrTokenPrecision);
+          await expect(
+            payer
+              .connect(alice)
+              .transferTokensAndCallTarget(
+                token.address,
+                amount.add(1),
+                abrAmount,
+                messengerProtocol,
+                params,
+              ),
+          ).revertedWith('Payer: post-balance check failed');
         });
       });
 
