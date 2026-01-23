@@ -32,6 +32,7 @@ contract PayerWithAbr is Ownable {
      */
     uint public price;
     uint private immutable conversionScalingFactor;
+    address public priceAuthority;
 
     /**
      * @dev Emitted when ABR0 tokens are spent.
@@ -44,6 +45,15 @@ contract PayerWithAbr is Ownable {
         conversionScalingFactor = 10 ** (CHAIN_PRECISION + ORACLE_PRECISION - PRICE_PRECISION - abrTokenDecimals);
         gasOracle = IGasOracle(_gasOracle);
         chainId = _chainId;
+        priceAuthority = owner();
+    }
+
+    /**
+     * @dev Throws if called by any account other than the priceAuthority.
+     */
+    modifier onlyPriceAuthority() {
+        require(priceAuthority == msg.sender, "Payer: is not priceAuthority");
+        _;
     }
 
     function transferTokensAndCallTarget(
@@ -80,7 +90,7 @@ contract PayerWithAbr is Ownable {
     /**
      * @dev Set the price of ABR0 in USD with decimals PRICE_PRECISION.
      */
-    function setPrice(uint _newPrice) external onlyOwner {
+    function setPrice(uint _newPrice) external onlyPriceAuthority {
         price = _newPrice;
     }
 
@@ -112,6 +122,13 @@ contract PayerWithAbr is Ownable {
      */
     function setGasOracle(IGasOracle _gasOracle) external onlyOwner {
         gasOracle = _gasOracle;
+    }
+
+    /**
+     * @dev Allows the admin to set the address of the priceAuthority.
+     */
+    function setPriceAuthority(address _newPriceAuthority) external onlyOwner {
+        priceAuthority = _newPriceAuthority;
     }
 
     /**

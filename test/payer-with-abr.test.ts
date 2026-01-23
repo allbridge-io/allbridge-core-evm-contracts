@@ -23,6 +23,7 @@ const OFT_MESSENGER = 5;
 describe('PayerWithAbr', function () {
   let owner: SignerWithAddress;
   let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
   const coder = ethers.utils.defaultAbiCoder;
 
   let token: Token;
@@ -59,7 +60,7 @@ describe('PayerWithAbr', function () {
       'MockOftBridge',
     );
 
-    [owner, alice] = await ethers.getSigners();
+    [owner, alice, bob] = await ethers.getSigners();
 
     abrToken = await tokenContractFactory.deploy(
       'ABR',
@@ -580,15 +581,21 @@ describe('PayerWithAbr', function () {
       describe('Admin methods', () => {
         describe('setPrice', () => {
           const price = parseUnits('0.0001', abrPricePrecision).toString();
+          let priceAuthority: SignerWithAddress;
+
+          beforeEach(async function () {
+            priceAuthority = alice;
+            await payer.setPriceAuthority(priceAuthority.address);
+          });
 
           it('Success: should set the price of ABR0', async () => {
-            await payer.setPrice(price);
+            await payer.connect(priceAuthority).setPrice(price);
             expect((await payer.price()).toString()).to.eq(price);
           });
 
-          it('Failure: should revert when the caller is not the owner', async () => {
-            await expect(payer.connect(alice).setPrice(price)).revertedWith(
-              'Ownable: caller is not the owner',
+          it('Failure: should revert when the caller is not the price authority', async () => {
+            await expect(payer.connect(bob).setPrice(price)).revertedWith(
+              'Payer: is not priceAuthority',
             );
           });
         });
