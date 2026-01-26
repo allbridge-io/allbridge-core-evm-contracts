@@ -7,6 +7,8 @@ map.set('Wormhole', [2, getEnv('BRIDGE_ADDRESS'), 'swapAndBridge(bytes32,uint256
 map.set('CCTP', [3, getEnv('CCTP_BRIDGE_ADDRESS'), 'bridge(uint256,bytes32,uint256,uint256)']);
 map.set('CCTPv2', [4, getEnv('CCTP_V2_BRIDGE_ADDRESS'), 'bridge(uint256,bytes32,uint256,uint256)']);
 map.set('OFT', [5, getEnv('OFT_BRIDGE_ADDRESS'), 'bridge(address,uint256,bytes32,uint256,uint256,uint256,uint256)']);
+map.set('CCTP_bridgeWithWalletAddress', [6, getEnv('CCTP_BRIDGE_ADDRESS'), 'bridgeWithWalletAddress(uint256,bytes32,bytes32,uint256,uint256)']);
+map.set('CCTPv2_bridgeWithWalletAddress', [7, getEnv('CCTP_V2_BRIDGE_ADDRESS'), 'bridgeWithWalletAddress(uint256,bytes32,bytes32,uint256,uint256)']);
 
 async function main() {
   const contractAddress = getEnv('ABR_PAYER_ADDRESS');
