@@ -6,9 +6,9 @@ const map = new Map<string, [number, number, string]>();
 // Testnet
 map.set("Ethereum Sepolia", [2, 0, addressToBytes32('0x7f4050016B486C132b6d42Eb6CF5F5a26EfF4067')]);
 map.set("Avalanche Fuji", [9, 1, addressToBytes32('0xcBf2A4207E3dB74611Ed6Efc77e07057c0F5328B')]);
-// map.set("Arbitrum Sepolia", [6, 3]);
+map.set("Arbitrum Sepolia", [6, 3, addressToBytes32('0x3f4253b8B302BebBfA57a07F00EbfF4025FC0132')]);
 // map.set("Base Sepolia", [11, 6]);
-// map.set("Polygon PoS Amoy", [5, 7]);
+map.set("Polygon PoS Amoy", [5, 7, addressToBytes32('0x3562bC426c7C0D24C56268919c8FC1CC8f95991C')]);
 
 // Mainnet
 // map.set("Ethereum", [1, 0]);

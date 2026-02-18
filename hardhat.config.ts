@@ -45,14 +45,13 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    goerli: baseNetwork,
-    mumbai: baseNetwork,
+    amoy: baseNetwork,
     sepolia: baseNetwork,
-    holesky: baseNetwork,
     bsc: baseNetwork,
     base: baseNetwork,
     arbitrum: baseNetwork,
     fuji: baseNetwork,
+    arbitrumSepolia: baseNetwork,
   },
   gasReporter: {
     enabled: !!process.env.NODE_GAS,
