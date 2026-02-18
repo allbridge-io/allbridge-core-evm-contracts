@@ -32,7 +32,6 @@
     "web3": "^1.10.4"
   },
   "devDependencies": {
-    "@defi-wonderland/smock": "^2.3.5",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",

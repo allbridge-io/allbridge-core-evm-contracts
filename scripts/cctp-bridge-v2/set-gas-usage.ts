@@ -2,8 +2,9 @@ import { ethers } from 'hardhat';
 import { getEnv, handleTransactionResult } from '../helper';
 
 const map = new Map<string, [number, number]>();
-map.set("Ethereum", [1, 200_000]);
-map.set("Arbitrum", [6, 200_000]);
+map.set("Sepolia", [2, 200_000]);
+map.set("Arbitrum Sepolia", [6, 200_000]);
+map.set("Avalanche Fuji", [9, 200_000]);
 
 async function main() {
   const currentChainId = getEnv('CHAIN_ID');

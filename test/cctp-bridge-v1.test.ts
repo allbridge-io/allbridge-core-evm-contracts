@@ -1,23 +1,17 @@
 import { ethers } from 'hardhat';
-import chai, { assert, expect } from 'chai';
+import { assert, expect } from 'chai';
 import {
   CctpBridge,
-  GasOracle,
-  // eslint-disable-next-line camelcase
-  GasOracle__factory,
-  IReceiver,
-  ITokenMessenger,
+  MockGasOracle,
+  MockTokenMessenger,
+  MockReceiver,
   Token,
 } from '../typechain';
 import { addressToBase32, encodeAsHex } from './utils';
 import { parseUnits } from 'ethers/lib/utils';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { FakeContract, MockContract, smock } from '@defi-wonderland/smock';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { Big } from 'big.js';
-
-const { mock, fake } = smock;
-chai.use(smock.matchers);
 
 const CURRENT_CHAIN_ID = 1;
 const OTHER_CHAIN_ID = 2;
@@ -36,9 +30,9 @@ describe('CctpV1Bridge', () => {
   let user: SignerWithAddress;
 
   let token: Token;
-  let mockedGasOracle: MockContract<GasOracle>;
-  let mockedCctpMessenger: FakeContract<ITokenMessenger>;
-  let mockedCctpTransmitter: FakeContract<IReceiver>;
+  let mockGasOracle: MockGasOracle;
+  let mockedCctpMessenger: MockTokenMessenger;
+  let mockedCctpTransmitter: MockReceiver;
   let cctpBridge: CctpBridge;
 
   before(async () => {
@@ -53,15 +47,17 @@ describe('CctpV1Bridge', () => {
       tokenPrecision,
     ])) as Token;
 
-    // eslint-disable-next-line camelcase
-    const gasOracleFactory = await mock<GasOracle__factory>('GasOracle');
-    mockedGasOracle = await gasOracleFactory.deploy(
-      CURRENT_CHAIN_ID,
-      ORACLE_PRECISION,
-    );
+    const MockGasOracle = await ethers.getContractFactory('MockGasOracle');
+    mockGasOracle = await MockGasOracle.deploy();
+    await mockGasOracle.deployed();
 
-    mockedCctpMessenger = await fake<ITokenMessenger>('ITokenMessenger');
-    mockedCctpTransmitter = await fake<IReceiver>('IReceiver');
+    const MockTokenMessenger = await ethers.getContractFactory('MockTokenMessenger');
+    mockedCctpMessenger = await MockTokenMessenger.deploy();
+    await mockedCctpMessenger.deployed();
+
+    const MockReceiver = await ethers.getContractFactory('MockReceiver');
+    mockedCctpTransmitter = await MockReceiver.deploy();
+    await mockedCctpTransmitter.deployed();
 
     cctpBridge = (await ethers.deployContract('CctpBridge', [
       CURRENT_CHAIN_ID,
@@ -69,7 +65,7 @@ describe('CctpV1Bridge', () => {
       token.address,
       mockedCctpMessenger.address,
       mockedCctpTransmitter.address,
-      mockedGasOracle.address,
+      mockGasOracle.address,
     ])) as CctpBridge;
 
     await cctpBridge.setGasUsage(OTHER_CHAIN_ID, gasAmountOfFinalizingTransfer);
@@ -95,16 +91,16 @@ describe('CctpV1Bridge', () => {
 
     beforeEach(async () => {
       recipient = addressToBase32(user.address);
-      mockedGasOracle.getTransactionGasCostInNativeToken
-        .whenCalledWith(OTHER_CHAIN_ID, gasAmountOfFinalizingTransfer)
-        .returns(costOfFinalizingTransfer);
-      mockedCctpMessenger.depositForBurn.returns(nonce);
+      const ethPriceInUsd = '2000';
+      await mockGasOracle.setPrice(CURRENT_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
+      await mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      await mockedCctpMessenger.mockDepositForBurnResult(nonce);
     });
 
     afterEach(async () => {
-      mockedGasOracle.price.reset();
-      mockedGasOracle.getTransactionGasCostInNativeToken.reset();
-      mockedCctpMessenger.depositForBurn.reset();
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, 0);
+      await mockGasOracle.mockTransactionGasCostInNativeToken(0);
+      await mockedCctpMessenger.mockDepositForBurnResult(0);
     });
 
     it('Success: should send tokens and accept gas as bridging fee', async () => {
@@ -116,12 +112,14 @@ describe('CctpV1Bridge', () => {
           value,
         });
 
-      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
-        amount,
-        OTHER_DOMAIN,
-        recipient,
-        token.address,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
+        .withArgs(
+          amount,
+          OTHER_DOMAIN,
+          recipient,
+          token.address,
+        );
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -153,9 +151,7 @@ describe('CctpV1Bridge', () => {
         currentChainPrecision,
       );
 
-      mockedGasOracle.price.returns(
-        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
-      );
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
 
       const tx = await cctpBridge
         .connect(user)
@@ -163,12 +159,14 @@ describe('CctpV1Bridge', () => {
           value: '0',
         });
 
-      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
-        expectedSentAmount,
-        OTHER_DOMAIN,
-        recipient,
-        token.address,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
+        .withArgs(
+          expectedSentAmount,
+          OTHER_DOMAIN,
+          recipient,
+          token.address,
+        );
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -202,9 +200,7 @@ describe('CctpV1Bridge', () => {
         currentChainPrecision,
       );
 
-      mockedGasOracle.price.returns(
-        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
-      );
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
 
       const tx = await cctpBridge
         .connect(user)
@@ -219,12 +215,14 @@ describe('CctpV1Bridge', () => {
           },
         );
 
-      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
-        expectedSentAmount,
-        OTHER_DOMAIN,
-        recipient,
-        token.address,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
+        .withArgs(
+          expectedSentAmount,
+          OTHER_DOMAIN,
+          recipient,
+          token.address,
+        );
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -263,9 +261,7 @@ describe('CctpV1Bridge', () => {
       await cctpBridge.setAdminFeeShare(adminFeeShareBp);
 
       const ethPriceInUsd = '2000';
-      mockedGasOracle.price.returns(
-        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
-      );
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
 
       const tx = await cctpBridge
         .connect(user)
@@ -273,12 +269,14 @@ describe('CctpV1Bridge', () => {
           value: '0',
         });
 
-      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
-        expectedSentAmount,
-        OTHER_DOMAIN,
-        recipient,
-        token.address,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
+        .withArgs(
+          expectedSentAmount,
+          OTHER_DOMAIN,
+          recipient,
+          token.address,
+        );
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -309,9 +307,7 @@ describe('CctpV1Bridge', () => {
       await cctpBridge.setAdminFeeShare(1);
 
       const ethPriceInUsd = '2000';
-      mockedGasOracle.price.returns(
-        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
-      );
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
 
       const tx = await cctpBridge
         .connect(user)
@@ -319,12 +315,14 @@ describe('CctpV1Bridge', () => {
           value,
         });
 
-      expect(mockedCctpMessenger.depositForBurn).to.have.been.calledOnceWith(
-        expectedSentAmount,
-        OTHER_DOMAIN,
-        recipient,
-        token.address,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
+        .withArgs(
+          expectedSentAmount,
+          OTHER_DOMAIN,
+          recipient,
+          token.address,
+        );
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -344,8 +342,7 @@ describe('CctpV1Bridge', () => {
 
     it('Failure: should revert when sent gas is not enough for relayer fee', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
-      mockedGasOracle.getTransactionGasCostInNativeToken.reset();
-      mockedGasOracle.getTransactionGasCostInNativeToken.returns(value.add(1));
+      await mockGasOracle.mockTransactionGasCostInNativeToken(value.add(1));
       const response = cctpBridge
         .connect(user)
         .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value });
@@ -355,9 +352,7 @@ describe('CctpV1Bridge', () => {
     it('Failure: should revert when destination is unknown', async () => {
       const unknownChainId = 99;
       const value = parseUnits('0.001', currentChainPrecision);
-      mockedGasOracle.getTransactionGasCostInNativeToken.returns(
-        costOfFinalizingTransfer,
-      );
+      mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
       const response = cctpBridge
         .connect(user)
         .bridge(amount, recipient, unknownChainId, '0', { value });
@@ -378,17 +373,14 @@ describe('CctpV1Bridge', () => {
     const nonce = 257698;
     beforeEach(async () => {
       recipient = addressToBase32(user.address);
-      mockedGasOracle.getTransactionGasCostInNativeToken
-        .whenCalledWith(OTHER_CHAIN_ID, gasAmountOfFinalizingTransfer)
-        .returns(costOfFinalizingTransfer);
-      mockedCctpMessenger.depositForBurn.returns(nonce);
-      mockedCctpMessenger.replaceDepositForBurn.returns();
+      mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      await mockedCctpMessenger.mockDepositForBurnResult(nonce);
     });
 
     afterEach(async () => {
-      mockedGasOracle.price.reset();
-      mockedGasOracle.getTransactionGasCostInNativeToken.reset();
-      mockedCctpMessenger.depositForBurn.reset();
+      await mockGasOracle.setPrice(OTHER_CHAIN_ID, 0);
+      await mockGasOracle.mockTransactionGasCostInNativeToken(0);
+      await mockedCctpMessenger.mockDepositForBurnResult(0);
     });
 
     it('Success: should replace recipient and emit an event', async () => {
@@ -407,14 +399,14 @@ describe('CctpV1Bridge', () => {
         .to.emit(cctpBridge, 'RecipientReplaced')
         .withArgs(user.address, nonce, anotherRecipient);
 
-      expect(
-        mockedCctpMessenger.replaceDepositForBurn,
-      ).to.have.been.calledOnceWith(
-        messageWithNonce257698,
-        attestation,
-        '0x0000000000000000000000000000000000000000000000000000000000000000',
-        anotherRecipient,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpMessenger, 'ReplaceDepositForBurnEvent')
+        .withArgs(
+          messageWithNonce257698,
+          attestation,
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          anotherRecipient,
+        );
     });
 
     it('Failure: wrong sender', async () => {
@@ -457,22 +449,24 @@ describe('CctpV1Bridge', () => {
 
     beforeEach(async () => {
       recipient = user.address;
-      mockedCctpTransmitter.receiveMessage.returns(true);
+      mockedCctpTransmitter.mockReceiveMessageResult(true);
     });
 
     afterEach(async () => {
-      mockedCctpTransmitter.receiveMessage.reset();
+      mockedCctpTransmitter.mockReceiveMessageResult(false);
     });
 
     it('Success: should invoke receiveMessage', async () => {
-      await cctpBridge
+      const tx = await cctpBridge
         .connect(owner)
         .receiveTokens(recipient, message, signature, { value: '0' });
 
-      expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
-        message,
-        signature,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
+        .withArgs(
+          message,
+          signature,
+        );
     });
 
     it('Success: should pass extra gas to the recipient', async () => {
@@ -492,14 +486,16 @@ describe('CctpV1Bridge', () => {
         .to.emit(cctpBridge, 'ReceivedExtraGas')
         .withArgs(recipient, extraGasAmount);
 
-      expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
-        message,
-        signature,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
+        .withArgs(
+          message,
+          signature,
+        );
     });
 
     it('Failure: should revert when receiveMessage fails', async () => {
-      mockedCctpTransmitter.receiveMessage.returns(false);
+      mockedCctpTransmitter.mockReceiveMessageResult(false);
 
       const extraGasAmount = parseUnits('0.001', currentChainPrecision);
       const response = cctpBridge
@@ -524,10 +520,12 @@ describe('CctpV1Bridge', () => {
         '0',
       );
 
-      expect(mockedCctpTransmitter.receiveMessage).to.have.been.calledOnceWith(
-        message,
-        signature,
-      );
+      await expect(tx)
+        .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
+        .withArgs(
+          message,
+          signature,
+        );
     });
   });
 

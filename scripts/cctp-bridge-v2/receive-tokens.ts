@@ -1,8 +1,7 @@
 import { ethers } from 'hardhat';
 import { getEnv, handleTransactionResult } from '../helper';
 
-const extraGasAmount = 0n;
-// get sentMessage by running the script `get-sent-message.ts` on the source chain
+const extraGasAmount = 1000000000000n;
 const isTestnet = true;
 
 async function main() {
@@ -10,13 +9,15 @@ async function main() {
   const signer = (await ethers.getSigners())[0];
 
   const CctpV2Bridge = await ethers.getContractAt('CctpV2Bridge', CctpV2BridgeAddress);
-  const sendTxId = '';
-  const sendDomain = '';
+  const sendTxId = '0x1ffeca530f29fe9df45579fe14996de50f1db58e4acd08d75bd2accb8461c82f';
+  const sendDomain = '0';
 
   const signature = await getSignature(sendDomain, sendTxId);
 
+  const recipientAddress = '0x9aca1c932640a5743B777162d6D3c6196053596e';
+  // const recipientAddress = signer.address;
   const result = await CctpV2Bridge.receiveTokens(
-    signer.address,
+    recipientAddress,
     sendTxId,
     signature.message,
     signature.attestation,

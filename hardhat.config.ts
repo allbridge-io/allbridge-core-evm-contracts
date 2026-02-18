@@ -52,6 +52,7 @@ const config: HardhatUserConfig = {
     bsc: baseNetwork,
     base: baseNetwork,
     arbitrum: baseNetwork,
+    fuji: baseNetwork,
   },
   gasReporter: {
     enabled: !!process.env.NODE_GAS,
@@ -71,6 +72,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
         ':CctpBridge$',
+        ':CctpV2Bridge$',
         ':AutoDepositFactory$',
         ':AutoDepositWallet$',
         ':PayerWithAbr$',
