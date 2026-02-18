@@ -6,12 +6,7 @@ import {ITokenMessenger} from "../../interfaces/cctp/ITokenMessenger.sol";
 contract MockTokenMessenger is ITokenMessenger {
     uint64 private mockedDepositForBurnResult;
 
-    event DepositForBurnEvent(
-        uint amount,
-        uint32 destinationDomain,
-        bytes32 mintRecipient,
-        address burnToken
-    );
+    event DepositForBurnEvent(uint amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken);
 
     event ReplaceDepositForBurnEvent(
         bytes originalMessage,
@@ -26,12 +21,7 @@ contract MockTokenMessenger is ITokenMessenger {
         bytes32 mintRecipient,
         address burnToken
     ) external returns (uint64 _nonce) {
-        emit DepositForBurnEvent(
-            amount,
-            destinationDomain,
-            mintRecipient,
-            burnToken
-        );
+        emit DepositForBurnEvent(amount, destinationDomain, mintRecipient, burnToken);
         return mockedDepositForBurnResult;
     }
 
@@ -41,12 +31,7 @@ contract MockTokenMessenger is ITokenMessenger {
         bytes32 newDestinationCaller,
         bytes32 newMintRecipient
     ) external {
-        emit ReplaceDepositForBurnEvent(
-            originalMessage,
-            originalAttestation,
-            newDestinationCaller,
-            newMintRecipient
-        );
+        emit ReplaceDepositForBurnEvent(originalMessage, originalAttestation, newDestinationCaller, newMintRecipient);
     }
 
     function mockDepositForBurnResult(uint64 _value) external {

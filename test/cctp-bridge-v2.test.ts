@@ -39,7 +39,9 @@ describe('CctpV2Bridge', () => {
   const gasAmountOfFinalizingTransfer = 1000;
   const costOfFinalizingTransfer = 10_000;
   const amount = parseUnits('1000', tokenPrecision);
-  const destinationCaller = addressToBase32('0x36ABB6dE7299056747342F515D00A164BB03c6d4');
+  const destinationCaller = addressToBase32(
+    '0x36ABB6dE7299056747342F515D00A164BB03c6d4',
+  );
 
   let owner: SignerWithAddress;
   let user: SignerWithAddress;
@@ -66,7 +68,9 @@ describe('CctpV2Bridge', () => {
     mockGasOracle = await MockGasOracle.deploy();
     await mockGasOracle.deployed();
 
-    const MockTokenMessengerV2 = await ethers.getContractFactory('MockTokenMessengerV2');
+    const MockTokenMessengerV2 = await ethers.getContractFactory(
+      'MockTokenMessengerV2',
+    );
     mockedCctpMessengerV2 = await MockTokenMessengerV2.deploy();
     await mockedCctpMessengerV2.deployed();
 
@@ -87,7 +91,11 @@ describe('CctpV2Bridge', () => {
       OTHER_CHAIN_ID,
       gasAmountOfFinalizingTransfer,
     );
-    await cctpV2Bridge.registerBridgeDestination(OTHER_CHAIN_ID, OTHER_DOMAIN, destinationCaller);
+    await cctpV2Bridge.registerBridgeDestination(
+      OTHER_CHAIN_ID,
+      OTHER_DOMAIN,
+      destinationCaller,
+    );
     await owner.sendTransaction({
       to: cctpV2Bridge.address,
       value: parseUnits('10', currentChainPrecision),
@@ -111,8 +119,13 @@ describe('CctpV2Bridge', () => {
     beforeEach(async () => {
       recipient = addressToBase32(user.address);
       const ethPriceInUsd = '2000';
-      await mockGasOracle.setPrice(CURRENT_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
-      await mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      await mockGasOracle.setPrice(
+        CURRENT_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+      await mockGasOracle.mockTransactionGasCostInNativeToken(
+        costOfFinalizingTransfer,
+      );
     });
 
     afterEach(async () => {
@@ -449,10 +462,7 @@ describe('CctpV2Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
       await expect(tx)
         .to.emit(cctpV2Bridge, 'ReceivedMessageId')
         .withArgs(sentTxId);
@@ -478,10 +488,7 @@ describe('CctpV2Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
       await expect(tx)
         .to.emit(cctpV2Bridge, 'ReceivedMessageId')
         .withArgs(sentTxId);
@@ -516,10 +523,7 @@ describe('CctpV2Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
       await expect(tx)
         .to.emit(cctpV2Bridge, 'ReceivedMessageId')
         .withArgs(sentTxId);
@@ -544,27 +548,45 @@ describe('CctpV2Bridge', () => {
     describe('#registerBridgeDestination', () => {
       const newChainId = 9;
       const newDomain = 99;
-      const newDestinationBridgeAddress = addressToBase32('0x36ABB6dE7299056747342F515D00A164BB03c6d4');
+      const newDestinationBridgeAddress = addressToBase32(
+        '0x36ABB6dE7299056747342F515D00A164BB03c6d4',
+      );
       it('Success: should register new domain', async () => {
-        await cctpV2Bridge.registerBridgeDestination(newChainId, newDomain, newDestinationBridgeAddress);
+        await cctpV2Bridge.registerBridgeDestination(
+          newChainId,
+          newDomain,
+          newDestinationBridgeAddress,
+        );
         const actualDomain = await cctpV2Bridge.getDomainByChainId(newChainId);
         expect(actualDomain).to.equal(newDomain);
       });
 
       it('Success: should register domain 0', async () => {
-        await cctpV2Bridge.registerBridgeDestination(newChainId, 0, addressToBase32('0x00'));
+        await cctpV2Bridge.registerBridgeDestination(
+          newChainId,
+          0,
+          addressToBase32('0x00'),
+        );
         const actualDomain = await cctpV2Bridge.getDomainByChainId(newChainId);
         expect(actualDomain).to.equal(0);
       });
 
       it('Success: should register new bridge address', async () => {
-        await cctpV2Bridge.registerBridgeDestination(newChainId, newDomain, newDestinationBridgeAddress);
+        await cctpV2Bridge.registerBridgeDestination(
+          newChainId,
+          newDomain,
+          newDestinationBridgeAddress,
+        );
         const actual = await cctpV2Bridge.otherBridges(newChainId);
         expect(actual).to.equal(newDestinationBridgeAddress);
       });
 
       it('Success: should register empty destination bridge address', async () => {
-        await cctpV2Bridge.registerBridgeDestination(newChainId, newDomain, addressToBase32('0x00'));
+        await cctpV2Bridge.registerBridgeDestination(
+          newChainId,
+          newDomain,
+          addressToBase32('0x00'),
+        );
         const actual = await cctpV2Bridge.otherBridges(newChainId);
         expect(actual).to.equal(addressToBase32('0x00'));
       });
@@ -573,7 +595,11 @@ describe('CctpV2Bridge', () => {
         await expect(
           cctpV2Bridge
             .connect(user)
-            .registerBridgeDestination(newChainId, newDomain, newDestinationBridgeAddress),
+            .registerBridgeDestination(
+              newChainId,
+              newDomain,
+              newDestinationBridgeAddress,
+            ),
         ).revertedWith('Ownable: caller is not the owner');
       });
     });

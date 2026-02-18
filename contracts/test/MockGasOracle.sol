@@ -17,10 +17,7 @@ contract MockGasOracle {
         prices[chainId] = _price;
     }
 
-    function getTransactionGasCostInNativeToken(
-        uint otherChainId,
-        uint gasAmount
-    ) external view returns (uint) {
+    function getTransactionGasCostInNativeToken(uint otherChainId, uint gasAmount) external view returns (uint) {
         return mockedTransactionGasCostInNativeToken;
     }
 

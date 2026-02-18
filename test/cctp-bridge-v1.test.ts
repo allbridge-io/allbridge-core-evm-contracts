@@ -51,7 +51,9 @@ describe('CctpV1Bridge', () => {
     mockGasOracle = await MockGasOracle.deploy();
     await mockGasOracle.deployed();
 
-    const MockTokenMessenger = await ethers.getContractFactory('MockTokenMessenger');
+    const MockTokenMessenger = await ethers.getContractFactory(
+      'MockTokenMessenger',
+    );
     mockedCctpMessenger = await MockTokenMessenger.deploy();
     await mockedCctpMessenger.deployed();
 
@@ -92,8 +94,13 @@ describe('CctpV1Bridge', () => {
     beforeEach(async () => {
       recipient = addressToBase32(user.address);
       const ethPriceInUsd = '2000';
-      await mockGasOracle.setPrice(CURRENT_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
-      await mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      await mockGasOracle.setPrice(
+        CURRENT_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
+      await mockGasOracle.mockTransactionGasCostInNativeToken(
+        costOfFinalizingTransfer,
+      );
       await mockedCctpMessenger.mockDepositForBurnResult(nonce);
     });
 
@@ -114,12 +121,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
-        .withArgs(
-          amount,
-          OTHER_DOMAIN,
-          recipient,
-          token.address,
-        );
+        .withArgs(amount, OTHER_DOMAIN, recipient, token.address);
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -151,7 +153,10 @@ describe('CctpV1Bridge', () => {
         currentChainPrecision,
       );
 
-      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
+      await mockGasOracle.setPrice(
+        OTHER_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
 
       const tx = await cctpBridge
         .connect(user)
@@ -161,12 +166,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
-        .withArgs(
-          expectedSentAmount,
-          OTHER_DOMAIN,
-          recipient,
-          token.address,
-        );
+        .withArgs(expectedSentAmount, OTHER_DOMAIN, recipient, token.address);
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -200,7 +200,10 @@ describe('CctpV1Bridge', () => {
         currentChainPrecision,
       );
 
-      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
+      await mockGasOracle.setPrice(
+        OTHER_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
 
       const tx = await cctpBridge
         .connect(user)
@@ -217,12 +220,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
-        .withArgs(
-          expectedSentAmount,
-          OTHER_DOMAIN,
-          recipient,
-          token.address,
-        );
+        .withArgs(expectedSentAmount, OTHER_DOMAIN, recipient, token.address);
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -261,7 +259,10 @@ describe('CctpV1Bridge', () => {
       await cctpBridge.setAdminFeeShare(adminFeeShareBp);
 
       const ethPriceInUsd = '2000';
-      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
+      await mockGasOracle.setPrice(
+        OTHER_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
 
       const tx = await cctpBridge
         .connect(user)
@@ -271,12 +272,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
-        .withArgs(
-          expectedSentAmount,
-          OTHER_DOMAIN,
-          recipient,
-          token.address,
-        );
+        .withArgs(expectedSentAmount, OTHER_DOMAIN, recipient, token.address);
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -307,7 +303,10 @@ describe('CctpV1Bridge', () => {
       await cctpBridge.setAdminFeeShare(1);
 
       const ethPriceInUsd = '2000';
-      await mockGasOracle.setPrice(OTHER_CHAIN_ID, parseUnits(ethPriceInUsd, ORACLE_PRECISION));
+      await mockGasOracle.setPrice(
+        OTHER_CHAIN_ID,
+        parseUnits(ethPriceInUsd, ORACLE_PRECISION),
+      );
 
       const tx = await cctpBridge
         .connect(user)
@@ -317,12 +316,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpMessenger, 'DepositForBurnEvent')
-        .withArgs(
-          expectedSentAmount,
-          OTHER_DOMAIN,
-          recipient,
-          token.address,
-        );
+        .withArgs(expectedSentAmount, OTHER_DOMAIN, recipient, token.address);
 
       await expect(tx)
         .to.emit(cctpBridge, 'TokensSent')
@@ -352,7 +346,9 @@ describe('CctpV1Bridge', () => {
     it('Failure: should revert when destination is unknown', async () => {
       const unknownChainId = 99;
       const value = parseUnits('0.001', currentChainPrecision);
-      mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      mockGasOracle.mockTransactionGasCostInNativeToken(
+        costOfFinalizingTransfer,
+      );
       const response = cctpBridge
         .connect(user)
         .bridge(amount, recipient, unknownChainId, '0', { value });
@@ -373,7 +369,9 @@ describe('CctpV1Bridge', () => {
     const nonce = 257698;
     beforeEach(async () => {
       recipient = addressToBase32(user.address);
-      mockGasOracle.mockTransactionGasCostInNativeToken(costOfFinalizingTransfer);
+      mockGasOracle.mockTransactionGasCostInNativeToken(
+        costOfFinalizingTransfer,
+      );
       await mockedCctpMessenger.mockDepositForBurnResult(nonce);
     });
 
@@ -463,10 +461,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
     });
 
     it('Success: should pass extra gas to the recipient', async () => {
@@ -488,10 +483,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
     });
 
     it('Failure: should revert when receiveMessage fails', async () => {
@@ -522,10 +514,7 @@ describe('CctpV1Bridge', () => {
 
       await expect(tx)
         .to.emit(mockedCctpTransmitter, 'ReceiveMessageEvent')
-        .withArgs(
-          message,
-          signature,
-        );
+        .withArgs(message, signature);
     });
   });
 

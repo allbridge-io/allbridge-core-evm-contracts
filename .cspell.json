@@ -35,7 +35,9 @@
     "IOFT",
     "oapp",
     "Omnichain",
-    "Initializable"
+    "Initializable",
+    "Unichain",
+    "Linea"
   ],
   "flagWords": [],
   "ignorePaths": [

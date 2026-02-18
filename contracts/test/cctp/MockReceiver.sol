@@ -7,16 +7,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract MockReceiver is IReceiver {
     bool private mockedReceiveMessageResult;
 
-    event ReceiveMessageEvent(
-        bytes message,
-        bytes signature
-    );
+    event ReceiveMessageEvent(bytes message, bytes signature);
 
     function receiveMessage(bytes calldata message, bytes calldata signature) external returns (bool success) {
-        emit ReceiveMessageEvent(
-            message,
-            signature
-        );
+        emit ReceiveMessageEvent(message, signature);
         return mockedReceiveMessageResult;
     }
 
