@@ -36,29 +36,29 @@ slither .
 
 ## Deploy
 
-### EVM (goerli)
+### EVM (sepolia)
 
 - Add to env file `NODE_URL`, `PRIVATE_KEY`, `VALIDATOR_ADDRESS`, `CHAIN_ID`, `WORMHOLE_CHAIN_ID`, `WORMHOLE_ADDRESS`
 
 Deploy:
 
-- `npx hardhat run ./scripts/deploy/gas-oracle.ts --network goerli` set `GAS_ORACLE_ADDRESS`
-- `npx hardhat run ./scripts/deploy/messenger.ts --network goerli` set `MESSENGER_ADDRESS`
-- `npx hardhat run ./scripts/deploy/wormhole_messenger.ts --network goerli` set `WORMHOLE_MESSENGER_ADDRESS`
-- `npx hardhat run ./scripts/deploy/bridge.ts --network goerli` set `BRIDGE_ADDRESS`
-- Optional deploy test token, check args inside : `npx hardhat run ./scripts/deploy/test-token.ts --network goerli`
+- `npx hardhat run ./scripts/deploy/gas-oracle.ts --network sepolia` set `GAS_ORACLE_ADDRESS`
+- `npx hardhat run ./scripts/deploy/messenger.ts --network sepolia` set `MESSENGER_ADDRESS`
+- `npx hardhat run ./scripts/deploy/wormhole_messenger.ts --network sepolia` set `WORMHOLE_MESSENGER_ADDRESS`
+- `npx hardhat run ./scripts/deploy/bridge.ts --network sepolia` set `BRIDGE_ADDRESS`
+- Optional deploy test token, check args inside : `npx hardhat run ./scripts/deploy/test-token.ts --network sepolia`
   set `TOKEN_ADDRESS`
-- `npx hardhat run ./scripts/deploy/pool.ts --network goerli` set `POOL_ADDRESS`
+- `npx hardhat run ./scripts/deploy/pool.ts --network sepolia` set `POOL_ADDRESS`
 
 Config:
 
-- Add pool liquidity: `npx hardhat run ./scripts/bridge/add-liquidity.ts --network goerli`
-- Add pool to the bridge: `npx hardhat run ./scripts/bridge/add-pool.ts --network goerli`
-- Set bridge (check args): `npx hardhat run ./scripts/bridge/add-bridge.ts --network goerli`
-- Add bridge token (check args): `npx hardhat run ./scripts/bridge/add-bridge-token.ts --network goerli`
-- Set bridge gas usage (check args): `npx hardhat run ./scripts/bridge/set-gas-usage.ts --network goerli`
-- Set messenger gas usage (check args): `npx hardhat run ./scripts/messenger/set-gas-usage.ts --network goerli`
-- Set wormhole gas usage (check args): `npx hardhat run ./scripts/wormhole/set-gas-usage.ts --network goerli`
+- Add pool liquidity: `npx hardhat run ./scripts/bridge/add-liquidity.ts --network sepolia`
+- Add pool to the bridge: `npx hardhat run ./scripts/bridge/add-pool.ts --network sepolia`
+- Set bridge (check args): `npx hardhat run ./scripts/bridge/add-bridge.ts --network sepolia`
+- Add bridge token (check args): `npx hardhat run ./scripts/bridge/add-bridge-token.ts --network sepolia`
+- Set bridge gas usage (check args): `npx hardhat run ./scripts/bridge/set-gas-usage.ts --network sepolia`
+- Set messenger gas usage (check args): `npx hardhat run ./scripts/messenger/set-gas-usage.ts --network sepolia`
+- Set wormhole gas usage (check args): `npx hardhat run ./scripts/wormhole/set-gas-usage.ts --network sepolia`
 
 ### Tron (nile)
 
@@ -84,23 +84,39 @@ Config:
 - Set bridge gas usage (check args): `node ./scripts/tron/bridge/set-bridge-gas-usage.js --network nile`
 - Set messenger gas usage (check args): `node ./scripts/tron/messenger/set-messenger-gas-usage.js --network nile`
 
-### CCTP
+### CCTP v1
 
 Deploy:
 
 - Add to env file `USDC_ADDRESS`, `CCTP_MESSENGER_ADDRESS`, `CCTP_TRANSMITTER_ADDRESS`
-- CCTP Bridge `npx hardhat run scripts/deploy/cctp-bridge.ts --network goerli`
+- CCTP Bridge `npx hardhat run scripts/deploy/cctp-bridge.ts --network sepolia`
 
 Config:
 
 - Add to env file `CCTP_BRIDGE_ADDRESS`
-- Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network goerli`
-- Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network goerli`
+- Register destination domains `npx hardhat run scripts/cctp-bridge/register-bridge-destination.ts --network sepolia`
+- Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge/set-gas-usage.ts --network sepolia`
 - Add to env file `CCTP_FEE_BP`
-- Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network goerli`
+- Set admin fee: `npx hardhat run scripts/cctp-bridge/set-admin-fee.ts --network sepolia`
+
+### CCTP v2
+
+Deploy:
+
+- Add to env file `USDC_ADDRESS`, `GAS_ORACLE_ADDRESS`, `CCTP_V2_MESSENGER_ADDRESS`, `CCTP_V2_TRANSMITTER_ADDRESS`
+- CCTPv2 Bridge `npx hardhat run scripts/deploy/cctp-v2-bridge.ts --network sepolia`
+
+Config:
+
+- Add to env file `CCTP_V2_BRIDGE_ADDRESS`
+- Update script `scripts/cctp-bridge-v2/register-bridge-destination.ts` with a list of chain IDs, domains, and deployed CCTPv2 bridges
+- Register destination domains and bridges `npx hardhat run scripts/cctp-bridge-v2/register-bridge-destination.ts --network sepolia`
+- Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge-v2/set-gas-usage.ts --network sepolia`
+- Add to env file `CCTP_FEE_BP`
+- Set admin fee: `npx hardhat run scripts/cctp-bridge-v2/set-admin-fee.ts --network sepolia`
 
 ### Etherscan verification
 
 - Add to env file `ETHERSCAN_API_KEY` and `<CONTRACT_ADDRESS>`
 - Check `./scripts/verify/<contract>.ts` file args to be the same as on deploy
-- Run `npx hardhat run ./scripts/verify/<contract>.ts --network goerli`
+- Run `npx hardhat run ./scripts/verify/<contract>.ts --network sepolia`
