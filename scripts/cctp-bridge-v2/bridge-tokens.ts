@@ -7,7 +7,7 @@ import { parseEther, parseUnits } from 'ethers/lib/utils';
 
 const destinationChainId = 9;
 const totalTokens = '1.1';
-const extraGas = parseEther('0.20');
+const extraGas = parseEther('0.0');
 
 async function main() {
   const CctpV2BridgeAddress = getEnv('CCTP_V2_BRIDGE_ADDRESS');
