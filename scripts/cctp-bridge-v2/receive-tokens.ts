@@ -15,9 +15,10 @@ async function main() {
   const signature = await getSignature(sendDomain, sendTxId);
 
   const recipientAddress = recipient ?? signer.address;
+  const messageId = +sendDomain === 5 ? ethers.utils.keccak256(Buffer.from(signature.message)) : sendTxId;
   const result = await CctpV2Bridge.receiveTokens(
     recipientAddress,
-    sendTxId,
+    messageId,
     signature.message,
     signature.attestation,
     { value: extraGasAmount },

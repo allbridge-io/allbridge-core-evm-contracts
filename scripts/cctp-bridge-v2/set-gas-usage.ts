@@ -3,6 +3,7 @@ import { getEnv, handleTransactionResult } from '../helper';
 
 const map = new Map<string, [number, number]>();
 map.set("Ethereum Sepolia", [2, 200_000]);
+map.set("Solana devnet", [4, 200_000]);
 map.set("Polygon PoS Amoy", [5, 200_000]);
 map.set("Arbitrum Sepolia", [6, 200_000]);
 map.set("Avalanche Fuji", [9, 200_000]);
