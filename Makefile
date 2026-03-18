@@ -10,7 +10,7 @@ add-bridges:
 
 NETWORK=sepolia
 #NETWORK=ava
-#NETWORK=alfajores
+#NETWORK=arbitrumSepolia
 #NETWORK=shasta
 #NETWORK=nile
 
@@ -38,11 +38,32 @@ deploy-pool:
 deploy-cctp-v2:
 	npx hardhat run ./scripts/deploy/cctp-v2-bridge.ts --network $(NETWORK)
 
+deploy-xreserve-bridge:
+	npx hardhat run ./scripts/deploy/xreserve-bridge.ts --network $(NETWORK)
+
 set-messenger-gas-usage:
 	npx hardhat run ./scripts/messenger/set-gas-usage.ts --network $(NETWORK)
 
 set-bridge-gas-usage:
 	npx hardhat run ./scripts/bridge/set-gas-usage.ts --network $(NETWORK)
+
+register-xreserve-bridge-destination:
+	npx hardhat run ./scripts/xreserve-bridge/register-bridge-destination.ts --network $(NETWORK)
+
+unregister-xreserve-bridge-destination:
+	npx hardhat run ./scripts/xreserve-bridge/unregister-bridge-destination.ts --network $(NETWORK)
+
+set-xreserve-bridge-admin-fee-share:
+	npx hardhat run ./scripts/xreserve-bridge/set-admin-fee-share.ts --network $(NETWORK)
+
+set-xreserve-bridge-max-fee-share:
+	npx hardhat run ./scripts/xreserve-bridge/set-max-fee-share.ts --network $(NETWORK)
+
+withdraw-xreserve-bridge-fee-in-tokens:
+	npx hardhat run ./scripts/xreserve-bridge/withdraw-fee-in-tokens.ts --network $(NETWORK)
+
+xreserve-bridge:
+	npx hardhat run ./scripts/xreserve-bridge/bridge.ts --network $(NETWORK)
 
 add-pool:
 	npx hardhat run ./scripts/bridge/add-pool.ts --network $(NETWORK)

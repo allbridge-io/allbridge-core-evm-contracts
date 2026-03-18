@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
     holesky: baseNetwork,
     bsc: baseNetwork,
     base: baseNetwork,
-    arbitrum: baseNetwork,
+    arbitrumSepolia: baseNetwork,
   },
   gasReporter: {
     enabled: !!process.env.NODE_GAS,

@@ -3,10 +3,10 @@ import {
   addressToBytes32, getEnv,
   handleTransactionResult,
 } from '../helper';
-import { parseEther, parseUnits } from 'ethers/lib/utils';
+import { parseUnits } from 'ethers/lib/utils';
 
 const destinationChainId = 16;
-const totalTokens = process.env.TOTAL_TOKENS || '5';
+const totalTokens = process.env.TOTAL_TOKENS || '50';
 const recipient = '0x1ad8984e1d33e1ff33dc04d22af791c101c2a12e18';
 
 async function main() {
