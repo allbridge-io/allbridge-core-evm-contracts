@@ -136,19 +136,20 @@ describe('AutoDepositParent', () => {
 
         it('Success: should collect payment', async () => {
           const feeTokenAmount = parseUnits('10', tokenPrecision);
-          const tx = await autoDepositParent
-            .connect(alice)
-            .createDepositWalletsBatch(
-              alice.address,
-              token.address,
-              minDepositAmount,
-              feeTokenAmount,
-              [CHAIN_2, CHAIN_3, CHAIN_4],
-              { value: '11000' },
-            );
-          expect(tx).to.changeTokenBalances(
-            autoDepositParent,
-            [alice, autoDepositParent.address],
+          await expect(() =>
+            autoDepositParent
+              .connect(alice)
+              .createDepositWalletsBatch(
+                alice.address,
+                token.address,
+                minDepositAmount,
+                feeTokenAmount,
+                [CHAIN_2, CHAIN_3, CHAIN_4],
+                { value: '11000' },
+              ),
+          ).to.changeTokenBalances(
+            token,
+            [alice, autoDepositParent],
             ['-' + feeTokenAmount.toString(), feeTokenAmount.toString()],
           );
         });
@@ -195,8 +196,8 @@ describe('AutoDepositParent', () => {
           });
 
           it('Success: should withdraw accumulated gas', async () => {
-            expect(
-              await autoDepositParent.withdrawGas(amount),
+            await expect(() =>
+              autoDepositParent.withdrawGas(amount),
             ).changeEtherBalances(
               [owner, autoDepositParent],
               [amount, '-' + amount],
@@ -218,8 +219,8 @@ describe('AutoDepositParent', () => {
           });
 
           it('Success: should withdraw accumulated tokens', async () => {
-            expect(
-              await autoDepositParent.withdraw(token.address),
+            await expect(() =>
+              autoDepositParent.withdraw(token.address),
             ).changeTokenBalances(
               token,
               [owner, autoDepositParent],

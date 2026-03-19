@@ -49,6 +49,10 @@ interface IBridge {
 
     function withdrawGasTokens(uint amount) external;
 
+    function addRelayerAuthority(address authority) external;
+
+    function removeRelayerAuthority(address authority) external;
+
     function registerBridge(uint chainId, bytes32 bridgeAddress) external;
 
     function addBridgeToken(uint chainId, bytes32 tokenAddress) external;

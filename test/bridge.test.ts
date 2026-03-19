@@ -80,6 +80,7 @@ describe('Bridge', () => {
     await bridge.setGasUsage(2, '1000');
     await bridge.registerBridge(2, addressToBase32(bridge.address));
     await bridge.registerBridge(1, addressToBase32(bridge.address));
+    await bridge.addRelayerAuthority(alice);
 
     token = (await tokenContractFactory.deploy(
       'A',
@@ -542,7 +543,7 @@ describe('Bridge', () => {
           );
 
           const hash =
-            '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870';
+            '0x02016e98fcba0a907b2165b4e90df332c98258aa06dd042d7d2608d3d9493c10';
 
           await expect(response)
             .emit(bridge, 'TokensReceived')
