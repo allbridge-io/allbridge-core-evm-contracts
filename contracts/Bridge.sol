@@ -131,14 +131,15 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         MessengerProtocol messenger,
         uint receiveAmountMin
     ) external payable override whenCanSwap {
-        bytes32 messageWithSender = this
-            .hashMessage(amount, recipient, sourceChainId, chainId, receiveToken, nonce, messenger)
-            .hashWithSender(otherBridges[sourceChainId]);
-
         require(
             isRelayerAuthority[msg.sender] || msg.sender == address(uint160(uint(recipient))),
             "Bridge: not authorized"
         );
+
+        bytes32 messageWithSender = this
+            .hashMessage(amount, recipient, sourceChainId, chainId, receiveToken, nonce, messenger)
+            .hashWithSender(otherBridges[sourceChainId]);
+
         require(otherBridges[sourceChainId] != bytes32(0), "Bridge: source not registered");
 
         require(processedMessages[messageWithSender] == 0, "Bridge: message processed");
