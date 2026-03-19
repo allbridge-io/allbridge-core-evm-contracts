@@ -260,7 +260,10 @@ describe('AutoDepositWallet', () => {
 
       it('Success: should withdraw unsupported tokens', async () => {
         await expect(() =>
-          wallet.transferUnsupportedToken(unsupportedToken.address, alice.address),
+          wallet.transferUnsupportedToken(
+            unsupportedToken.address,
+            alice.address,
+          ),
         ).to.changeTokenBalances(
           unsupportedToken,
           [wallet, alice],

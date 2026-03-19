@@ -19,12 +19,19 @@ describe('Bridge Relayer Authority', () => {
     const BridgeContract = await ethers.getContractFactory('Bridge');
     const TokenContract = await ethers.getContractFactory('Token');
     const PoolContract = await ethers.getContractFactory('Pool');
-    const TestMessengerContract = await ethers.getContractFactory('TestMessenger');
+    const TestMessengerContract = await ethers.getContractFactory(
+      'TestMessenger',
+    );
 
     const mockedGasOracle = await deployMockContract(owner, GasOracleABI);
-    const mockedWhMessenger = await deployMockContract(owner, WormholeMessengerABI);
+    const mockedWhMessenger = await deployMockContract(
+      owner,
+      WormholeMessengerABI,
+    );
     await mockedWhMessenger.mock.receivedMessages.returns(BigNumber.from(0));
-    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(10000);
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(
+      10000,
+    );
 
     const testMessenger = await TestMessengerContract.deploy();
 
@@ -33,7 +40,7 @@ describe('Bridge Relayer Authority', () => {
       18, // chainPrecision
       testMessenger.address,
       mockedWhMessenger.address,
-      mockedGasOracle.address
+      mockedGasOracle.address,
     )) as any;
 
     await bridge.registerBridge(1, addressToBase32(bridge.address));
@@ -81,11 +88,22 @@ describe('Bridge Relayer Authority', () => {
     await poolA.deposit(liquidity);
     await poolB.deposit(liquidity);
 
-    return { bridge, tokenA, tokenB, poolA, poolB, owner, relayer: alice, stranger: bob };
+    return {
+      bridge,
+      tokenA,
+      tokenB,
+      poolA,
+      poolB,
+      owner,
+      relayer: alice,
+      stranger: bob,
+    };
   }
 
   it('Should allow owner to add and remove relayer authority', async () => {
-    const { bridge, owner, relayer, stranger } = await loadFixture(deployBridgeFixture);
+    const { bridge, owner, relayer, stranger } = await loadFixture(
+      deployBridgeFixture,
+    );
 
     expect(await bridge.isRelayerAuthority(relayer.address)).to.eq(false);
 
@@ -95,12 +113,15 @@ describe('Bridge Relayer Authority', () => {
     await bridge.connect(owner).removeRelayerAuthority(relayer.address);
     expect(await bridge.isRelayerAuthority(relayer.address)).to.eq(false);
 
-    await expect(bridge.connect(stranger).addRelayerAuthority(relayer.address))
-      .to.be.revertedWith('Ownable: caller is not the owner');
+    await expect(
+      bridge.connect(stranger).addRelayerAuthority(relayer.address),
+    ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
   it('Should allow relayer authority to call receiveTokens', async () => {
-    const { bridge, relayer, tokenA, stranger } = await loadFixture(deployBridgeFixture);
+    const { bridge, relayer, tokenA, stranger } = await loadFixture(
+      deployBridgeFixture,
+    );
     const amount = parseUnits('1000', SP);
     const recipient = addressToBase32(stranger.address);
     const sourceChainId = 1;
@@ -110,15 +131,17 @@ describe('Bridge Relayer Authority', () => {
     await bridge.addRelayerAuthority(relayer.address);
 
     // Should succeed when called by relayer
-    await bridge.connect(relayer).receiveTokens(
-      amount,
-      recipient,
-      sourceChainId,
-      addressToBase32(tokenA.address),
-      nonce,
-      messenger,
-      0,
-    );
+    await bridge
+      .connect(relayer)
+      .receiveTokens(
+        amount,
+        recipient,
+        sourceChainId,
+        addressToBase32(tokenA.address),
+        nonce,
+        messenger,
+        0,
+      );
   });
 
   it('Should allow recipient to call receiveTokens', async () => {
@@ -130,35 +153,40 @@ describe('Bridge Relayer Authority', () => {
     const messenger = 1; // Allbridge
 
     // Should succeed when called by alice (recipient)
-    await bridge.connect(stranger).receiveTokens(
-      amount,
-      recipient,
-      sourceChainId,
-      addressToBase32(tokenA.address),
-      nonce,
-      messenger,
-      0,
-    );
+    await bridge
+      .connect(stranger)
+      .receiveTokens(
+        amount,
+        recipient,
+        sourceChainId,
+        addressToBase32(tokenA.address),
+        nonce,
+        messenger,
+        0,
+      );
   });
 
   it('Should NOT allow stranger to call receiveTokens', async () => {
-    const { bridge, stranger, owner} = await loadFixture(deployBridgeFixture);
+    const { bridge, stranger, owner } = await loadFixture(deployBridgeFixture);
     const amount = parseUnits('1000', SP);
     const recipient = addressToBase32(owner.address);
     const sourceChainId = 1;
     const nonce = 1;
     const messenger = 1; // Allbridge
 
-
     // Should fail when called by stranger
-    await expect(bridge.connect(stranger).receiveTokens(
-      amount,
-      recipient,
-      sourceChainId,
-      addressToBase32(owner.address),
-      nonce,
-      messenger,
-      0,
-    )).to.be.revertedWith('Bridge: not authorized');
+    await expect(
+      bridge
+        .connect(stranger)
+        .receiveTokens(
+          amount,
+          recipient,
+          sourceChainId,
+          addressToBase32(owner.address),
+          nonce,
+          messenger,
+          0,
+        ),
+    ).to.be.revertedWith('Bridge: not authorized');
   });
 });
