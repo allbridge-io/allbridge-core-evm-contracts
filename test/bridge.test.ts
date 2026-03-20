@@ -80,6 +80,7 @@ describe('Bridge', () => {
     await bridge.setGasUsage(2, '1000');
     await bridge.registerBridge(2, addressToBase32(bridge.address));
     await bridge.registerBridge(1, addressToBase32(bridge.address));
+    await bridge.addRelayerAuthority(alice);
 
     token = (await tokenContractFactory.deploy(
       'A',
@@ -426,7 +427,7 @@ describe('Bridge', () => {
               0,
               { value: '15000' },
             ),
-          ).revertedWith('Bridge: bridge to the zero address');
+          ).revertedWith('Bridge: zero recipient address');
         });
 
         describe('pay bridging fee with stables', () => {
@@ -542,7 +543,7 @@ describe('Bridge', () => {
           );
 
           const hash =
-            '0x02013545a39f227b92c344868aaa8b45067f36bee66c893454e5020d3edfd870';
+            '0x02016e98fcba0a907b2165b4e90df332c98258aa06dd042d7d2608d3d9493c10';
 
           await expect(response)
             .emit(bridge, 'TokensReceived')
@@ -949,6 +950,20 @@ describe('Bridge', () => {
           });
         });
 
+        describe('stopLocalSwap', () => {
+          it('Success: should stop local swap', async () => {
+            await bridge.stopLocalSwap();
+
+            expect(await bridge.canLocalSwap()).eq(0);
+          });
+
+          it('Failure: should revert when the caller is not the owner', async () => {
+            await expect(bridge.connect(user).stopLocalSwap()).revertedWith(
+              'Ownable: caller is not the owner',
+            );
+          });
+        });
+
         describe('when swap is stopped', () => {
           beforeEach(async () => {
             await bridge.stopSwap();
@@ -997,7 +1012,7 @@ describe('Bridge', () => {
             ).revertedWith('Router: swap prohibited');
           });
 
-          it('Failure: receiveTokens should revert', async () => {
+          it('Failure: swap should revert', async () => {
             await testMessenger.setIsHasMessage(true);
             await expect(
               bridge.swap(
@@ -1007,7 +1022,84 @@ describe('Bridge', () => {
                 bob,
                 0,
               ),
-            ).revertedWith('Router: swap prohibited');
+            ).revertedWith('Router: local swap prohibited');
+          });
+
+          it('Failure: swap should revert when stopSwap or stopLocalSwap is called', async () => {
+            await bridge.startSwap();
+            await bridge.stopLocalSwap();
+            await expect(
+              bridge.swap(
+                parseUnits('1', tokenPrecision),
+                addressToBase32(token.address),
+                addressToBase32(token.address),
+                bob,
+                0,
+              ),
+            ).revertedWith('Router: local swap prohibited');
+
+            await bridge.startLocalSwap();
+            await bridge.stopSwap();
+            await expect(
+              bridge.swap(
+                parseUnits('1', tokenPrecision),
+                addressToBase32(token.address),
+                addressToBase32(token.address),
+                bob,
+                0,
+              ),
+            ).revertedWith('Router: local swap prohibited');
+
+            await bridge.startSwap();
+            await expect(
+              bridge.swap(
+                parseUnits('1', tokenPrecision),
+                addressToBase32(token.address),
+                addressToBase32(token.address),
+                bob,
+                0,
+              ),
+            ).to.not.be.reverted;
+          });
+        });
+
+        describe('when local swap is stopped', () => {
+          beforeEach(async () => {
+            await bridge.stopLocalSwap();
+          });
+
+          it('Failure: swap should revert', async () => {
+            await expect(
+              bridge.swap(
+                parseUnits('1', tokenPrecision),
+                addressToBase32(token.address),
+                addressToBase32(token.address),
+                bob,
+                0,
+              ),
+            ).revertedWith('Router: local swap prohibited');
+          });
+
+          it('Success: swapAndBridge should not revert', async () => {
+            const recipient = addressToBase32(alice);
+            const destinationChainId = 2;
+            const nonce = 1;
+            const messenger = 1;
+            const amount = parseUnits('1000', tokenPrecision);
+
+            await expect(
+              bridge.swapAndBridge(
+                addressToBase32(token.address),
+                amount,
+                recipient,
+                destinationChainId,
+                addressToBase32(token.address),
+                nonce,
+                messenger,
+                0,
+                { value: '11000' },
+              ),
+            ).to.not.be.reverted;
           });
         });
 

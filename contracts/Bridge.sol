@@ -27,6 +27,7 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
     mapping(uint chainId => bytes32 bridgeAddress) public override otherBridges;
     // Info about tokens on other chains
     mapping(uint chainId => mapping(bytes32 tokenAddress => bool isSupported)) public override otherBridgeTokens;
+    mapping(address authority => bool isAuthorized) public isRelayerAuthority;
 
     /**
      * @dev Emitted when tokens are sent on the source blockchain.
@@ -101,7 +102,7 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         uint feeTokenAmount
     ) external payable override whenCanSwap {
         require(amount > feeTokenAmount, "Bridge: amount too low for fee");
-        require(recipient != 0, "Bridge: bridge to the zero address");
+        require(recipient != 0, "Bridge: zero recipient address");
         uint bridgingFee = msg.value + _convertBridgingFeeInTokensToNativeToken(msg.sender, token, feeTokenAmount);
         uint amountAfterFee = amount - feeTokenAmount;
 
@@ -130,7 +131,13 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         MessengerProtocol messenger,
         uint receiveAmountMin
     ) external payable override whenCanSwap {
+        require(
+            isRelayerAuthority[msg.sender] || msg.sender == address(uint160(uint(recipient))),
+            "Bridge: not authorized"
+        );
+
         require(otherBridges[sourceChainId] != bytes32(0), "Bridge: source not registered");
+
         bytes32 messageWithSender = this
             .hashMessage(amount, recipient, sourceChainId, chainId, receiveToken, nonce, messenger)
             .hashWithSender(otherBridges[sourceChainId]);
@@ -185,6 +192,22 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
      */
     function removeBridgeToken(uint chainId_, bytes32 tokenAddress) external override onlyOwner {
         otherBridgeTokens[chainId_][tokenAddress] = false;
+    }
+
+    /**
+     * @notice Allows the admin to add a new relayer authority.
+     * @param authority The address of the relayer authority.
+     */
+    function addRelayerAuthority(address authority) external onlyOwner {
+        isRelayerAuthority[authority] = true;
+    }
+
+    /**
+     * @notice Allows the admin to remove a relayer authority.
+     * @param authority The address of the relayer authority.
+     */
+    function removeRelayerAuthority(address authority) external onlyOwner {
+        isRelayerAuthority[authority] = false;
     }
 
     /**

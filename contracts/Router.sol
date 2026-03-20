@@ -31,6 +31,7 @@ abstract contract Router is Ownable, IRouter {
      */
     address private rebalancer;
     uint8 public override canSwap = 1;
+    uint8 public override canLocalSwap = 1;
 
     /**
      * @dev Emitted during the on-chain swap of tokens.
@@ -58,6 +59,14 @@ abstract contract Router is Ownable, IRouter {
     }
 
     /**
+     * @dev Modifier to make a function callable only when the local swap is allowed.
+     */
+    modifier whenCanLocalSwap() {
+        require(canSwap == 1 && canLocalSwap == 1, "Router: local swap prohibited");
+        _;
+    }
+
+    /**
      * @dev Throws if called by any account other than the stopAuthority.
      */
     modifier onlyStopAuthority() {
@@ -79,7 +88,7 @@ abstract contract Router is Ownable, IRouter {
         bytes32 receiveToken,
         address recipient,
         uint receiveAmountMin
-    ) external override whenCanSwap {
+    ) external override whenCanLocalSwap {
         uint vUsdAmount = _sendAndSwapToVUsd(token, msg.sender, amount);
         uint receivedAmount = _receiveAndSwapFromVUsd(receiveToken, recipient, vUsdAmount, receiveAmountMin);
         emit Swapped(msg.sender, recipient, token, receiveToken, amount, receivedAmount);
@@ -111,6 +120,20 @@ abstract contract Router is Ownable, IRouter {
      */
     function startSwap() external onlyOwner {
         canSwap = 1;
+    }
+
+    /**
+     * @dev Switches off the possibility to make local swaps.
+     */
+    function stopLocalSwap() external onlyOwner {
+        canLocalSwap = 0;
+    }
+
+    /**
+     * @dev Switches on the possibility to make local swaps.
+     */
+    function startLocalSwap() external onlyOwner {
+        canLocalSwap = 1;
     }
 
     /**

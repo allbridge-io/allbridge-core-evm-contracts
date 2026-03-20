@@ -40,6 +40,10 @@ contract TestBridgeForSwap is IBridge, Router {
 
     function withdrawGasTokens(uint amount) external override onlyOwner {}
 
+    function addRelayerAuthority(address authority) external override onlyOwner {}
+
+    function removeRelayerAuthority(address authority) external override onlyOwner {}
+
     function registerBridge(uint chainId_, bytes32 bridgeAddress_) external override onlyOwner {}
 
     function addBridgeToken(uint chainId_, bytes32 tokenAddress_) external override onlyOwner {}
