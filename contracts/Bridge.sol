@@ -102,7 +102,7 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         uint feeTokenAmount
     ) external payable override whenCanSwap {
         require(amount > feeTokenAmount, "Bridge: amount too low for fee");
-        require(recipient != 0, "Bridge: bridge to the zero address");
+        require(recipient != 0, "Bridge: zero recipient address");
         uint bridgingFee = msg.value + _convertBridgingFeeInTokensToNativeToken(msg.sender, token, feeTokenAmount);
         uint amountAfterFee = amount - feeTokenAmount;
 
@@ -136,11 +136,11 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
             "Bridge: not authorized"
         );
 
+        require(otherBridges[sourceChainId] != bytes32(0), "Bridge: source not registered");
+
         bytes32 messageWithSender = this
             .hashMessage(amount, recipient, sourceChainId, chainId, receiveToken, nonce, messenger)
             .hashWithSender(otherBridges[sourceChainId]);
-
-        require(otherBridges[sourceChainId] != bytes32(0), "Bridge: source not registered");
 
         require(processedMessages[messageWithSender] == 0, "Bridge: message processed");
         // mark the transfer as received on the destination chain

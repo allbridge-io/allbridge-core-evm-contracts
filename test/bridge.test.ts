@@ -427,7 +427,7 @@ describe('Bridge', () => {
               0,
               { value: '15000' },
             ),
-          ).revertedWith('Bridge: bridge to the zero address');
+          ).revertedWith('Bridge: zero recipient address');
         });
 
         describe('pay bridging fee with stables', () => {
