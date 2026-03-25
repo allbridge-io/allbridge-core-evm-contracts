@@ -24,7 +24,7 @@ contract XReserveBridge is Ownable {
     /**
      * @notice Emitted when tokens are sent on the source blockchain.
      */
-    event TokensSent(
+    event XReserveTokensSent(
         address sender,
         bytes32 recipient,
         uint amount,
@@ -32,8 +32,6 @@ contract XReserveBridge is Ownable {
         uint adminFeeTokenAmount,
         uint maxFee
     );
-
-    event TokensSentExtras(bytes32 recipientWalletAddress);
 
     constructor(
         uint chainId_,
@@ -79,29 +77,14 @@ contract XReserveBridge is Ownable {
             maxFee,
             ""
         );
-        emit TokensSent(
+        emit XReserveTokensSent(
             msg.sender,
             recipient,
-            amountToSend,
+            amount,
             destinationChainId,
             adminFee,
             maxFee
         );
-    }
-
-    /**
-     * @notice Public method to initiate a bridging process. Used for recipients with different wallet address (Solana).
-     * @param recipientWalletAddress The recipient wallet address.
-     **/
-    function bridgeWithWalletAddress(
-        uint amount,
-        bytes32 recipient,
-        bytes32 recipientWalletAddress,
-        uint destinationChainId
-    ) external {
-        bridge(amount, recipient, destinationChainId);
-
-        emit TokensSentExtras(recipientWalletAddress);
     }
 
     /**
