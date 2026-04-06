@@ -37,7 +37,9 @@
     "Omnichain",
     "Initializable",
     "Unichain",
-    "Linea"
+    "Linea",
+    "Unregistering",
+    "xreserve"
   ],
   "flagWords": [],
   "ignorePaths": [

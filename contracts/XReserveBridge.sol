@@ -33,11 +33,7 @@ contract XReserveBridge is Ownable {
         uint maxFee
     );
 
-    constructor(
-        uint chainId_,
-        address tokenAddress,
-        address xReserve_
-    ) {
+    constructor(uint chainId_, address tokenAddress, address xReserve_) {
         chainId = chainId_;
         token = IERC20Metadata(tokenAddress);
         xReserve = IXReserve(xReserve_);
@@ -50,11 +46,7 @@ contract XReserveBridge is Ownable {
      * @param recipient The recipient address.
      * @param destinationChainId The ID of the destination chain.
      */
-    function bridge(
-        uint amount,
-        bytes32 recipient,
-        uint destinationChainId
-    ) public {
+    function bridge(uint amount, bytes32 recipient, uint destinationChainId) public {
         require(amount > 0, "XRB: Amount must be greater than zero");
         require(recipient != 0, "XRB: Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -69,22 +61,8 @@ contract XReserveBridge is Ownable {
         }
         uint32 destinationDomain = getDomainByChainId(destinationChainId);
         uint maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
-        xReserve.depositToRemote(
-            amountToSend,
-            destinationDomain,
-            recipient,
-            address(token),
-            maxFee,
-            ""
-        );
-        emit XReserveTokensSent(
-            msg.sender,
-            recipient,
-            amount,
-            destinationChainId,
-            adminFee,
-            maxFee
-        );
+        xReserve.depositToRemote(amountToSend, destinationDomain, recipient, address(token), maxFee, "");
+        emit XReserveTokensSent(msg.sender, recipient, amount, destinationChainId, adminFee, maxFee);
     }
 
     /**

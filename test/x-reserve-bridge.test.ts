@@ -49,7 +49,9 @@ describe('XReserveBridge', () => {
     });
 
     it('should approve xReserve to spend tokens', async () => {
-      expect(await token.allowance(bridge.address, mockedXReserve.address)).to.equal(ethers.constants.MaxUint256);
+      expect(
+        await token.allowance(bridge.address, mockedXReserve.address),
+      ).to.equal(ethers.constants.MaxUint256);
     });
   });
 
@@ -61,7 +63,9 @@ describe('XReserveBridge', () => {
       amount = parseUnits('100', tokenPrecision);
       recipient = ethers.utils.hexZeroPad(user.address, 32).toLowerCase();
       await token.transfer(user.address, amount.mul(2));
-      await token.connect(user).approve(bridge.address, ethers.constants.MaxUint256);
+      await token
+        .connect(user)
+        .approve(bridge.address, ethers.constants.MaxUint256);
     });
 
     it('should bridge tokens without admin fee', async () => {
@@ -69,7 +73,14 @@ describe('XReserveBridge', () => {
 
       await expect(bridge.connect(user).bridge(amount, recipient, otherChainId))
         .to.emit(bridge, 'XReserveTokensSent')
-        .withArgs(user.address, recipient, amount, otherChainId, 0, expectedMaxFee);
+        .withArgs(
+          user.address,
+          recipient,
+          amount,
+          otherChainId,
+          0,
+          expectedMaxFee,
+        );
 
       expect(mockedXReserve.depositToRemote).to.have.been.calledWith(
         amount,
@@ -77,7 +88,7 @@ describe('XReserveBridge', () => {
         recipient.toLowerCase(),
         token.address,
         expectedMaxFee,
-        '0x'
+        '0x',
       );
     });
 
@@ -91,7 +102,14 @@ describe('XReserveBridge', () => {
 
       await expect(bridge.connect(user).bridge(amount, recipient, otherChainId))
         .to.emit(bridge, 'XReserveTokensSent')
-        .withArgs(user.address, recipient, amount, otherChainId, adminFee, expectedMaxFee);
+        .withArgs(
+          user.address,
+          recipient,
+          amount,
+          otherChainId,
+          adminFee,
+          expectedMaxFee,
+        );
 
       expect(mockedXReserve.depositToRemote).to.have.been.calledWith(
         amountToSend,
@@ -99,7 +117,7 @@ describe('XReserveBridge', () => {
         recipient.toLowerCase(),
         token.address,
         expectedMaxFee,
-        '0x'
+        '0x',
       );
     });
 
@@ -111,9 +129,18 @@ describe('XReserveBridge', () => {
       const adminFee = 1; // (100 * 1) / 10000 = 0.01 -> should be 1
       const expectedMaxFee = 1;
 
-      await expect(bridge.connect(user).bridge(tinyAmount, recipient, otherChainId))
+      await expect(
+        bridge.connect(user).bridge(tinyAmount, recipient, otherChainId),
+      )
         .to.emit(bridge, 'XReserveTokensSent')
-        .withArgs(user.address, recipient, tinyAmount, otherChainId, adminFee, expectedMaxFee);
+        .withArgs(
+          user.address,
+          recipient,
+          tinyAmount,
+          otherChainId,
+          adminFee,
+          expectedMaxFee,
+        );
     });
 
     it('should bridge tokens with max fee share', async () => {
@@ -124,7 +151,14 @@ describe('XReserveBridge', () => {
 
       await expect(bridge.connect(user).bridge(amount, recipient, otherChainId))
         .to.emit(bridge, 'XReserveTokensSent')
-        .withArgs(user.address, recipient, amount, otherChainId, 0, expectedMaxFee);
+        .withArgs(
+          user.address,
+          recipient,
+          amount,
+          otherChainId,
+          0,
+          expectedMaxFee,
+        );
 
       expect(mockedXReserve.depositToRemote).to.have.been.calledWith(
         amount,
@@ -132,24 +166,29 @@ describe('XReserveBridge', () => {
         recipient.toLowerCase(),
         token.address,
         expectedMaxFee,
-        '0x'
+        '0x',
       );
     });
 
     it('should revert if amount is zero', async () => {
-      await expect(bridge.connect(user).bridge(0, recipient, otherChainId))
-        .to.be.revertedWith('XRB: Amount must be greater than zero');
+      await expect(
+        bridge.connect(user).bridge(0, recipient, otherChainId),
+      ).to.be.revertedWith('XRB: Amount must be greater than zero');
     });
 
     it('should revert if recipient is zero', async () => {
-      await expect(bridge.connect(user).bridge(amount, ethers.constants.HashZero, otherChainId))
-        .to.be.revertedWith('XRB: Recipient must be nonzero');
+      await expect(
+        bridge
+          .connect(user)
+          .bridge(amount, ethers.constants.HashZero, otherChainId),
+      ).to.be.revertedWith('XRB: Recipient must be nonzero');
     });
 
     it('should revert if chainId is unknown', async () => {
       const unknownChainId = 999;
-      await expect(bridge.connect(user).bridge(amount, recipient, unknownChainId))
-        .to.be.revertedWith('XRB: Unknown chain id');
+      await expect(
+        bridge.connect(user).bridge(amount, recipient, unknownChainId),
+      ).to.be.revertedWith('XRB: Unknown chain id');
     });
   });
 
@@ -162,7 +201,9 @@ describe('XReserveBridge', () => {
       expect(await bridge.getDomainByChainId(newChainId)).to.equal(newDomain);
 
       await bridge.unregisterBridgeDestination(newChainId);
-      await expect(bridge.getDomainByChainId(newChainId)).to.be.revertedWith('XRB: Unknown chain id');
+      await expect(bridge.getDomainByChainId(newChainId)).to.be.revertedWith(
+        'XRB: Unknown chain id',
+      );
     });
 
     it('should set admin fee share', async () => {
@@ -170,7 +211,9 @@ describe('XReserveBridge', () => {
       await bridge.setAdminFeeShare(newFeeShare);
       expect(await bridge.adminFeeShareBP()).to.equal(newFeeShare);
 
-      await expect(bridge.setAdminFeeShare(10001)).to.be.revertedWith('XRB: Too high');
+      await expect(bridge.setAdminFeeShare(10001)).to.be.revertedWith(
+        'XRB: Too high',
+      );
     });
 
     it('should set max fee share', async () => {
@@ -178,7 +221,9 @@ describe('XReserveBridge', () => {
       await bridge.setMaxFeeShare(newMaxFeeShare);
       expect(await bridge.maxFeeShare()).to.equal(newMaxFeeShare);
 
-      await expect(bridge.setMaxFeeShare(1e9 + 1)).to.be.revertedWith('XRB: Too high');
+      await expect(bridge.setMaxFeeShare(1e9 + 1)).to.be.revertedWith(
+        'XRB: Too high',
+      );
     });
 
     it('should withdraw fee in tokens', async () => {
@@ -194,18 +239,28 @@ describe('XReserveBridge', () => {
     });
 
     it('should not withdraw if balance is zero', async () => {
-        const initialOwnerBalance = await token.balanceOf(owner.address);
-        await bridge.withdrawFeeInTokens();
-        const finalOwnerBalance = await token.balanceOf(owner.address);
-        expect(finalOwnerBalance).to.equal(initialOwnerBalance);
+      const initialOwnerBalance = await token.balanceOf(owner.address);
+      await bridge.withdrawFeeInTokens();
+      const finalOwnerBalance = await token.balanceOf(owner.address);
+      expect(finalOwnerBalance).to.equal(initialOwnerBalance);
     });
 
     it('should restrict admin functions to owner', async () => {
-      await expect(bridge.connect(user).registerBridgeDestination(3, 300)).to.be.revertedWith('Ownable: caller is not the owner');
-      await expect(bridge.connect(user).unregisterBridgeDestination(otherChainId)).to.be.revertedWith('Ownable: caller is not the owner');
-      await expect(bridge.connect(user).setAdminFeeShare(100)).to.be.revertedWith('Ownable: caller is not the owner');
-      await expect(bridge.connect(user).setMaxFeeShare(100)).to.be.revertedWith('Ownable: caller is not the owner');
-      await expect(bridge.connect(user).withdrawFeeInTokens()).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(
+        bridge.connect(user).registerBridgeDestination(3, 300),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(
+        bridge.connect(user).unregisterBridgeDestination(otherChainId),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(
+        bridge.connect(user).setAdminFeeShare(100),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(bridge.connect(user).setMaxFeeShare(100)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
+      await expect(
+        bridge.connect(user).withdrawFeeInTokens(),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
     });
   });
 
@@ -216,8 +271,8 @@ describe('XReserveBridge', () => {
     });
 
     it('should revert on receive', async () => {
-      await expect(user.sendTransaction({ to: bridge.address, value: 1 }))
-        .to.be.reverted;
+      await expect(user.sendTransaction({ to: bridge.address, value: 1 })).to.be
+        .reverted;
     });
   });
 });
