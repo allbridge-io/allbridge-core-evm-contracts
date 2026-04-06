@@ -30,6 +30,8 @@ contract CctpV2Bridge is GasUsage {
     uint private immutable fromGasOracleScalingFactor;
 
     mapping(uint chainId => uint domainNumber) private chainIdDomainMap;
+    // Info about CCTP bridges on other chains
+    mapping(uint chainId => bytes32 cctpBridgeAddress) public otherBridges;
 
     /**
      * @notice Emitted when the contract receives some gas directly.
@@ -123,7 +125,7 @@ contract CctpV2Bridge is GasUsage {
             destinationDomain,
             recipient,
             address(token),
-            bytes32(0),
+            otherBridges[destinationChainId],
             maxFee,
             minFinalityThreshold
         );
@@ -187,9 +189,11 @@ contract CctpV2Bridge is GasUsage {
      * @notice Allows the admin to add new supported chain destination.
      * @param chainId_ The chain ID of the destination to register.
      * @param domain The domain of the destination to register.
+     * @param cctpBridgeAddress The address of the CCTPv2 bridge contract to register.
      */
-    function registerBridgeDestination(uint chainId_, uint32 domain) external onlyOwner {
+    function registerBridgeDestination(uint chainId_, uint32 domain, bytes32 cctpBridgeAddress) external onlyOwner {
         chainIdDomainMap[chainId_] = domain + 1;
+        otherBridges[chainId_] = cctpBridgeAddress;
     }
 
     /**

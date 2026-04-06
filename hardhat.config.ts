@@ -45,12 +45,12 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    goerli: baseNetwork,
-    mumbai: baseNetwork,
+    amoy: baseNetwork,
     sepolia: baseNetwork,
-    holesky: baseNetwork,
     bsc: baseNetwork,
     base: baseNetwork,
+    arbitrumSepolia: baseNetwork,
+    fuji: baseNetwork,
     arbitrumSepolia: baseNetwork,
   },
   gasReporter: {
@@ -71,6 +71,7 @@ const config: HardhatUserConfig = {
         ':Messenger$',
         ':WormholeMessenger$',
         ':CctpBridge$',
+        ':CctpV2Bridge$',
         ':AutoDepositFactory$',
         ':AutoDepositWallet$',
         ':PayerWithAbr$',
