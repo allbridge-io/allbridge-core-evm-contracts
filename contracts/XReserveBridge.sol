@@ -47,7 +47,7 @@ contract XReserveBridge is Ownable {
      * @param destinationChainId The ID of the destination chain.
      */
     function bridge(uint amount, bytes32 recipient, uint destinationChainId) public {
-        require(amount > 0, "XRB: Amount must be greater than zero");
+        require(amount > 0, "XRB: amount == 0");
         require(recipient != 0, "XRB: Recipient must be nonzero");
         token.safeTransferFrom(msg.sender, address(this), amount);
         uint amountToSend = amount;
@@ -119,6 +119,6 @@ contract XReserveBridge is Ownable {
     }
 
     receive() external payable {
-        revert("Direct native token deposits not supported");
+        revert("Not supported");
     }
 }

@@ -173,7 +173,7 @@ describe('XReserveBridge', () => {
     it('should revert if amount is zero', async () => {
       await expect(
         bridge.connect(user).bridge(0, recipient, otherChainId),
-      ).to.be.revertedWith('XRB: Amount must be greater than zero');
+      ).to.be.revertedWith('XRB: amount == 0');
     });
 
     it('should revert if recipient is zero', async () => {
