@@ -80,6 +80,9 @@ dependencies:
     version: 1.10.4
 
 devDependencies:
+  '@defi-wonderland/smock':
+    specifier: ^2.3.5
+    version: 2.4.1(@ethersproject/abi@5.7.0)(@ethersproject/abstract-provider@5.7.0)(@ethersproject/abstract-signer@5.7.0)(@nomiclabs/hardhat-ethers@2.2.3)(ethers@5.7.2)(hardhat@2.14.0)
   '@ethersproject/abi':
     specifier: ^5.7.0
     version: 5.7.0
@@ -640,6 +643,33 @@ packages:
     engines: {node: '>=12'}
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    dev: true
+
+  /@defi-wonderland/smock@2.4.1(@ethersproject/abi@5.7.0)(@ethersproject/abstract-provider@5.7.0)(@ethersproject/abstract-signer@5.7.0)(@nomiclabs/hardhat-ethers@2.2.3)(ethers@5.7.2)(hardhat@2.14.0):
+    resolution: {integrity: sha512-SvWg0joZppEWEB1XopkJazH1+whLw48KgwYLblml0Y7meJLK+J33uuPNtEsmAwgXWCCt6CouK2fXtSEDz2zKVw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+    peerDependencies:
+      '@ethersproject/abi': ^5
+      '@ethersproject/abstract-provider': ^5
+      '@ethersproject/abstract-signer': ^5
+      '@nomiclabs/hardhat-ethers': ^2
+      ethers: ^5
+      hardhat: ^2.21.0
+    dependencies:
+      '@ethersproject/abi': 5.7.0
+      '@ethersproject/abstract-provider': 5.7.0
+      '@ethersproject/abstract-signer': 5.7.0
+      '@nomicfoundation/ethereumjs-util': 9.0.4
+      '@nomiclabs/hardhat-ethers': 2.2.3(ethers@5.7.2)(hardhat@2.14.0)
+      diff: 5.0.0
+      ethers: 5.7.2
+      hardhat: 2.14.0(ts-node@10.9.1)(typescript@5.0.4)
+      lodash.isequal: 4.5.0
+      lodash.isequalwith: 4.4.0
+      rxjs: 7.8.1
+      semver: 7.5.4
+    transitivePeerDependencies:
+      - c-kzg
     dev: true
 
   /@ensdomains/ens@0.4.5:
@@ -1479,6 +1509,12 @@ packages:
     hasBin: true
     dev: true
 
+  /@nomicfoundation/ethereumjs-rlp@5.0.4:
+    resolution: {integrity: sha512-8H1S3s8F6QueOc/X92SdrA4RDenpiAEqMg5vJH99kcQaCy/a3Q6fgseo75mgWlbanGJXSlAPtnCeG9jvfTYXlw==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dev: true
+
   /@nomicfoundation/ethereumjs-statemanager@2.0.1:
     resolution: {integrity: sha512-B5ApMOnlruVOR7gisBaYwFX+L/AP7i/2oAahatssjPIBVDF6wTX1K7Qpa39E/nzsH8iYuL3krkYeUFIdO3EMUQ==}
     dependencies:
@@ -1526,6 +1562,19 @@ packages:
     dependencies:
       '@chainsafe/ssz': 0.10.2
       '@nomicfoundation/ethereumjs-rlp': 5.0.1
+      ethereum-cryptography: 0.1.3
+    dev: true
+
+  /@nomicfoundation/ethereumjs-util@9.0.4:
+    resolution: {integrity: sha512-sLOzjnSrlx9Bb9EFNtHzK/FJFsfg2re6bsGqinFinH1gCqVfz9YYlXiMWwDM4C/L4ywuHFCYwfKTVr/QHQcU0Q==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      c-kzg: ^2.1.2
+    peerDependenciesMeta:
+      c-kzg:
+        optional: true
+    dependencies:
+      '@nomicfoundation/ethereumjs-rlp': 5.0.4
       ethereum-cryptography: 0.1.3
     dev: true
 
@@ -8153,6 +8202,15 @@ packages:
     resolution: {integrity: sha512-hFuH8TY+Yji7Eja3mGiuAxBqLagejScbG8GbG0j6o9vzn0YL14My+ktnqtZgFTosKymC9/44wP6s7xyuLfnClw==}
     dev: true
 
+  /lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+    dev: true
+
+  /lodash.isequalwith@4.4.0:
+    resolution: {integrity: sha512-dcZON0IalGBpRmJBmMkaoV7d3I80R2O+FrzsZyHdNSFrANq/cgDqKQNmAHE8UEj4+QYWwwhkQOVdLHiAopzlsQ==}
+    dev: true
+
   /lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
@@ -10013,7 +10071,6 @@ packages:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
     dependencies:
       tslib: 2.8.1
-    dev: false
 
   /safe-array-concat@1.0.0:
     resolution: {integrity: sha512-9dVEFruWIsnie89yym+xWTAYASdpw3CJV7Li/6zBewGf9z2i1j31rP6jnY0pHEO4QZh6N0K11bFjWmdR8UGdPQ==}
@@ -11238,7 +11295,6 @@ packages:
 
   /tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-    dev: false
 
   /tsort@0.0.1:
     resolution: {integrity: sha512-Tyrf5mxF8Ofs1tNoxA13lFeZ2Zrbd6cKbuH3V+MQ5sb6DtBj5FjrXVsRWT8YvNAQTqNoz66dz1WsbigI22aEnw==}
