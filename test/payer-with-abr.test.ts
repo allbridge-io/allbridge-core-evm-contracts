@@ -239,16 +239,17 @@ describe('PayerWithAbr', function () {
 
         it('Success: should charge ABR tokens', async function () {
           const abrAmount = parseUnits('1', abrTokenPrecision);
-          const response = await payer
-            .connect(alice)
-            .transferTokensAndCallTarget(
-              token.address,
-              amount,
-              abrAmount,
-              messengerProtocol,
-              params,
-            );
-          expect(response).to.changeTokenBalances(
+          await expect(() =>
+            payer
+              .connect(alice)
+              .transferTokensAndCallTarget(
+                token.address,
+                amount,
+                abrAmount,
+                messengerProtocol,
+                params,
+              ),
+          ).to.changeTokenBalances(
             abrToken,
             [alice, payer],
             ['-' + abrAmount.toString(), abrAmount.toString()],
@@ -387,16 +388,17 @@ describe('PayerWithAbr', function () {
 
         it('Success: should charge ABR tokens', async function () {
           const abrAmount = parseUnits('1', abrTokenPrecision);
-          const response = await payer
-            .connect(alice)
-            .transferTokensAndCallTarget(
-              token.address,
-              amount,
-              abrAmount,
-              messengerProtocol,
-              params,
-            );
-          expect(response).to.changeTokenBalances(
+          await expect(() =>
+            payer
+              .connect(alice)
+              .transferTokensAndCallTarget(
+                token.address,
+                amount,
+                abrAmount,
+                messengerProtocol,
+                params,
+              ),
+          ).to.changeTokenBalances(
             abrToken,
             [alice, payer],
             ['-' + abrAmount.toString(), abrAmount.toString()],
@@ -499,16 +501,17 @@ describe('PayerWithAbr', function () {
 
         it('Success: should charge ABR tokens', async function () {
           const abrAmount = parseUnits('1', abrTokenPrecision);
-          const response = await payer
-            .connect(alice)
-            .transferTokensAndCallTarget(
-              token.address,
-              amount,
-              abrAmount,
-              messengerProtocol,
-              params,
-            );
-          expect(response).to.changeTokenBalances(
+          await expect(() =>
+            payer
+              .connect(alice)
+              .transferTokensAndCallTarget(
+                token.address,
+                amount,
+                abrAmount,
+                messengerProtocol,
+                params,
+              ),
+          ).to.changeTokenBalances(
             abrToken,
             [alice, payer],
             ['-' + abrAmount.toString(), abrAmount.toString()],
@@ -676,10 +679,9 @@ describe('PayerWithAbr', function () {
           });
 
           it('Success: should withdraw gas', async () => {
-            await expect(await payer.withdrawGas(amount)).changeEtherBalances(
-              [owner, payer],
-              [amount, '-' + amount],
-            );
+            await expect(() =>
+              payer.withdrawGas(amount),
+            ).to.changeEtherBalances([owner, payer], [amount, '-' + amount]);
           });
 
           it('Failure: should revert when the caller is not the owner', async () => {
