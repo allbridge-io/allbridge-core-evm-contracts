@@ -19,9 +19,7 @@ export async function signMessage(
   validatorPK: string,
   message: string,
 ): Promise<string> {
-  // eslint-disable-next-line node/no-missing-require
   const hash = require('eth-lib/lib/hash').keccak256(message);
-  // eslint-disable-next-line node/no-missing-require
   return require('eth-lib/lib/account').sign(hash, validatorPK);
 }
 

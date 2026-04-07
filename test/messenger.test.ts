@@ -39,8 +39,6 @@ describe('Messenger', () => {
       GasOracleABI,
     );
 
-    mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
-
     const messengerContract = (await ethers.getContractFactory(
       'Messenger',
     )) as any;
@@ -54,6 +52,7 @@ describe('Messenger', () => {
   });
 
   it('Success: Send message', async () => {
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     const message = encodeMessage({
       sourceChainId: chainId,
       message: 'Test message',
@@ -68,6 +67,7 @@ describe('Messenger', () => {
   });
 
   it('Failure: Send message to unsupported chain', async () => {
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     const message = encodeMessage({
       sourceChainId: chainId,
       destinationChainId: 4,
@@ -94,6 +94,7 @@ describe('Messenger', () => {
   });
 
   it('Failure: Send message with wrong chain id', async () => {
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     const message = encodeMessage({
       sourceChainId: 2,
       message: 'Test message',
@@ -110,7 +111,9 @@ describe('Messenger', () => {
       message: 'Test message',
     });
 
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     await messenger.sendMessage(message);
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     await expect(messenger.sendMessage(message)).revertedWith(
       'Messenger: has message',
     );
@@ -135,6 +138,7 @@ describe('Messenger', () => {
   });
 
   it('Failure: Confirm message with wrong chain id', async () => {
+    await mockedGasOracle.mock.getTransactionGasCostInNativeToken.returns(0);
     const message = encodeMessage({
       destinationChainId: 2,
       message: 'Test message',

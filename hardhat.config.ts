@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
     sepolia: baseNetwork,
     bsc: baseNetwork,
     base: baseNetwork,
-    arbitrum: baseNetwork,
+    arbitrumSepolia: baseNetwork,
     fuji: baseNetwork,
     arbitrumSepolia: baseNetwork,
   },
