@@ -104,6 +104,13 @@ describe('GasOracle', () => {
         const rate3 = await gasOracle.crossRate(CHAIN_3);
         expect(rate3).eq(parseUnits('0.5', ORACLE_PRECISION));
       });
+
+      it('Failure: should revert when this chain native price is unset', async () => {
+        await gasOracle.setPrice(CHAIN_2, parseUnits('200', ORACLE_PRECISION));
+        await expect(gasOracle.crossRate(CHAIN_2)).revertedWith(
+          'GasOracle: unset native token price',
+        );
+      });
     });
 
     describe('price', () => {
@@ -150,6 +157,17 @@ describe('GasOracle', () => {
             CHAIN_PRECISION,
           ),
         );
+      });
+
+      it('Failure: should revert when this chain native price is unset', async () => {
+        await gasOracle.setChainData(
+          CHAIN_2,
+          parseUnits('0.1', ORACLE_PRECISION),
+          parseUnits(formatUnits(420, 6), ORACLE_PRECISION),
+        );
+        await expect(
+          gasOracle.getTransactionGasCostInNativeToken(CHAIN_2, 50000),
+        ).revertedWith('GasOracle: unset native token price');
       });
     });
 
