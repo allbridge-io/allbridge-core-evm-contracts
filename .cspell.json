@@ -39,7 +39,9 @@
     "Unichain",
     "Linea",
     "Unregistering",
-    "xreserve"
+    "xreserve",
+    "Linea",
+    "Devnet"
   ],
   "flagWords": [],
   "ignorePaths": [

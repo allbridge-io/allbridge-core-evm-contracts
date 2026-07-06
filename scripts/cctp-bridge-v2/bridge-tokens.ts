@@ -1,12 +1,18 @@
 import { ethers } from 'hardhat';
 import {
-  addressToBytes32, getEnv,
+  addressToBytes32,
+  getEnv,
   handleTransactionResult,
+  solanaAddressToBytes32,
 } from '../helper';
 import { parseEther, parseUnits } from 'ethers/lib/utils';
 
-const destinationChainId = 9;
-const totalTokens = '1.1';
+const recipient = addressToBytes32('0x0000000000000000000000000000000000000000');
+const recipientWalletAddressHex = undefined;
+// const recipientWalletAddressHex = solanaAddressToBytes32('');
+// const recipient = solanaAddressToBytes32(''); // recipient token account
+const destinationChainId = 4;
+const totalTokens = '1.0';
 const extraGas = parseEther('0.0');
 
 async function main() {
@@ -34,18 +40,32 @@ async function main() {
       await token.approve(CctpV2Bridge.address, ethers.constants.MaxUint256),
     );
   }
+  const recipientHex32 = recipient ?? addressToBytes32(signer.address);
   try {
-    const result = await CctpV2Bridge.bridge(
-      totalTokensAmount,
-      addressToBytes32(signer.address),
-      destinationChainId,
-      '0',
-      { value: bridgingFee.add(extraGas) },
-    );
-    await handleTransactionResult(result);
+    if (recipientWalletAddressHex) {
+      const result = await CctpV2Bridge.bridgeWithWalletAddress(
+        totalTokensAmount,
+        recipientHex32,
+        recipientWalletAddressHex,
+        destinationChainId,
+        '0',
+        { value: bridgingFee.add(extraGas) },
+      );
+      await handleTransactionResult(result);
+    } else {
+      const result = await CctpV2Bridge.bridge(
+        totalTokensAmount,
+        recipientHex32,
+        destinationChainId,
+        '0',
+        { value: bridgingFee.add(extraGas) },
+      );
+      await handleTransactionResult(result);
+    }
   } catch (e) {
     console.error('Error while bridging:', e);
   }
+
 }
 
 main().catch((error) => {

@@ -1,7 +1,8 @@
 import { ethers } from 'hardhat';
-import { addressToBytes32, getEnv, handleTransactionResult } from '../helper';
+import { addressToBytes32, getEnv, handleTransactionResult, solanaAddressToBytes32 } from '../helper';
 
 // https://developers.circle.com/cctp/references/contract-addresses
+// <networkName, [chainId, domain, otherCctpV2BridgeAddress]>
 const map = new Map<string, [number, number, string]>();
 // Testnet
 map.set("Ethereum Sepolia", [2, 0, addressToBytes32('0x7f4050016B486C132b6d42Eb6CF5F5a26EfF4067')]);
@@ -9,6 +10,10 @@ map.set("Avalanche Fuji", [9, 1, addressToBytes32('0xcBf2A4207E3dB74611Ed6Efc77e
 map.set("Arbitrum Sepolia", [6, 3, addressToBytes32('0x3f4253b8B302BebBfA57a07F00EbfF4025FC0132')]);
 // map.set("Base Sepolia", [11, 6]);
 map.set("Polygon PoS Amoy", [5, 7, addressToBytes32('0x3562bC426c7C0D24C56268919c8FC1CC8f95991C')]);
+/* cSpell:disable */
+const cctpV2BridgeAuthority = 'rucRLqMvNQnrPHcvbXW3hv64aN6CxJUaTBxFDFbSRY5';
+/* cSpell:enable */
+map.set("Solana Devnet", [4, 5, solanaAddressToBytes32(cctpV2BridgeAuthority)]);
 
 // Mainnet
 // map.set("Ethereum", [1, 0]);
