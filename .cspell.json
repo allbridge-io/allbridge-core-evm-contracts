@@ -37,7 +37,8 @@
     "Omnichain",
     "Initializable",
     "Unichain",
-    "Linea"
+    "Linea",
+    "Devnet"
   ],
   "flagWords": [],
   "ignorePaths": [

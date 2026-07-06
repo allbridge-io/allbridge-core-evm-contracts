@@ -10,7 +10,9 @@ map.set("Avalanche Fuji", [9, 1, addressToBytes32('0xcBf2A4207E3dB74611Ed6Efc77e
 map.set("Arbitrum Sepolia", [6, 3, addressToBytes32('0x3f4253b8B302BebBfA57a07F00EbfF4025FC0132')]);
 // map.set("Base Sepolia", [11, 6]);
 map.set("Polygon PoS Amoy", [5, 7, addressToBytes32('0x3562bC426c7C0D24C56268919c8FC1CC8f95991C')]);
+/* cSpell:disable */
 const cctpV2BridgeAuthority = 'rucRLqMvNQnrPHcvbXW3hv64aN6CxJUaTBxFDFbSRY5';
+/* cSpell:enable */
 map.set("Solana Devnet", [4, 5, solanaAddressToBytes32(cctpV2BridgeAuthority)]);
 
 // Mainnet
