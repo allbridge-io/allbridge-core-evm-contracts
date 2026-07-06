@@ -649,6 +649,6 @@ process.on('beforeExit', _printTxSummary);
 process.on('exit', _printTxSummary);
 process.on('SIGINT', () => {
   _printTxSummary();
-  // eslint-disable-next-line no-process-exit
+
   process.exit();
 });
