@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import {GasUsage} from "./GasUsage.sol";
+import {IGasOracle} from "./interfaces/IGasOracle.sol";
+import {IMessageTransmitter} from "./interfaces/cctp/IMessageTransmitter.sol";
+import {ITokenMessengerV2} from "./interfaces/cctp/ITokenMessengerV2.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IGasOracle} from "./interfaces/IGasOracle.sol";
-import {ITokenMessengerV2} from "./interfaces/cctp/ITokenMessengerV2.sol";
-import {IMessageTransmitter} from "./interfaces/cctp/IMessageTransmitter.sol";
-import {GasUsage} from "./GasUsage.sol";
 
 contract CctpV2Bridge is GasUsage {
     using SafeERC20 for IERC20Metadata;
@@ -62,6 +61,23 @@ contract CctpV2Bridge is GasUsage {
         uint receivedRelayerFeeTokenAmount,
         uint adminFeeTokenAmount,
         uint maxFee
+    );
+
+    /**
+     * @notice Emitted when tokens are sent with on the source blockchain with additional hook data.
+     */
+    event TokensSentWithHook(
+        address sender,
+        bytes32 recipient,
+        uint amount,
+        uint destinationChainId,
+        uint receivedRelayerFeeFromGas,
+        uint receivedRelayerFeeFromTokens,
+        uint relayerFee,
+        uint receivedRelayerFeeTokenAmount,
+        uint adminFeeTokenAmount,
+        uint maxFee,
+        bytes hookData
     );
 
     event TokensSentExtras(bytes32 recipientWalletAddress);
@@ -158,6 +174,63 @@ contract CctpV2Bridge is GasUsage {
         bridge(amount, recipient, destinationChainId, relayerFeeTokenAmount);
 
         emit TokensSentExtras(recipientWalletAddress);
+    }
+
+    /**
+     * @notice Initiates a CCTPv2 transfer with hook data.
+     * @param amount The amount of tokens to send (including `relayerFeeTokenAmount`).
+     * @param mintRecipient The destination mint recipient, usually the destination bridge/forwarder contract.
+     * @param destinationChainId The ID of the destination chain.
+     * @param relayerFeeTokenAmount The amount of tokens to be deducted from the transferred amount as a bridging fee.
+     * @param hookData Hook data to pass as is to CCTP messenger.
+     */
+    function bridgeWithHook(
+        uint amount,
+        bytes32 mintRecipient,
+        uint destinationChainId,
+        uint relayerFeeTokenAmount,
+        bytes calldata hookData
+    ) external payable {
+        require(amount > relayerFeeTokenAmount, "CCTP: Amount <= relayer fee");
+        require(mintRecipient != 0, "CCTP: Recipient must be nonzero");
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        uint gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
+        uint relayerFee = this.getTransactionCost(destinationChainId);
+        require(msg.value + gasFromStables >= relayerFee, "CCTP: Not enough fee");
+        uint amountToSend = amount - relayerFeeTokenAmount;
+        uint adminFee;
+        if (adminFeeShareBP != 0) {
+            adminFee = (amountToSend * adminFeeShareBP) / BP;
+            if (adminFee == 0) {
+                adminFee = 1;
+            }
+            amountToSend -= adminFee;
+        }
+        uint maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
+        uint32 destinationDomain = getDomainByChainId(destinationChainId);
+        cctpMessenger.depositForBurnWithHook(
+            amountToSend,
+            destinationDomain,
+            mintRecipient,
+            address(token),
+            otherBridges[destinationChainId],
+            maxFee,
+            minFinalityThreshold,
+            hookData
+        );
+        emit TokensSentWithHook(
+            msg.sender,
+            mintRecipient,
+            amountToSend,
+            destinationChainId,
+            msg.value,
+            gasFromStables,
+            relayerFee,
+            relayerFeeTokenAmount,
+            adminFee,
+            maxFee,
+            hookData
+        );
     }
 
     /**

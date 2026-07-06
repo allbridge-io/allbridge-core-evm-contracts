@@ -14,6 +14,17 @@ contract MockTokenMessengerV2 is ITokenMessengerV2 {
         uint32 minFinalityThreshold
     );
 
+    event DepositForBurnWithHookEvent(
+        uint256 amount,
+        uint32 destinationDomain,
+        bytes32 mintRecipient,
+        address burnToken,
+        bytes32 destinationCaller,
+        uint256 maxFee,
+        uint32 minFinalityThreshold,
+        bytes hookData
+    );
+
     function depositForBurn(
         uint256 amount,
         uint32 destinationDomain,
@@ -31,6 +42,28 @@ contract MockTokenMessengerV2 is ITokenMessengerV2 {
             destinationCaller,
             maxFee,
             minFinalityThreshold
+        );
+    }
+
+    function depositForBurnWithHook(
+        uint256 amount,
+        uint32 destinationDomain,
+        bytes32 mintRecipient,
+        address burnToken,
+        bytes32 destinationCaller,
+        uint256 maxFee,
+        uint32 minFinalityThreshold,
+        bytes calldata hookData
+    ) external {
+        emit DepositForBurnWithHookEvent(
+            amount,
+            destinationDomain,
+            mintRecipient,
+            burnToken,
+            destinationCaller,
+            maxFee,
+            minFinalityThreshold,
+            hookData
         );
     }
 }
