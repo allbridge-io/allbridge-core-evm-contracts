@@ -70,9 +70,11 @@ contract GasOracle is Ownable, IGasOracle {
         uint otherChainId,
         uint gasAmount
     ) external view override returns (uint) {
+        uint nativePrice = chainData[chainId].price;
+        require(nativePrice > 0, "GasOracle: unset native token price");
         return
             (chainData[otherChainId].gasPrice * gasAmount * chainData[otherChainId].price) /
-            chainData[chainId].price /
+            nativePrice /
             fromOracleToChainScalingFactor;
     }
 
@@ -91,7 +93,9 @@ contract GasOracle is Ownable, IGasOracle {
      * @param otherChainId The ID of the other chain to get the cross-rate for.
      */
     function crossRate(uint otherChainId) external view override returns (uint) {
-        return (chainData[otherChainId].price * ORACLE_SCALING_FACTOR) / chainData[chainId].price;
+        uint nativePrice = chainData[chainId].price;
+        require(nativePrice > 0, "GasOracle: unset native token price");
+        return (chainData[otherChainId].price * ORACLE_SCALING_FACTOR) / nativePrice;
     }
 
     /**

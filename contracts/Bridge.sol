@@ -304,7 +304,9 @@ contract Bridge is GasUsage, Router, MessengerGateway, IBridge {
         IERC20 token = IERC20(tokenAddress_);
         token.safeTransferFrom(user, address(this), feeTokenAmount);
 
-        uint fee = (bridgingFeeConversionScalingFactor[tokenAddress_] * feeTokenAmount) / gasOracle.price(chainId);
+        uint nativePrice = gasOracle.price(chainId);
+        require(nativePrice > 0, "Bridge: unset native token price");
+        uint fee = (bridgingFeeConversionScalingFactor[tokenAddress_] * feeTokenAmount) / nativePrice;
 
         emit BridgingFeeFromTokens(fee);
         return fee;

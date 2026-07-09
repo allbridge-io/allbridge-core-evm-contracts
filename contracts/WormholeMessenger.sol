@@ -44,6 +44,8 @@ contract WormholeMessenger is Ownable, GasUsage {
         require(otherChainIds[uint8(message[1])] != 0, "Messenger: wrong destination");
         bytes32 messageWithSender = message.hashWithSenderAddress(msg.sender);
 
+        require(sentMessages[messageWithSender] == 0, "WormholeMessenger: has message");
+
         uint32 nonce_ = nonce;
 
         uint256 wormholeFee = wormhole.messageFee();
@@ -57,7 +59,6 @@ contract WormholeMessenger is Ownable, GasUsage {
             nonce = nonce_ + 1;
         }
 
-        require(sentMessages[messageWithSender] == 0, "WormholeMessenger: has message");
         sentMessages[messageWithSender] = 1;
 
         emit MessageSent(messageWithSender, sequence);
