@@ -13,7 +13,10 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { Big } from 'big.js';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import { sorobanAddressToBytes32 } from '../scripts/helper';
+import {
+  sorobanAddressToBytes32,
+  getCctpToStellarHookData,
+} from '../scripts/helper';
 
 const CURRENT_CHAIN_ID = 1;
 const OTHER_CHAIN_ID = 2;
@@ -299,7 +302,8 @@ describe('CctpV2Bridge', () => {
     it('Success with hook: should pass raw destination address as hook data', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
       const relayerFeeTokenAmount = '0';
-      const destinationBridgeAddress = 'CDZZZTN6RXOWY2WDJV2GLFAV76YKAIRFPNB4EABMFAVJQ5DCZIAE4DYA';
+      const destinationBridgeAddress =
+        'CDZZZTN6RXOWY2WDJV2GLFAV76YKAIRFPNB4EABMFAVJQ5DCZIAE4DYA';
       const mintRecipient = sorobanAddressToBytes32(destinationBridgeAddress);
       const hookData =
         '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -741,5 +745,17 @@ describe('CctpV2Bridge', () => {
         ).revertedWith('Ownable: caller is not the owner');
       });
     });
+  });
+});
+
+describe('getCctpToStellarHookData', () => {
+  it('encodes the Stellar recipient length and address bytes', () => {
+    expect(
+      getCctpToStellarHookData(
+        'GAO3KTIUR3F6NN7WSBC5M7X2BWKRYD7VC7PP3G2NKEYEDPKHDIBAXQT6',
+      ),
+    ).to.equal(
+      '0x0000003847414f334b544955523346364e4e3757534243354d37583242574b5259443756433750503347324e4b45594544504b484449424158515436',
+    );
   });
 });
