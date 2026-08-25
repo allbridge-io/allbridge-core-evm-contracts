@@ -15,6 +15,9 @@ contract CctpV2Bridge is GasUsage {
     uint internal constant BP = 1e4;
     uint internal constant MAX_FEE_SHARE_P = 1e9;
     uint32 public minFinalityThreshold = 1000;
+    // Destination chain ID used by `bridgeToStellar`; zero means bridging to Stellar is disabled.
+    // Packed into one storage slot with `minFinalityThreshold` to keep reads cheap in the bridging flow.
+    uint64 public stellarChainId;
 
     uint public immutable chainId;
     // Admin fee share (in basis points)
@@ -64,21 +67,9 @@ contract CctpV2Bridge is GasUsage {
     );
 
     /**
-     * @notice Emitted when tokens are sent with on the source blockchain with additional hook data.
+     * @notice Emitted along with `TokensSent` when tokens are sent to Stellar with additional hook data.
      */
-    event TokensSentWithHook(
-        address sender,
-        bytes32 recipient,
-        uint amount,
-        uint destinationChainId,
-        uint receivedRelayerFeeFromGas,
-        uint receivedRelayerFeeFromTokens,
-        uint relayerFee,
-        uint receivedRelayerFeeTokenAmount,
-        uint adminFeeTokenAmount,
-        uint maxFee,
-        bytes hookData
-    );
+    event TokensSentToStellar(bytes hookData);
 
     event TokensSentExtras(bytes32 recipientWalletAddress);
 
@@ -119,23 +110,16 @@ contract CctpV2Bridge is GasUsage {
         uint destinationChainId,
         uint relayerFeeTokenAmount
     ) public payable {
-        require(amount > relayerFeeTokenAmount, "CCTP: Amount <= relayer fee");
         require(recipient != 0, "CCTP: Recipient must be nonzero");
-        token.safeTransferFrom(msg.sender, address(this), amount);
-        uint gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
-        uint relayerFee = this.getTransactionCost(destinationChainId);
-        require(msg.value + gasFromStables >= relayerFee, "CCTP: Not enough fee");
-        uint amountToSend = amount - relayerFeeTokenAmount;
-        uint adminFee;
-        if (adminFeeShareBP != 0) {
-            adminFee = (amountToSend * adminFeeShareBP) / BP;
-            if (adminFee == 0) {
-                adminFee = 1;
-            }
-            amountToSend -= adminFee;
-        }
-        uint maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
-        uint32 destinationDomain = getDomainByChainId(destinationChainId);
+        require(destinationChainId != stellarChainId, "CCTP: Use bridgeToStellar");
+        (
+            uint amountToSend,
+            uint adminFee,
+            uint maxFee,
+            uint gasFromStables,
+            uint relayerFee,
+            uint32 destinationDomain
+        ) = _receiveTokensAndFee(amount, relayerFeeTokenAmount, destinationChainId);
         cctpMessenger.depositForBurn(
             amountToSend,
             destinationDomain,
@@ -177,48 +161,37 @@ contract CctpV2Bridge is GasUsage {
     }
 
     /**
-     * @notice Initiates a CCTPv2 transfer with hook data.
+     * @notice Initiates a CCTPv2 transfer to Stellar with the final recipient encoded in the hook data.
+     * @dev Tokens are minted to the registered Stellar bridge contract (`otherBridges[stellarChainId]`),
+     * which forwards them to the recipient parsed from `hookData`.
      * @param amount The amount of tokens to send (including `relayerFeeTokenAmount`).
-     * @param mintRecipient The destination mint recipient, usually the destination bridge/forwarder contract.
-     * @param destinationChainId The ID of the destination chain.
      * @param relayerFeeTokenAmount The amount of tokens to be deducted from the transferred amount as a bridging fee.
      * @param hookData Hook data to pass as is to CCTP messenger.
      */
-    function bridgeWithHook(
-        uint amount,
-        bytes32 mintRecipient,
-        uint destinationChainId,
-        uint relayerFeeTokenAmount,
-        bytes calldata hookData
-    ) external payable {
-        require(amount > relayerFeeTokenAmount, "CCTP: Amount <= relayer fee");
+    function bridgeToStellar(uint amount, uint relayerFeeTokenAmount, bytes calldata hookData) external payable {
+        uint destinationChainId = stellarChainId;
+        require(destinationChainId != 0, "CCTP: Stellar is disabled");
+        bytes32 mintRecipient = otherBridges[destinationChainId];
         require(mintRecipient != 0, "CCTP: Recipient must be nonzero");
-        token.safeTransferFrom(msg.sender, address(this), amount);
-        uint gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
-        uint relayerFee = this.getTransactionCost(destinationChainId);
-        require(msg.value + gasFromStables >= relayerFee, "CCTP: Not enough fee");
-        uint amountToSend = amount - relayerFeeTokenAmount;
-        uint adminFee;
-        if (adminFeeShareBP != 0) {
-            adminFee = (amountToSend * adminFeeShareBP) / BP;
-            if (adminFee == 0) {
-                adminFee = 1;
-            }
-            amountToSend -= adminFee;
-        }
-        uint maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
-        uint32 destinationDomain = getDomainByChainId(destinationChainId);
+        (
+            uint amountToSend,
+            uint adminFee,
+            uint maxFee,
+            uint gasFromStables,
+            uint relayerFee,
+            uint32 destinationDomain
+        ) = _receiveTokensAndFee(amount, relayerFeeTokenAmount, destinationChainId);
         cctpMessenger.depositForBurnWithHook(
             amountToSend,
             destinationDomain,
             mintRecipient,
             address(token),
-            otherBridges[destinationChainId],
+            mintRecipient,
             maxFee,
             minFinalityThreshold,
             hookData
         );
-        emit TokensSentWithHook(
+        emit TokensSent(
             msg.sender,
             mintRecipient,
             amountToSend,
@@ -228,9 +201,45 @@ contract CctpV2Bridge is GasUsage {
             relayerFee,
             relayerFeeTokenAmount,
             adminFee,
-            maxFee,
-            hookData
+            maxFee
         );
+        emit TokensSentToStellar(hookData);
+    }
+
+    /**
+     * @dev Common part of the bridging flow: pulls `amount` of tokens from the caller,
+     * validates the bridging fee and calculates the transfer amounts.
+     */
+    function _receiveTokensAndFee(
+        uint amount,
+        uint relayerFeeTokenAmount,
+        uint destinationChainId
+    )
+        internal
+        returns (
+            uint amountToSend,
+            uint adminFee,
+            uint maxFee,
+            uint gasFromStables,
+            uint relayerFee,
+            uint32 destinationDomain
+        )
+    {
+        require(amount > relayerFeeTokenAmount, "CCTP: Amount <= relayer fee");
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        gasFromStables = _getStableTokensValueInGas(relayerFeeTokenAmount);
+        relayerFee = this.getTransactionCost(destinationChainId);
+        require(msg.value + gasFromStables >= relayerFee, "CCTP: Not enough fee");
+        amountToSend = amount - relayerFeeTokenAmount;
+        if (adminFeeShareBP != 0) {
+            adminFee = (amountToSend * adminFeeShareBP) / BP;
+            if (adminFee == 0) {
+                adminFee = 1;
+            }
+            amountToSend -= adminFee;
+        }
+        maxFee = (amountToSend * maxFeeShare) / MAX_FEE_SHARE_P + 1;
+        destinationDomain = getDomainByChainId(destinationChainId);
     }
 
     /**
@@ -275,6 +284,14 @@ contract CctpV2Bridge is GasUsage {
      */
     function unregisterBridgeDestination(uint chainId_) external onlyOwner {
         chainIdDomainMap[chainId_] = 0;
+    }
+
+    /**
+     * @notice Allows the admin to set the destination chain ID used by `bridgeToStellar`.
+     * @param stellarChainId_ The Stellar chain ID, or zero to disable bridging to Stellar.
+     */
+    function setStellarChainId(uint64 stellarChainId_) external onlyOwner {
+        stellarChainId = stellarChainId_;
     }
 
     /**

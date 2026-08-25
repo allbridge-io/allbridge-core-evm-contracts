@@ -13,10 +13,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { Big } from 'big.js';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
-import {
-  sorobanAddressToBytes32,
-  getCctpToStellarHookData,
-} from '../scripts/helper';
+import { getCctpToStellarHookData } from '../scripts/helper';
 
 const CURRENT_CHAIN_ID = 1;
 const OTHER_CHAIN_ID = 2;
@@ -299,25 +296,17 @@ describe('CctpV2Bridge', () => {
         .withArgs(recipientWalletAddress);
     });
 
-    it('Success with hook: should pass raw destination address as hook data', async () => {
+    it('Success with hook: should send tokens to the registered Stellar bridge with hook data', async () => {
       const value = parseUnits('0.001', currentChainPrecision);
       const relayerFeeTokenAmount = '0';
-      const destinationBridgeAddress =
-        'CDZZZTN6RXOWY2WDJV2GLFAV76YKAIRFPNB4EABMFAVJQ5DCZIAE4DYA';
-      const mintRecipient = sorobanAddressToBytes32(destinationBridgeAddress);
       const hookData =
         '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
 
+      await cctpV2Bridge.setStellarChainId(OTHER_CHAIN_ID);
+
       const tx = await cctpV2Bridge
         .connect(user)
-        .bridgeWithHook(
-          amount,
-          mintRecipient,
-          OTHER_CHAIN_ID,
-          relayerFeeTokenAmount,
-          hookData,
-          { value },
-        );
+        .bridgeToStellar(amount, relayerFeeTokenAmount, hookData, { value });
 
       const maxFee = calcMaxFee(amount, relayerFeeTokenAmount);
 
@@ -326,7 +315,7 @@ describe('CctpV2Bridge', () => {
         .withArgs(
           amount,
           OTHER_DOMAIN,
-          mintRecipient,
+          destinationCaller,
           token.address,
           destinationCaller,
           maxFee,
@@ -335,10 +324,10 @@ describe('CctpV2Bridge', () => {
         );
 
       await expect(tx)
-        .to.emit(cctpV2Bridge, 'TokensSentWithHook')
+        .to.emit(cctpV2Bridge, 'TokensSent')
         .withArgs(
           user.address,
-          mintRecipient,
+          destinationCaller,
           amount,
           OTHER_CHAIN_ID,
           value,
@@ -347,8 +336,40 @@ describe('CctpV2Bridge', () => {
           relayerFeeTokenAmount,
           '0',
           maxFee,
-          hookData,
         );
+
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'TokensSentToStellar')
+        .withArgs(hookData);
+    });
+
+    it('Failure: bridgeToStellar should revert when the Stellar chain ID is not configured', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const hookData = '0x12345678';
+
+      await expect(
+        cctpV2Bridge
+          .connect(user)
+          .bridgeToStellar(amount, '0', hookData, { value }),
+      ).to.be.revertedWith('CCTP: Stellar is disabled');
+    });
+
+    it('Failure: setStellarChainId should revert when called by not an owner', async () => {
+      await expect(
+        cctpV2Bridge.connect(user).setStellarChainId(OTHER_CHAIN_ID),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+
+    it('Failure: bridge should revert when the destination is the Stellar chain', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+
+      await cctpV2Bridge.setStellarChainId(OTHER_CHAIN_ID);
+
+      await expect(
+        cctpV2Bridge
+          .connect(user)
+          .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value }),
+      ).to.be.revertedWith('CCTP: Use bridgeToStellar');
     });
 
     it('Success: should charge admin fee', async () => {

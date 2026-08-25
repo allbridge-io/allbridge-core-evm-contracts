@@ -3,7 +3,6 @@ import {
   addressToBytes32,
   getEnv,
   handleTransactionResult,
-  sorobanAddressToBytes32,
   solanaAddressToBytes32,
   SRB_CHAIN_ID,
   getCctpToStellarHookData,
@@ -20,8 +19,6 @@ const destinationChainId: number = 7;
 const totalTokens = '1.0';
 const extraGas = parseEther('0.0');
 /* cSpell:disable */
-const SRB_BRIDGE_ADDRESS =
-  'CAYUCAP2ORC5PSASKC63MQGMB6X62YXDADCSPDBZNHHHG33GKNZUYROB';
 const SRB_FINAL_RECIPIENT = 'GA7BQD4JKXZML7FVKJ25MDVEQPV56VDBMCBXDMEZQ6FMPBEMV6Q6MKTC';
 /* cSpell:enable */
 
@@ -71,10 +68,8 @@ async function main() {
   const recipientHex32 = recipient ?? addressToBytes32(signer.address);
   try {
     if (destinationChainId === SRB_CHAIN_ID) {
-      const result = await CctpV2Bridge.bridgeWithHook(
+      const result = await CctpV2Bridge.bridgeToStellar(
         totalTokensAmount,
-        sorobanAddressToBytes32(SRB_BRIDGE_ADDRESS),
-        destinationChainId,
         '0',
         getCctpToStellarHookData(SRB_FINAL_RECIPIENT),
         { value: bridgingFee.add(extraGas) },
