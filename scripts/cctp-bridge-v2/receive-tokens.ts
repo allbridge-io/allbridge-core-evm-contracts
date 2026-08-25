@@ -3,8 +3,8 @@ import { getEnv, handleTransactionResult } from '../helper';
 
 const extraGasAmount = 1000000000000n;
 const isTestnet = true;
-const sendTxId = '0x1ffeca530f29fe9df45579fe14996de50f1db58e4acd08d75bd2accb8461c82f';
-const sendDomain = '0';
+const sendTxId = '0xfaed602acb8203e5279b01807655f698836cca31c709bb55c3002e522596d663';
+const sendDomain = '27';
 const recipient = '';
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
   const CctpV2Bridge = await ethers.getContractAt('CctpV2Bridge', CctpV2BridgeAddress);
   const signature = await getSignature(sendDomain, sendTxId);
 
-  const recipientAddress = recipient ?? signer.address;
+  const recipientAddress = recipient || signer.address;
   const messageId = +sendDomain === 5 ? ethers.utils.keccak256(Buffer.from(signature.message)) : sendTxId;
   const result = await CctpV2Bridge.receiveTokens(
     recipientAddress,
@@ -31,7 +31,7 @@ async function getSignature(sourceDomainId: string, txId: string): Promise<{ mes
   while (message?.status !== 'complete') {
     console.log('Request signature...');
     const irisUrl = isTestnet ? 'https://iris-api-sandbox.circle.com' : 'https://iris-api.circle.com';
-    const url = `${irisUrl}/v2/messages/${sourceDomainId}?transactionHash=${txId}`;
+    const url = `${irisUrl}/v2/messages/${sourceDomainId}?transactionHash=${txId.replace(/^0x/i, '')}`;
     const response = await fetch(url);
     const json = await response.json();
     message = json?.messages?.[0] as any;

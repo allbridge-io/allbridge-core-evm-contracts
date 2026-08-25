@@ -3,8 +3,8 @@ import { assert, expect } from 'chai';
 import {
   CctpV2Bridge,
   MockGasOracle,
-  MockTokenMessengerV2,
   MockReceiver,
+  MockTokenMessengerV2,
   Token,
 } from '../typechain';
 import { addressToBase32, encodeAsHex } from './utils';
@@ -13,6 +13,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { Big } from 'big.js';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
+import { getCctpToStellarHookData } from '../scripts/helper';
 
 const CURRENT_CHAIN_ID = 1;
 const OTHER_CHAIN_ID = 2;
@@ -293,6 +294,82 @@ describe('CctpV2Bridge', () => {
       await expect(tx)
         .to.emit(cctpV2Bridge, 'TokensSentExtras')
         .withArgs(recipientWalletAddress);
+    });
+
+    it('Success with hook: should send tokens to the registered Stellar bridge with hook data', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const relayerFeeTokenAmount = '0';
+      const hookData =
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+
+      await cctpV2Bridge.setStellarChainId(OTHER_CHAIN_ID);
+
+      const tx = await cctpV2Bridge
+        .connect(user)
+        .bridgeToStellar(amount, relayerFeeTokenAmount, hookData, { value });
+
+      const maxFee = calcMaxFee(amount, relayerFeeTokenAmount);
+
+      await expect(tx)
+        .to.emit(mockedCctpMessengerV2, 'DepositForBurnWithHookEvent')
+        .withArgs(
+          amount,
+          OTHER_DOMAIN,
+          destinationCaller,
+          token.address,
+          destinationCaller,
+          maxFee,
+          1000,
+          hookData,
+        );
+
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'TokensSent')
+        .withArgs(
+          user.address,
+          destinationCaller,
+          amount,
+          OTHER_CHAIN_ID,
+          value,
+          '0',
+          costOfFinalizingTransfer,
+          relayerFeeTokenAmount,
+          '0',
+          maxFee,
+        );
+
+      await expect(tx)
+        .to.emit(cctpV2Bridge, 'TokensSentToStellar')
+        .withArgs(hookData);
+    });
+
+    it('Failure: bridgeToStellar should revert when the Stellar chain ID is not configured', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+      const hookData = '0x12345678';
+
+      await expect(
+        cctpV2Bridge
+          .connect(user)
+          .bridgeToStellar(amount, '0', hookData, { value }),
+      ).to.be.revertedWith('CCTP: Stellar is disabled');
+    });
+
+    it('Failure: setStellarChainId should revert when called by not an owner', async () => {
+      await expect(
+        cctpV2Bridge.connect(user).setStellarChainId(OTHER_CHAIN_ID),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+
+    it('Failure: bridge should revert when the destination is the Stellar chain', async () => {
+      const value = parseUnits('0.001', currentChainPrecision);
+
+      await cctpV2Bridge.setStellarChainId(OTHER_CHAIN_ID);
+
+      await expect(
+        cctpV2Bridge
+          .connect(user)
+          .bridge(amount, recipient, OTHER_CHAIN_ID, '0', { value }),
+      ).to.be.revertedWith('CCTP: Use bridgeToStellar');
     });
 
     it('Success: should charge admin fee', async () => {
@@ -689,5 +766,17 @@ describe('CctpV2Bridge', () => {
         ).revertedWith('Ownable: caller is not the owner');
       });
     });
+  });
+});
+
+describe('getCctpToStellarHookData', () => {
+  it('encodes the Stellar recipient length and address bytes', () => {
+    expect(
+      getCctpToStellarHookData(
+        'GAO3KTIUR3F6NN7WSBC5M7X2BWKRYD7VC7PP3G2NKEYEDPKHDIBAXQT6',
+      ),
+    ).to.equal(
+      '0x0000003847414f334b544955523346364e4e3757534243354d37583242574b5259443756433750503347324e4b45594544504b484449424158515436',
+    );
   });
 });

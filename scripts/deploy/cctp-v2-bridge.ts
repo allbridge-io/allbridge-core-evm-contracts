@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat';
 import { getEnv, handleDeployResult } from '../helper';
+// @ts-ignore
 import { assertContainsSafeERC20, loadSolSource } from '../utils/code-asserts';
 
 const CHAIN_PRECISION = 18;

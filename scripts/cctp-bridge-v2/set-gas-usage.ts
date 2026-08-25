@@ -7,6 +7,7 @@ map.set("Solana devnet", [4, 200_000]);
 map.set("Polygon PoS Amoy", [5, 200_000]);
 map.set("Arbitrum Sepolia", [6, 200_000]);
 map.set("Avalanche Fuji", [9, 200_000]);
+map.set('Stellar Testnet', [7, 200_000]);
 
 async function main() {
   const currentChainId = getEnv('CHAIN_ID');

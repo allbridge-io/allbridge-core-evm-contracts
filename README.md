@@ -104,14 +104,15 @@ Config:
 Deploy:
 
 - Add to env file `USDC_ADDRESS`, `GAS_ORACLE_ADDRESS`, `CCTP_V2_MESSENGER_ADDRESS`, `CCTP_V2_TRANSMITTER_ADDRESS`
-- CCTPv2 Bridge `npx hardhat run scripts/deploy/cctp-v2-bridge.ts --network sepolia`
+- Deploy CCTPv2 Bridge: `npx hardhat run scripts/deploy/cctp-v2-bridge.ts --network sepolia`
+- Add the deployed address to env file as `CCTP_V2_BRIDGE_ADDRESS`
 
 Config:
 
-- Add to env file `CCTP_V2_BRIDGE_ADDRESS`
 - Update script `scripts/cctp-bridge-v2/register-bridge-destination.ts` with a list of chain IDs, domains, and deployed CCTPv2 bridges
-- Register destination domains and bridges `npx hardhat run scripts/cctp-bridge-v2/register-bridge-destination.ts --network sepolia`
+- Register destination domains and bridges: `npx hardhat run scripts/cctp-bridge-v2/register-bridge-destination.ts --network sepolia`
 - Set bridge gas usage (check args): `npx hardhat run scripts/cctp-bridge-v2/set-gas-usage.ts --network sepolia`
+- Set the Stellar chain ID to enable `bridgeToStellar` (check args): `npx hardhat run scripts/cctp-bridge-v2/set-stellar-chain-id.ts --network sepolia`
 - Add to env file `CCTP_FEE_BP`
 - Set admin fee: `npx hardhat run scripts/cctp-bridge-v2/set-admin-fee.ts --network sepolia`
 
